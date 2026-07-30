@@ -1,0 +1,6 @@
+{
+  "name": "D.GO - Gọi Lái 247",
+  "description": "Dịch vụ lái xe hộ an toàn, uy tín, phục vụ 24/7 - Đặt xe & tính cước tự động",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

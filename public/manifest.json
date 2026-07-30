@@ -1,0 +1,22 @@
+{
+  "short_name": "D.GO 247",
+  "name": "D.GO 247 - Dịch Vụ Lái Xe Hộ",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "Dịch vụ lái xe hộ an toàn - Uy tín - Phục vụ 24/7"
+}

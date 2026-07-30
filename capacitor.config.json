@@ -1,0 +1,13 @@
+{
+  "appId": "com.goilai247.dgo",
+  "appName": "D.GO 247",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "Geolocation": {
+      "permissions": ["location"]
+    }
+  }
+}
