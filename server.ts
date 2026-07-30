@@ -343,18 +343,83 @@ app.get("/api/geocode/reverse", async (req, res) => {
   }
 });
 
-// Proxy route for OSRM Route (driving route between 2 lat/lng points)
+// Proxy route for Driving Route & Distance Calculation (Google Maps Directions / Distance Matrix API with OSRM fallback)
 app.get("/api/route", async (req, res) => {
   try {
-    const { startLat, startLng, endLat, endLng } = req.query;
-    if (!startLat || !startLng || !endLat || !endLng) {
-      return res.status(400).json({ error: "Missing start or end coordinates" });
+    const { startLat, startLng, endLat, endLng, origin, destination } = req.query;
+    if ((!startLat || !startLng || !endLat || !endLng) && (!origin || !destination)) {
+      return res.status(400).json({ error: "Missing start or end location coordinates/addresses" });
     }
 
-    const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
-    const response = await fetch(url);
-    const data = await response.json();
-    res.json(data);
+    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
+
+    // 1. Try Google Maps Directions API if key is available
+    if (googleApiKey) {
+      try {
+        const originParam = (startLat && startLng) ? `${startLat},${startLng}` : encodeURIComponent(String(origin));
+        const destParam = (endLat && endLng) ? `${endLat},${endLng}` : encodeURIComponent(String(destination));
+        
+        const googleDirUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${originParam}&destination=${destParam}&mode=driving&language=vi&key=${googleApiKey}`;
+        const gRes = await fetch(googleDirUrl);
+        const gData = await gRes.json();
+
+        if (gData.status === 'OK' && gData.routes && gData.routes[0] && gData.routes[0].legs && gData.routes[0].legs[0]) {
+          const leg = gData.routes[0].legs[0];
+          const distanceMeters = leg.distance ? leg.distance.value : 0;
+          const distanceKm = Math.round((distanceMeters / 1000) * 10) / 10;
+          const durationSeconds = leg.duration ? leg.duration.value : 0;
+          const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
+
+          return res.json({
+            success: true,
+            source: 'google_directions',
+            distanceMeters,
+            distanceKm,
+            distanceText: leg.distance ? leg.distance.text : `${distanceKm} km`,
+            durationSeconds,
+            durationMinutes,
+            durationText: leg.duration ? leg.duration.text : `${durationMinutes} phút`,
+            startAddress: leg.start_address,
+            endAddress: leg.end_address,
+            polyline: gData.routes[0].overview_polyline ? gData.routes[0].overview_polyline.points : null,
+            routes: gData.routes
+          });
+        }
+      } catch (gErr) {
+        console.warn('Google Directions API failed, trying OSRM fallback:', gErr);
+      }
+    }
+
+    // 2. Fallback to OSRM Driving Route API
+    if (startLat && startLng && endLat && endLng) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data && data.routes && data.routes[0]) {
+        const route = data.routes[0];
+        const distanceMeters = route.distance || 0;
+        const distanceKm = Math.round((distanceMeters / 1000) * 10) / 10;
+        const durationSeconds = route.duration || 0;
+        const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
+
+        return res.json({
+          success: true,
+          source: 'osrm',
+          distanceMeters,
+          distanceKm,
+          distanceText: `${distanceKm} km`,
+          durationSeconds,
+          durationMinutes,
+          durationText: `${durationMinutes} phút`,
+          routes: data.routes
+        });
+      }
+
+      return res.json(data);
+    }
+
+    res.status(400).json({ error: "Could not calculate driving distance with given parameters" });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

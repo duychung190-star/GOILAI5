@@ -40,7 +40,8 @@ export class PriceCalculator {
     isHourly: boolean = false,
     hourlyHours: number = 3,
     scheduledTimeDate: Date = new Date(),
-    needVat: boolean = false
+    needVat: boolean = false,
+    roadDurationMinutes: number | null = null
   ): PriceBreakdown {
     let basePrice = 0;
 
@@ -132,11 +133,13 @@ export class PriceCalculator {
 
     const totalPrice = totalBeforeVat + vatAmount;
 
-    // Ước tính thời gian di chuyển (trung bình 25-30km/h trong thành phố)
+    // Ước tính thời gian di chuyển bằng ô tô
     const estimatedMinutes = isHourly || vehicleType === 'Thuê theo giờ'
       ? hourlyHours * 60
+      : (roadDurationMinutes !== null && roadDurationMinutes > 0)
+      ? roadDurationMinutes
       : distanceKm > 0
-      ? Math.max(8, Math.round((distanceKm / 28) * 60))
+      ? Math.max(5, Math.round((distanceKm / 28) * 60))
       : 0;
 
     return {

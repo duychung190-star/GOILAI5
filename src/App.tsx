@@ -97,28 +97,58 @@ export default function App() {
     localStorage.setItem('dgo_booking_history', JSON.stringify(bookingHistory));
   }, [bookingHistory]);
 
-  // Road OSRM distance override state (if fetched from server API)
+  // Road distance & duration state (from Google Maps Directions API / OSRM)
   const [roadDistanceKm, setRoadDistanceKm] = useState<number | null>(null);
+  const [roadDurationMinutes, setRoadDurationMinutes] = useState<number | null>(null);
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
-  // Fetch precise driving route distance from backend API when coordinates change
+  // Fetch precise driving route distance and duration from backend API when pickup or destination changes
   useEffect(() => {
-    if (pickup?.lat && pickup?.lng && destination?.lat && destination?.lng) {
-      fetch(`/api/route?startLat=${pickup.lat}&startLng=${pickup.lng}&endLat=${destination.lat}&endLng=${destination.lng}`)
+    if ((pickup?.lat && pickup?.lng && destination?.lat && destination?.lng) || (pickup?.address && destination?.address)) {
+      setIsCalculatingRoute(true);
+      const params = new URLSearchParams();
+      if (pickup?.lat && pickup?.lng) {
+        params.append('startLat', pickup.lat.toString());
+        params.append('startLng', pickup.lng.toString());
+      }
+      if (destination?.lat && destination?.lng) {
+        params.append('endLat', destination.lat.toString());
+        params.append('endLng', destination.lng.toString());
+      }
+      if (pickup?.address) params.append('origin', pickup.address);
+      if (destination?.address) params.append('destination', destination.address);
+
+      fetch(`/api/route?${params.toString()}`)
         .then(res => res.json())
         .then(data => {
-          if (data && data.routes && data.routes[0]) {
-            const meters = data.routes[0].distance;
+          if (data && typeof data.distanceKm === 'number' && data.distanceKm > 0) {
+            setRoadDistanceKm(data.distanceKm);
+            if (typeof data.durationMinutes === 'number') {
+              setRoadDurationMinutes(data.durationMinutes);
+            }
+          } else if (data && data.routes && data.routes[0]) {
+            const meters = data.routes[0].distance || (data.routes[0].legs && data.routes[0].legs[0]?.distance?.value);
             const km = Math.round((meters / 1000) * 10) / 10;
             setRoadDistanceKm(km);
+            const secs = data.routes[0].duration || (data.routes[0].legs && data.routes[0].legs[0]?.duration?.value);
+            if (secs) {
+              setRoadDurationMinutes(Math.round(secs / 60));
+            }
           } else {
             setRoadDistanceKm(null);
+            setRoadDurationMinutes(null);
           }
         })
-        .catch(() => setRoadDistanceKm(null));
+        .catch(() => {
+          setRoadDistanceKm(null);
+          setRoadDurationMinutes(null);
+        })
+        .finally(() => setIsCalculatingRoute(false));
     } else {
       setRoadDistanceKm(null);
+      setRoadDurationMinutes(null);
     }
-  }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng]);
+  }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, pickup?.address, destination?.address]);
 
   // Calculate Distance & Price dynamically
   const calculatedDistanceKm = useMemo(() => {
@@ -136,9 +166,10 @@ export default function App() {
       vehicleType === 'Thuê theo giờ',
       hourlyHours,
       scheduledTime,
-      needVat
+      needVat,
+      roadDurationMinutes
     );
-  }, [calculatedDistanceKm, vehicleType, hourlyHours, scheduledTime, needVat]);
+  }, [calculatedDistanceKm, vehicleType, hourlyHours, scheduledTime, needVat, roadDurationMinutes]);
 
   // Handle Map Location Selection via map click
   const handleSelectMapLocation = async (lat: number, lng: number, target: 'pickup' | 'destination') => {
@@ -326,6 +357,8 @@ export default function App() {
               setNeedVat={setNeedVat}
               vatDetails={vatDetails}
               setVatDetails={setVatDetails}
+              priceBreakdown={priceBreakdown}
+              isCalculatingRoute={isCalculatingRoute}
               onFormValidationFail={(msg) => setValidationError(msg)}
             />
           </div>
