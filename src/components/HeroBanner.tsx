@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Clock, Award, Sparkles, CheckCircle2 } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
+import headerBgImg from '../assets/images/header_bg_banner_1785395640428.jpg';
 
 interface HeroBannerProps {
   onOpenPriceTable: () => void;
@@ -8,10 +9,23 @@ interface HeroBannerProps {
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-8 pb-10 border-b border-slate-800/80">
+    <div className="relative overflow-hidden bg-slate-950 pt-8 pb-10 border-b border-slate-800/80">
       
+      {/* Header Background Image Overlay */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img
+          src={headerBgImg}
+          alt="D.GO Gọi Lái Xe 247 Background"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center opacity-70 brightness-105 contrast-105 scale-105 transition-all duration-700"
+        />
+        {/* Lighter Gradient Overlay for Increased Image Visibility & Sharp Contrast */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/50 to-slate-950/85" />
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-950/30 to-slate-950/80" />
+      </div>
+
       {/* Subtle Background Glow Accent */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-72 bg-gradient-to-r from-blue-600/15 via-amber-500/15 to-cyan-500/15 blur-[110px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-72 bg-gradient-to-r from-blue-600/20 via-amber-500/20 to-cyan-500/20 blur-[110px] pointer-events-none rounded-full z-0" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto space-y-5">
