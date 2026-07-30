@@ -123,7 +123,7 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
               <div>
                 <p className="font-bold text-slate-200">Ghi chú quan trọng về phí chờ & điểm dừng:</p>
                 <p className="mt-1">
-                  - Bảng giá trên chưa bao gồm phát sinh thời gian chờ (+60.000đ/h trước 20:00 và +80.000đ/h sau 20:00).
+                  - Bảng giá trên chưa bao gồm phát sinh thời gian chờ (đồng giá +60.000đ/giờ chờ).
                 </p>
                 <p>
                   - Phụ phí phát sinh khi thêm điểm đón / trả khách trên đường đi.

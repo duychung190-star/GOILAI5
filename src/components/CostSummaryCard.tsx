@@ -90,7 +90,7 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent p-4 rounded-xl border border-amber-500/40 flex items-center justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-wider text-amber-400">TỔNG TIỀN DỰ KIẾN</p>
-              <p className="text-[11px] text-slate-400">Đã bao gồm lái xe & xăng xe</p>
+              <p className="text-[11px] text-slate-400">Chưa bao gồm VAT</p>
             </div>
             <div className="text-right">
               <span className="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight">
@@ -109,7 +109,7 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           <div>
             <span className="font-bold text-slate-300">Lưu ý phí thời gian chờ & phát sinh:</span>
             <p className="mt-0.5 text-slate-400">
-              Giá trên <strong className="text-slate-200">chưa bao gồm</strong> phát sinh thời gian chờ cho tài xế (+60.000 VNĐ/giờ trước 20:00 và +80.000 VNĐ/giờ sau 20:00). Phí phát sinh khi quý khách có thêm điểm dừng/đón phụ.
+              Giá trên <strong className="text-slate-200">chưa bao gồm</strong> phát sinh thời gian chờ cho tài xế (đồng giá +60.000 VNĐ/giờ chờ). Phí phát sinh khi quý khách có thêm điểm dừng/đón phụ.
             </p>
             <p className="mt-1 font-semibold text-amber-400">
               📞 Vui lòng liên hệ hotline <a href="tel:0971999734" className="underline hover:text-amber-300">0971.999.734</a> để được tư vấn chi tiết.
