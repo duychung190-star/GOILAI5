@@ -153,12 +153,33 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         try {
           const res = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
           const data = await res.json();
-          const address = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          let address = data.display_name;
+
+          // If server response is empty or raw coords, attempt direct client-side reverse geocoding
+          if (!address || address.includes('(') && address.includes(')')) {
+            try {
+              const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=vi`);
+              const nomData = await nomRes.json();
+              if (nomData && nomData.display_name) {
+                address = nomData.display_name
+                  .replace(/, \d{5,6}/g, '')
+                  .replace(/, Việt Nam$/gi, '')
+                  .trim();
+              }
+            } catch {
+              // Ignore client fetch error
+            }
+          }
+
+          if (!address) {
+            address = `Vị trí điểm đón GPS`;
+          }
           
           setPickupInput(address);
           setPickup({ address, lat, lng });
         } catch (err) {
-          const fallbackAddress = `Vị trí hiện tại (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+          console.error("GPS Reverse Geocoding Error:", err);
+          const fallbackAddress = `Vị trí điểm đón hiện tại`;
           setPickupInput(fallbackAddress);
           setPickup({ address: fallbackAddress, lat, lng });
         } finally {
@@ -169,11 +190,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         setIsLoadingGps(false);
         let msg = 'Không thể lấy vị trí GPS hiện tại.';
         if (error.code === error.PERMISSION_DENIED) {
-          msg = 'Vui lòng cho phép ứng dụng truy cập quyền vị trí GPS (ACCESS_FINE_LOCATION) trên thiết bị.';
+          msg = 'Vui lòng cho phép ứng dụng truy cập quyền vị trí GPS trên thiết bị hoặc trình duyệt của bạn.';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          msg = 'Tín hiệu GPS không khả dụng. Vui lòng bật định vị vị trí trên thiết bị.';
+        } else if (error.code === error.TIMEOUT) {
+          msg = 'Hết thời gian chờ định vị GPS. Vui lòng thử lại.';
         }
         onFormValidationFail(msg);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
 

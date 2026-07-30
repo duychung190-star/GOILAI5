@@ -145,7 +145,7 @@ export default function App() {
     try {
       const res = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
       const data = await res.json();
-      const address = data.display_name || `Vị trí (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      const address = data.display_name || (target === 'pickup' ? 'Vị trí điểm đón đã chọn' : 'Vị trí điểm đến đã chọn');
 
       if (target === 'pickup') {
         setPickup({ address, lat, lng });
@@ -153,7 +153,7 @@ export default function App() {
         setDestination({ address, lat, lng });
       }
     } catch {
-      const fallback = `Tọa độ (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      const fallback = target === 'pickup' ? 'Vị trí điểm đón trên bản đồ' : 'Vị trí điểm đến trên bản đồ';
       if (target === 'pickup') {
         setPickup({ address: fallback, lat, lng });
       } else {

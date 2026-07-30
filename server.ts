@@ -139,19 +139,124 @@ app.patch("/api/booking/:id/status", (req, res) => {
   }
 });
 
+// Helper to format Nominatim response into a clean, human-readable Vietnamese address
+function formatNominatimAddress(data: any): string {
+  if (!data || typeof data !== 'object') return '';
+  const addr = data.address;
+  if (!addr) {
+    let name = data.display_name || '';
+    return name.replace(/, \d{5,6}/g, '').replace(/, Việt Nam$/gi, '').trim();
+  }
+
+  const parts: string[] = [];
+
+  // 1. POI / Building / Amenity name
+  const poi = addr.amenity || addr.building || addr.shop || addr.office || addr.tourism || addr.historic || addr.leisure || addr.hospital || addr.school || addr.hotel;
+  
+  // 2. House number & Street
+  const house = addr.house_number || '';
+  const road = addr.road || addr.street || addr.pedestrian || addr.footway || addr.path || '';
+
+  if (poi && poi.trim().length > 0) {
+    parts.push(poi.trim());
+  }
+
+  if (house && road) {
+    parts.push(`Số ${house} ${road}`.trim());
+  } else if (road) {
+    parts.push(road.trim());
+  } else if (house) {
+    parts.push(`Số ${house}`.trim());
+  }
+
+  // 3. Ward / Suburb / Quarter / Village
+  const wardRaw = addr.suburb || addr.quarter || addr.neighbourhood || addr.village || addr.subdistrict || addr.hamlet || addr.residential || '';
+  if (wardRaw && wardRaw.trim().length > 0) {
+    const ward = wardRaw.trim();
+    if (!/^(Phường|Xã|Thị trấn)/i.test(ward)) {
+      parts.push(`Phường ${ward}`);
+    } else {
+      parts.push(ward);
+    }
+  }
+
+  // 4. District / County / City District
+  const districtRaw = addr.city_district || addr.district || addr.county || addr.town || '';
+  if (districtRaw && districtRaw.trim().length > 0) {
+    const district = districtRaw.trim();
+    if (!/^(Quận|Huyện|Thị xã|Thành phố)/i.test(district)) {
+      parts.push(`Quận ${district}`);
+    } else {
+      parts.push(district);
+    }
+  }
+
+  // 5. City / Province / State
+  const cityRaw = addr.city || addr.state || addr.province || '';
+  if (cityRaw && cityRaw.trim().length > 0) {
+    const city = cityRaw.trim();
+    parts.push(city);
+  }
+
+  if (parts.length >= 2) {
+    return parts.join(', ');
+  }
+
+  // If parsed parts are too short, clean up display_name
+  let displayName = data.display_name || '';
+  displayName = displayName
+    .replace(/, \d{5,6}/g, '')
+    .replace(/, Việt Nam$/gi, '')
+    .trim();
+
+  return displayName || parts.join(', ') || '';
+}
+
 // Proxy route for Nominatim OpenStreetMap Geocoding (search places in Vietnam)
 app.get("/api/geocode/search", async (req, res) => {
   try {
     const query = req.query.q as string;
     if (!query) return res.json([]);
 
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=5&addressdetails=1`;
+    // Check Google Maps API Key if available
+    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (googleApiKey) {
+      try {
+        const gUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&components=country:VN&key=${googleApiKey}&language=vi`;
+        const gRes = await fetch(gUrl);
+        const gData = await gRes.json();
+        if (gData.status === 'OK' && gData.results && gData.results.length > 0) {
+          const formatted = gData.results.map((item: any, idx: number) => ({
+            place_id: item.place_id || idx,
+            display_name: item.formatted_address,
+            lat: item.geometry.location.lat,
+            lon: item.geometry.location.lng
+          }));
+          return res.json(formatted);
+        }
+      } catch (gErr) {
+        console.warn('Google Maps Geocoding search fallback:', gErr);
+      }
+    }
+
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=5&addressdetails=1&accept-language=vi`;
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'DGO-GoiLai247-App/1.0'
+        'User-Agent': 'DGO-GoiLai247-App/1.0 (contact@dgo247.vn)',
+        'Accept-Language': 'vi-VN,vi;q=0.9,en;q=0.8'
       }
     });
     const data = await response.json();
+    if (Array.isArray(data)) {
+      const formatted = data.map((item: any) => {
+        const customAddr = formatNominatimAddress(item);
+        return {
+          ...item,
+          display_name: customAddr || item.display_name
+        };
+      });
+      return res.json(formatted);
+    }
     res.json(data);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -164,14 +269,75 @@ app.get("/api/geocode/reverse", async (req, res) => {
     const { lat, lng } = req.query;
     if (!lat || !lng) return res.status(400).json({ error: "Missing lat/lng" });
 
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'DGO-GoiLai247-App/1.0'
+    // 1. Try Google Maps Geocoding API if key is set
+    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (googleApiKey) {
+      try {
+        const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleApiKey}&language=vi`;
+        const gRes = await fetch(googleUrl);
+        const gData = await gRes.json();
+        if (gData.status === 'OK' && gData.results && gData.results.length > 0) {
+          const formattedAddress = gData.results[0].formatted_address;
+          return res.json({
+            display_name: formattedAddress,
+            source: 'google',
+            raw: gData.results[0]
+          });
+        }
+      } catch (gErr) {
+        console.warn('Google Maps reverse geocoding failed:', gErr);
       }
+    }
+
+    // 2. Try Nominatim OpenStreetMap with Vietnamese language headers
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=vi`;
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'DGO-GoiLai247-App/1.0 (contact@dgo247.vn)',
+          'Accept-Language': 'vi-VN,vi;q=0.9,en;q=0.8'
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && (data.address || data.display_name)) {
+          const formattedAddress = formatNominatimAddress(data);
+          return res.json({
+            display_name: formattedAddress || data.display_name,
+            address: data.address,
+            source: 'nominatim'
+          });
+        }
+      }
+    } catch (nomErr) {
+      console.warn('Nominatim reverse geocoding failed:', nomErr);
+    }
+
+    // 3. Fallback to BigDataCloud Reverse Geocode
+    try {
+      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=vi`;
+      const bdcRes = await fetch(bdcUrl);
+      if (bdcRes.ok) {
+        const bdcData = await bdcRes.json();
+        const parts = [];
+        if (bdcData.locality) parts.push(bdcData.locality);
+        if (bdcData.city) parts.push(bdcData.city);
+        if (bdcData.principalSubdivision) parts.push(bdcData.principalSubdivision);
+        if (parts.length > 0) {
+          return res.json({
+            display_name: parts.join(', '),
+            source: 'bigdatacloud'
+          });
+        }
+      }
+    } catch (bdcErr) {
+      console.warn('BigDataCloud reverse geocoding failed:', bdcErr);
+    }
+
+    res.json({
+      display_name: `Vị trí tại điểm đón (${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)})`,
+      source: 'coords'
     });
-    const data = await response.json();
-    res.json(data);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
