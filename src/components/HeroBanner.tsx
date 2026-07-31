@@ -2,12 +2,15 @@ import React from 'react';
 import { ShieldCheck, Clock, Award, Sparkles, CheckCircle2 } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
 import headerBgImg from '../assets/images/header_bg_banner_1785395640428.jpg';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface HeroBannerProps {
   onOpenPriceTable: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="relative overflow-hidden bg-slate-950 pt-8 pb-10 border-b border-slate-800/80">
       
@@ -44,7 +47,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
                 <div className="text-left">
                   <div className="flex items-center gap-2">
                     <span className="text-amber-400 text-xs sm:text-sm font-black tracking-wider uppercase">D.GO 247</span>
-                    <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">Chính Thức</span>
+                    <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">Official</span>
                   </div>
                   <p className="text-white text-xs sm:text-sm font-extrabold tracking-tight">DỊCH VỤ LÁI XE HỘ - GOILAI247.COM</p>
                 </div>
@@ -55,18 +58,18 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-amber-500/30 text-amber-400 text-xs font-semibold shadow-inner">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Dịch Vụ Lái Xe Hộ Chuyên Nghiệp Hàng Đầu</span>
+            <span>{t.hero.badgeTitle}</span>
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            <span className="text-slate-300">Có mặt sau 10-15 phút</span>
+            <span className="text-slate-300">{t.hero.badgeEta}</span>
           </div>
 
           {/* Heading */}
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            Bạn Đợi Tiệc Vui – <span className="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 bg-clip-text text-transparent">D.GO Lái Xe An Toàn Về Nhà</span>
+            {t.hero.mainTitle}<span className="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 bg-clip-text text-transparent">{t.hero.mainTitleHighlight}</span>
           </h2>
 
           <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed max-w-2xl mx-auto">
-            Đặt tài xế riêng lái ô tô, xe máy đưa bạn và xế yêu về tận nhà an toàn 24/7. Không lo vi phạm nồng độ cồn, không ngại mệt mỏi hay đường xa.
+            {t.hero.description}
           </p>
 
           {/* Quick Features List */}
@@ -74,32 +77,32 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
             <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
               <CheckCircle2 className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">An Toàn 100%</p>
-                <p className="text-[11px] text-slate-400">Tài xế lành nghề</p>
+                <p className="text-xs font-bold text-white">{t.hero.feat1Title}</p>
+                <p className="text-[11px] text-slate-400">{t.hero.feat1Sub}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
               <Clock className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">Phục Vụ 24/7</p>
-                <p className="text-[11px] text-slate-400">Bất kể ngày đêm</p>
+                <p className="text-xs font-bold text-white">{t.hero.feat2Title}</p>
+                <p className="text-[11px] text-slate-400">{t.hero.feat2Sub}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
               <Award className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">Minh Bạch Cước</p>
-                <p className="text-[11px] text-slate-400">Biết trước số tiền</p>
+                <p className="text-xs font-bold text-white">{t.hero.feat3Title}</p>
+                <p className="text-[11px] text-slate-400">{t.hero.feat3Sub}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
               <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">Lái Xe An Toàn</p>
-                <p className="text-[11px] text-slate-400">Cẩn thận & Trách nhiệm</p>
+                <p className="text-xs font-bold text-white">{t.hero.feat4Title}</p>
+                <p className="text-[11px] text-slate-400">{t.hero.feat4Sub}</p>
               </div>
             </div>
           </div>
@@ -109,3 +112,4 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
     </div>
   );
 };
+

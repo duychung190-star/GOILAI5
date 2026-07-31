@@ -1,28 +1,31 @@
 import React from 'react';
 import { UserCheck, Clock, ShieldCheck, Headphones, Award } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export const WhyChooseUs: React.FC = () => {
+  const { t } = useLanguage();
+
   const advantages = [
     {
       icon: UserCheck,
-      title: "Tài Xế Chuyên Nghiệp",
-      desc: "Được tuyển chọn kỹ lưỡng, có giấy phép lái xe chuẩn, thông thuộc mọi cung đường và ứng xử lịch sự."
+      title: t.whyUs.reason1Title,
+      desc: t.whyUs.reason1Desc
     },
     {
       icon: Clock,
-      title: "Đúng Giờ Tối Đa",
-      desc: "Có mặt ngay sau 10 - 15 phút gọi điện. Luôn cam kết chuẩn giờ hẹn để quý khách không phải chờ đợi."
+      title: t.whyUs.reason2Title,
+      desc: t.whyUs.reason2Desc
     },
     {
       icon: ShieldCheck,
-      title: "An Toàn Tối Đa",
-      desc: "Cam kết cẩn thận, tận tâm và đảm bảo an toàn tuyệt đối cho người và xe trong suốt hành trình di chuyển."
+      title: t.whyUs.reason3Title,
+      desc: t.whyUs.reason3Desc
     },
     {
       icon: Headphones,
-      title: "Phục Vụ 24/7",
-      desc: "Tổng đài và đội ngũ lái xe sẵn sàng túc trực 24/7 kể cả ngày nghỉ, Lễ, Tết hay đêm khuya muộn."
+      title: t.whyUs.reason4Title,
+      desc: t.whyUs.reason4Desc
     }
   ];
 
@@ -44,10 +47,10 @@ export const WhyChooseUs: React.FC = () => {
             <span>THƯƠNG HIỆU D.GO - GOILAI247.COM</span>
           </div>
           <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Tại Sao Khách Hàng Luôn Tin Chọn <span className="text-amber-400">D.GO 247</span>?
+            {t.whyUs.heading}
           </h3>
           <p className="text-xs sm:text-sm text-slate-400">
-            Giải pháp lái xe hộ uy tín mang lại sự an tâm tuyệt đối trên mọi nẻo đường
+            {t.whyUs.subheading}
           </p>
         </div>
 
@@ -77,3 +80,4 @@ export const WhyChooseUs: React.FC = () => {
     </div>
   );
 };
+

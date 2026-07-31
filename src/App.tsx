@@ -100,6 +100,7 @@ export default function App() {
   // Road distance & duration state (from Google Maps Directions API / OSRM)
   const [roadDistanceKm, setRoadDistanceKm] = useState<number | null>(null);
   const [roadDurationMinutes, setRoadDurationMinutes] = useState<number | null>(null);
+  const [routeGeometry, setRouteGeometry] = useState<[number, number][] | null>(null);
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
   // Fetch precise driving route distance and duration from backend API when pickup or destination changes
@@ -126,6 +127,11 @@ export default function App() {
             if (typeof data.durationMinutes === 'number') {
               setRoadDurationMinutes(data.durationMinutes);
             }
+            if (Array.isArray(data.routeGeometry) && data.routeGeometry.length > 0) {
+              setRouteGeometry(data.routeGeometry);
+            } else {
+              setRouteGeometry(null);
+            }
           } else if (data && data.routes && data.routes[0]) {
             const meters = data.routes[0].distance || (data.routes[0].legs && data.routes[0].legs[0]?.distance?.value);
             const km = Math.round((meters / 1000) * 10) / 10;
@@ -134,19 +140,23 @@ export default function App() {
             if (secs) {
               setRoadDurationMinutes(Math.round(secs / 60));
             }
+            setRouteGeometry(null);
           } else {
             setRoadDistanceKm(null);
             setRoadDurationMinutes(null);
+            setRouteGeometry(null);
           }
         })
         .catch(() => {
           setRoadDistanceKm(null);
           setRoadDurationMinutes(null);
+          setRouteGeometry(null);
         })
         .finally(() => setIsCalculatingRoute(false));
     } else {
       setRoadDistanceKm(null);
       setRoadDurationMinutes(null);
+      setRouteGeometry(null);
     }
   }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, pickup?.address, destination?.address]);
 
@@ -403,6 +413,8 @@ export default function App() {
               <InteractiveMap
                 pickup={pickup}
                 destination={destination}
+                routeGeometry={routeGeometry}
+                isCalculatingRoute={isCalculatingRoute}
                 onSelectMapLocation={handleSelectMapLocation}
                 targetMode={mapClickTarget}
               />

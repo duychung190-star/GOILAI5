@@ -6,6 +6,8 @@ import { MapPin, Navigation } from 'lucide-react';
 interface InteractiveMapProps {
   pickup: LocationPoint | null;
   destination: LocationPoint | null;
+  routeGeometry?: [number, number][] | null;
+  isCalculatingRoute?: boolean;
   onSelectMapLocation?: (lat: number, lng: number, type: 'pickup' | 'destination') => void;
   targetMode?: 'pickup' | 'destination';
 }
@@ -32,6 +34,8 @@ const destinationIcon = L.divIcon({
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   pickup,
   destination,
+  routeGeometry,
+  isCalculatingRoute,
   onSelectMapLocation,
   targetMode = 'pickup'
 }) => {
@@ -69,13 +73,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       mapInstanceRef.current = map;
     }
-
-    return () => {
-      // Cleanup on unmount if needed
-    };
   }, []);
 
-  // Update Markers and Route Polyline whenever pickup or destination changes
+  // Update Markers and Route Polyline whenever pickup, destination, or routeGeometry changes
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -105,25 +105,42 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       bounds.push(destLatLng);
     }
 
-    // Draw route line if both coordinates exist
-    if (pickup && pickup.lat && pickup.lng && destination && destination.lat && destination.lng) {
+    // Render driving route
+    if (routeGeometry && routeGeometry.length > 0) {
+      // Draw actual driving route polyline along real roads in blue
+      routePolylineRef.current = L.polyline(routeGeometry, {
+        color: '#2563EB',
+        weight: 6,
+        opacity: 0.9,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+
+      // Add route geometry points to bounds to ensure complete route fits on screen
+      routeGeometry.forEach(pt => bounds.push(pt));
+
+      if (bounds.length > 0) {
+        map.fitBounds(L.latLngBounds(bounds), { padding: [45, 45], maxZoom: 16 });
+      }
+    } else if (pickup && pickup.lat && pickup.lng && destination && destination.lat && destination.lng) {
+      // Fallback straight line while route is calculating
       const latlngs: [number, number][] = [
         [pickup.lat, pickup.lng],
         [destination.lat, destination.lng]
       ];
 
       routePolylineRef.current = L.polyline(latlngs, {
-        color: '#F59E0B',
+        color: '#3B82F6',
         weight: 5,
         opacity: 0.8,
-        dashArray: '10, 10'
+        dashArray: '8, 8'
       }).addTo(map);
 
       map.fitBounds(L.latLngBounds(bounds), { padding: [50, 50] });
     } else if (bounds.length > 0) {
       map.setView(bounds[0], 14);
     }
-  }, [pickup, destination]);
+  }, [pickup, destination, routeGeometry]);
 
   return (
     <div className="relative w-full h-full min-h-[300px] rounded-xl overflow-hidden border border-slate-700/80 shadow-inner bg-slate-950">
@@ -133,8 +150,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       {/* Map Action Banner overlay */}
       <div className="absolute top-3 right-3 z-[400] bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-300 shadow-md flex items-center gap-1.5 pointer-events-none">
-        <Navigation className="w-3.5 h-3.5 text-amber-400 animate-spin" />
-        <span>Click lên bản đồ để chọn vị trí</span>
+        {isCalculatingRoute ? (
+          <>
+            <div className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-blue-300 font-semibold">Đang tính tuyến đường ô tô...</span>
+          </>
+        ) : (
+          <>
+            <Navigation className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+            <span>Click bản đồ để chọn vị trí</span>
+          </>
+        )}
       </div>
 
       {/* Legend overlay */}

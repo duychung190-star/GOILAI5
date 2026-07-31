@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, FileText, Moon, Clock, Phone, AlertCircle } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface PriceTableModalProps {
   isOpen: boolean;
@@ -8,6 +9,8 @@ interface PriceTableModalProps {
 }
 
 export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClose }) => {
+  const { t } = useLanguage();
+
   if (!isOpen) return null;
 
   const priceTiers = [
@@ -52,10 +55,9 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
             />
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-1.5">
-                <span>Bảng Giá Chi Tiết D.GO</span>
-                <span className="text-amber-400 text-xs font-semibold">(GOILAI247.COM)</span>
+                <span>{t.modals.priceTableTitle}</span>
               </h3>
-              <p className="text-[11px] text-slate-400">Dịch vụ lái xe hộ niêm yết minh bạch</p>
+              <p className="text-[11px] text-slate-400">GOILAI247.COM</p>
             </div>
           </div>
           <button
@@ -150,7 +152,7 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
             onClick={onClose}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition-colors"
           >
-            Đóng
+            {t.modals.close}
           </button>
         </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LocationPoint, VehicleTypeOption, VatDetails, SearchSuggestion, PriceBreakdown } from '../types';
 import { PriceCalculator } from '../utils/PriceCalculator';
+import { useLanguage } from '../i18n/LanguageContext';
 import { MapPin, Navigation, Car, Bike, ShieldCheck, Clock, FileText, User, Phone, Edit3, Sparkles, Check, AlertCircle, Calculator, Route } from 'lucide-react';
 
 interface BookingFormProps {
@@ -54,6 +55,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   isCalculatingRoute,
   onFormValidationFail
 }) => {
+  const { t } = useLanguage();
   const [pickupInput, setPickupInput] = useState(pickup?.address || '');
   const [destInput, setDestInput] = useState(destination?.address || '');
   
@@ -145,7 +147,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   // GPS Location button click ("Lấy vị trí hiện tại của tôi")
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      onFormValidationFail('Trình duyệt của bạn không hỗ trợ định vị GPS.');
+      onFormValidationFail('Trình duyệt của bạn không hỗ trợ định vị GPS. Vui lòng tự nhập địa chỉ thủ công.');
       return;
     }
 
@@ -161,7 +163,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           let address = data.display_name;
 
           // If server response is empty or raw coords, attempt direct client-side reverse geocoding
-          if (!address || address.includes('(') && address.includes(')')) {
+          if (!address || (address.includes('(') && address.includes(')'))) {
             try {
               const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=vi`);
               const nomData = await nomRes.json();
@@ -177,7 +179,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           }
 
           if (!address) {
-            address = `Vị trí điểm đón GPS`;
+            address = `Vị trí điểm đón GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
           }
           
           setPickupInput(address);
@@ -195,15 +197,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         setIsLoadingGps(false);
         let msg = 'Không thể lấy vị trí GPS hiện tại.';
         if (error.code === error.PERMISSION_DENIED) {
-          msg = 'Vui lòng cho phép ứng dụng truy cập quyền vị trí GPS trên thiết bị hoặc trình duyệt của bạn.';
+          msg = 'Vui lòng cho phép truy cập vị trí hoặc tự nhập địa chỉ thủ công.';
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          msg = 'Tín hiệu GPS không khả dụng. Vui lòng bật định vị vị trí trên thiết bị.';
+          msg = 'Tín hiệu GPS không khả dụng. Vui lòng cho phép truy cập vị trí hoặc tự nhập địa chỉ thủ công.';
         } else if (error.code === error.TIMEOUT) {
-          msg = 'Hết thời gian chờ định vị GPS. Vui lòng thử lại.';
+          msg = 'Hết thời gian chờ định vị GPS. Vui lòng thử lại hoặc tự nhập địa chỉ thủ công.';
         }
         onFormValidationFail(msg);
       },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
@@ -222,7 +224,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
           <User className="w-4 h-4" />
-          <span>1. Thông Tin Khách Hàng</span>
+          <span>{t.form.secCustomer}</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -230,13 +232,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           {/* Customer Name */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Họ và tên khách hàng <span className="text-rose-400">*</span>
+              {t.form.nameLabel} <span className="text-rose-400">*</span>
             </label>
             <div className="relative">
               <User className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
               <input
                 type="text"
-                placeholder="Ví dụ: Nguyễn Văn An"
+                placeholder={t.form.namePlaceholder}
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl py-2.5 pl-9 pr-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
@@ -247,13 +249,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           {/* Customer Phone */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Số điện thoại liên hệ <span className="text-rose-400">*</span>
+              {t.form.phoneLabel} <span className="text-rose-400">*</span>
             </label>
             <div className="relative">
               <Phone className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
               <input
                 type="tel"
-                placeholder="Ví dụ: 0912345678"
+                placeholder={t.form.phonePlaceholder}
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl py-2.5 pl-9 pr-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
@@ -268,14 +270,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
           <MapPin className="w-4 h-4" />
-          <span>2. Địa Điểm Đón & Đến</span>
+          <span>{t.form.secRoute}</span>
         </h3>
 
         {/* Pickup Address Field */}
         <div className="relative">
           <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
             <label className="block text-xs font-semibold text-slate-300">
-              Điểm đón khách <span className="text-rose-400">*</span>
+              {t.form.pickupLabel} <span className="text-rose-400">*</span>
             </label>
 
             {/* GPS Location Button */}
@@ -284,10 +286,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               onClick={handleGetCurrentLocation}
               disabled={isLoadingGps}
               className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300 hover:text-emerald-200 bg-emerald-500/20 hover:bg-emerald-500/30 px-3 py-1.5 rounded-lg border border-emerald-500/40 transition-all cursor-pointer shadow-sm active:scale-95"
-              title="Sử dụng GPS thiết bị lấy vị trí chính xác hiện tại"
+              title="GPS"
             >
               <Navigation className={`w-3.5 h-3.5 text-emerald-400 ${isLoadingGps ? 'animate-spin text-amber-400' : ''}`} />
-              <span>{isLoadingGps ? 'Đang định vị GPS...' : 'Lấy vị trí hiện tại của tôi'}</span>
+              <span>{isLoadingGps ? t.form.gettingGps : t.form.getGpsBtn}</span>
             </button>
           </div>
 
@@ -295,17 +297,18 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <span className="w-3 h-3 rounded-full bg-emerald-500 absolute left-3.5 top-3.5 border-2 border-slate-900 shadow-sm"></span>
             <input
               type="text"
-              placeholder="Nhập địa chỉ đón (ví dụ: 123 Nguyễn Trãi, Thanh Xuân)"
+              placeholder={isLoadingGps ? 'Đang định vị vị trí GPS và tìm địa chỉ...' : t.form.pickupPlaceholder}
               value={pickupInput}
               onChange={(e) => {
                 setPickupInput(e.target.value);
                 setPickupDropdownOpen(true);
               }}
               onFocus={() => setPickupDropdownOpen(true)}
-              className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 rounded-xl py-2.5 pl-9 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
+              disabled={isLoadingGps}
+              className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 rounded-xl py-2.5 pl-9 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all disabled:opacity-80"
             />
-            {isSearchingPickup && (
-              <div className="absolute right-3 top-3">
+            {(isSearchingPickup || isLoadingGps) && (
+              <div className="absolute right-3 top-3 flex items-center gap-1.5">
                 <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
               </div>
             )}
@@ -349,14 +352,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         {/* Destination Address Field */}
         <div className="relative">
           <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-            Điểm đến <span className="text-rose-400">*</span>
+            {t.form.destLabel} <span className="text-rose-400">*</span>
           </label>
 
           <div className="relative">
             <span className="w-3 h-3 rounded-full bg-rose-500 absolute left-3.5 top-3.5 border-2 border-slate-900 shadow-sm"></span>
             <input
               type="text"
-              placeholder="Nhập địa chỉ trả khách (ví dụ: Landmark 81, TP.HCM)"
+              placeholder={t.form.destPlaceholder}
               value={destInput}
               onChange={(e) => {
                 setDestInput(e.target.value);
@@ -380,12 +383,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   <Sparkles className="w-3 h-3" />
                   <span>Google Places Autocomplete</span>
                 </span>
-                <span>Gợi ý địa chỉ tự động</span>
+                <span>Places Autocomplete</span>
               </div>
               {isSearchingDest && destSuggestions.length === 0 && (
                 <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
                   <div className="w-3.5 h-3.5 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Đang tìm kiếm gợi ý địa chỉ...</span>
+                  <span>Searching...</span>
                 </div>
               )}
               {destSuggestions.map((item) => (
@@ -425,13 +428,21 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           ))}
         </div>
 
+        {/* Driving Route Calculation Status Indicator */}
+        {isCalculatingRoute && (
+          <div className="flex items-center gap-2 p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-300 shadow-sm">
+            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
+            <span className="font-semibold">Đang tính toán tuyến đường ô tô và khoảng cách thực tế...</span>
+          </div>
+        )}
+
       </div>
 
       {/* Section 3: Vehicle Type Selection */}
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
           <Car className="w-4 h-4" />
-          <span>3. Chọn Loại Xe Phục Vụ</span>
+          <span>{t.form.secVehicle}</span>
         </h3>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -447,7 +458,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             }`}
           >
             <Car className={`w-6 h-6 mb-2 ${vehicleType === 'Ô tô 4-7 chỗ' ? 'text-amber-400' : 'text-slate-400'}`} />
-            <p className="font-bold text-xs">Ô tô 4-7 chỗ</p>
+            <p className="font-bold text-xs">{t.vehicle.car4_7}</p>
             <p className="text-[10px] text-slate-400">Sedan, SUV, Hatchback</p>
           </button>
 
@@ -462,8 +473,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             }`}
           >
             <Bike className={`w-6 h-6 mb-2 ${vehicleType === 'Xe máy' ? 'text-amber-400' : 'text-slate-400'}`} />
-            <p className="font-bold text-xs">Xe máy</p>
-            <p className="text-[10px] text-slate-400">Xe số, tay ga, tay côn</p>
+            <p className="font-bold text-xs">{t.vehicle.motorbike}</p>
+            <p className="text-[10px] text-slate-400">Scooter, Manual, Clutch</p>
           </button>
 
           {/* Xe sang / Bán tải */}
@@ -477,8 +488,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             }`}
           >
             <ShieldCheck className={`w-6 h-6 mb-2 ${vehicleType === 'Xe sang / Bán tải' ? 'text-amber-400' : 'text-slate-400'}`} />
-            <p className="font-bold text-xs">Xe sang / Bán tải</p>
-            <p className="text-[10px] text-slate-400">Mercedes, BMW, Ranger...</p>
+            <p className="font-bold text-xs">{t.vehicle.luxury}</p>
+            <p className="text-[10px] text-slate-400">Mercedes, BMW, Pickup...</p>
           </button>
 
           {/* Thuê theo giờ */}
@@ -492,7 +503,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             }`}
           >
             <Clock className={`w-6 h-6 mb-2 ${vehicleType === 'Thuê theo giờ' ? 'text-amber-400' : 'text-slate-400'}`} />
-            <p className="font-bold text-xs">Thuê theo giờ</p>
+            <p className="font-bold text-xs">{t.vehicle.hourly}</p>
             <p className="text-[10px] text-slate-400">Combo 3h (500k)</p>
           </button>
 
@@ -502,8 +513,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         {vehicleType === 'Thuê theo giờ' && (
           <div className="bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-white">Số giờ muốn thuê tài xế:</p>
-              <p className="text-[11px] text-slate-400">Combo 3 giờ đầu 500k (+100k/giờ tiếp theo)</p>
+              <p className="text-xs font-bold text-white">{t.form.hourlySelectLabel}:</p>
             </div>
             <div className="flex items-center gap-3 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
               <button
@@ -513,7 +523,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               >
                 -
               </button>
-              <span className="font-extrabold text-amber-400 text-sm px-1">{hourlyHours} giờ</span>
+              <span className="font-extrabold text-amber-400 text-sm px-1">{hourlyHours}h</span>
               <button
                 type="button"
                 onClick={() => setHourlyHours(hourlyHours + 1)}
@@ -533,23 +543,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <div className="flex items-center gap-2">
                   <Calculator className="w-4 h-4 text-amber-400" />
                   <span className="text-xs font-black uppercase text-amber-400 tracking-wider">
-                    Tổng tiền dự tính ({vehicleType})
+                    {t.form.liveTotalTitle} ({vehicleType})
                   </span>
                   {isCalculatingRoute && (
                     <span className="flex items-center gap-1 text-[11px] text-amber-300 font-normal">
                       <span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-                      Đang tính lại...
+                      {t.form.calculatingRoute}
                     </span>
                   )}
                 </div>
                 <p className="text-[11px] text-slate-300 flex items-center gap-1.5">
                   <Route className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   {priceBreakdown.isHourly ? (
-                    <span>Thuê theo gói <strong>{priceBreakdown.hourlyHours} giờ</strong></span>
+                    <span>{t.form.hourlyRentalFor} <strong>{priceBreakdown.hourlyHours}h</strong></span>
                   ) : priceBreakdown.distanceKm > 0 ? (
-                    <span>Quãng đường ô tô: <strong className="text-white">{priceBreakdown.distanceKm} km</strong> (~ <strong className="text-emerald-300">{priceBreakdown.estimatedMinutes} phút</strong> di chuyển)</span>
+                    <span>{t.form.roadDistance} <strong className="text-white">{priceBreakdown.distanceKm} km</strong> (~ <strong className="text-emerald-300">{priceBreakdown.estimatedMinutes} {t.form.estimatedDuration}</strong>)</span>
                   ) : (
-                    <span className="text-slate-400">Vui lòng nhập điểm đón & điểm đến để tự động tính tiền</span>
+                    <span className="text-slate-400">{t.form.enterAddressPrompt}</span>
                   )}
                 </p>
               </div>
@@ -558,7 +568,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <span className="text-xl sm:text-2xl font-black text-amber-400 tracking-tight">
                   {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
                 </span>
-                <p className="text-[10px] text-slate-400">Chưa bao gồm VAT (Tự động tính theo bảng giá)</p>
+                <p className="text-[10px] text-slate-400">{t.form.noVatNote}</p>
               </div>
             </div>
           </div>
@@ -569,10 +579,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
           <Clock className="w-4 h-4" />
-          <span>4. Thời Gian Hẹn Đón</span>
+          <span>{t.form.secTime}</span>
         </h3>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
@@ -584,7 +594,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               }}
               className="accent-amber-400 w-4 h-4"
             />
-            <span className="text-xs font-semibold text-white">Đón ngay bây giờ (Sau 10-15 phút)</span>
+            <span className="text-xs font-semibold text-white">{t.form.pickupNow}</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer">
@@ -595,7 +605,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               onChange={() => setTimeOption('SCHEDULED')}
               className="accent-amber-400 w-4 h-4"
             />
-            <span className="text-xs font-semibold text-white">Đặt trước giờ đón</span>
+            <span className="text-xs font-semibold text-white">{t.form.schedulePickup}</span>
           </label>
         </div>
 
@@ -621,12 +631,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
           <Edit3 className="w-4 h-4" />
-          <span>5. Ghi Chú Cho Tài Xế</span>
+          <span>{t.form.noteLabel}</span>
         </h3>
 
         <textarea
           rows={2}
-          placeholder="Nhập ghi chú cho tài xế (ví dụ: khách có say rượu, xe số sàn, điểm đón trong hầm...)"
+          placeholder={t.form.notePlaceholder}
           value={noteForDriver}
           onChange={(e) => setNoteForDriver(e.target.value)}
           className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl p-3 text-xs text-white placeholder-slate-500 outline-none transition-all"
@@ -669,7 +679,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             </div>
             <span className="text-xs font-bold text-white flex items-center gap-1.5">
               <FileText className="w-4 h-4 text-amber-400" />
-              <span>Tôi cần xuất hóa đơn VAT (+8%)</span>
+              <span>{t.form.vatCheck}</span>
             </span>
           </label>
         </div>
@@ -677,14 +687,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         {/* Conditional VAT Fields */}
         {needVat && (
           <div className="bg-slate-950 p-4 rounded-xl border border-amber-500/30 space-y-3 animate-fadeIn">
-            <p className="text-xs font-bold text-amber-400">Thông tin xuất hóa đơn GTGT:</p>
-            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Tên công ty / Đơn vị</label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.companyName}</label>
                 <input
                   type="text"
-                  placeholder="Công ty TNHH..."
+                  placeholder={t.form.companyNamePlaceholder}
                   value={vatDetails.companyName}
                   onChange={(e) => setVatDetails({ ...vatDetails, companyName: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
@@ -692,10 +700,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Mã số thuế (MST)</label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.taxCode}</label>
                 <input
                   type="text"
-                  placeholder="0101234567"
+                  placeholder={t.form.taxCodePlaceholder}
                   value={vatDetails.taxCode}
                   onChange={(e) => setVatDetails({ ...vatDetails, taxCode: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
@@ -705,10 +713,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Địa chỉ đăng ký kinh doanh</label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.companyAddress}</label>
                 <input
                   type="text"
-                  placeholder="Địa chỉ trụ sở..."
+                  placeholder={t.form.companyAddressPlaceholder}
                   value={vatDetails.companyAddress}
                   onChange={(e) => setVatDetails({ ...vatDetails, companyAddress: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
@@ -716,10 +724,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Email nhận hóa đơn điện tử</label>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.vatEmail}</label>
                 <input
                   type="email"
-                  placeholder="ketoan@company.com"
+                  placeholder={t.form.vatEmailPlaceholder}
                   value={vatDetails.email}
                   onChange={(e) => setVatDetails({ ...vatDetails, email: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"

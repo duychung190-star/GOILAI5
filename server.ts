@@ -139,6 +139,42 @@ app.patch("/api/booking/:id/status", (req, res) => {
   }
 });
 
+// Helper to decode Google Maps overview_polyline string into Lat/Lng coordinate tuples
+function decodeGooglePolyline(encoded: string): [number, number][] {
+  const points: [number, number][] = [];
+  let index = 0;
+  const len = encoded.length;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < len) {
+    let b: number;
+    let shift = 0;
+    let result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    const dlat = (result & 1) ? ~(result >> 1) : (result >> 1);
+    lat += dlat;
+
+    shift = 0;
+    result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    const dlng = (result & 1) ? ~(result >> 1) : (result >> 1);
+    lng += dlng;
+
+    points.push([lat / 1e5, lng / 1e5]);
+  }
+
+  return points;
+}
+
 // Helper to format Nominatim response into a clean, human-readable Vietnamese address
 function formatNominatimAddress(data: any): string {
   if (!data || typeof data !== 'object') return '';
@@ -370,6 +406,11 @@ app.get("/api/route", async (req, res) => {
           const durationSeconds = leg.duration ? leg.duration.value : 0;
           const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
 
+          let routeGeometry: [number, number][] = [];
+          if (gData.routes[0].overview_polyline && gData.routes[0].overview_polyline.points) {
+            routeGeometry = decodeGooglePolyline(gData.routes[0].overview_polyline.points);
+          }
+
           return res.json({
             success: true,
             source: 'google_directions',
@@ -381,7 +422,7 @@ app.get("/api/route", async (req, res) => {
             durationText: leg.duration ? leg.duration.text : `${durationMinutes} phút`,
             startAddress: leg.start_address,
             endAddress: leg.end_address,
-            polyline: gData.routes[0].overview_polyline ? gData.routes[0].overview_polyline.points : null,
+            routeGeometry,
             routes: gData.routes
           });
         }
@@ -403,6 +444,11 @@ app.get("/api/route", async (req, res) => {
         const durationSeconds = route.duration || 0;
         const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
 
+        let routeGeometry: [number, number][] = [];
+        if (route.geometry && Array.isArray(route.geometry.coordinates)) {
+          routeGeometry = route.geometry.coordinates.map((coord: number[]) => [coord[1], coord[0]]);
+        }
+
         return res.json({
           success: true,
           source: 'osrm',
@@ -412,6 +458,7 @@ app.get("/api/route", async (req, res) => {
           durationSeconds,
           durationMinutes,
           durationText: `${durationMinutes} phút`,
+          routeGeometry,
           routes: data.routes
         });
       }
