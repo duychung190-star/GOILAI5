@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Clock, Award, Sparkles, CheckCircle2 } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
-import headerBgImg from '../assets/images/bac_ninh_cultural_center_1785735650224.jpg';
+import headerBgImg from '../assets/images/dgo_driver_hero_bg_1785738381902.jpg';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface HeroBannerProps {

@@ -85,12 +85,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     setPickupInput(item.display_name);
     setPickupDropdownOpen(false);
 
-    if (item.lat && item.lng && !isNaN(item.lat) && !isNaN(item.lng)) {
+    if (item.lat !== undefined && item.lng !== undefined && !isNaN(item.lat) && !isNaN(item.lng)) {
       setPickup({ address: item.display_name, lat: item.lat, lng: item.lng });
     } else {
-      // Resolve place details for lat/lng using Google Places Details API
+      // Resolve place details for lat/lng using details endpoint or search endpoint
       try {
-        const res = await fetch(`/api/places/details?place_id=${item.place_id}`);
+        const res = await fetch(`/api/places/details?place_id=${item.place_id}&address=${encodeURIComponent(item.display_name)}`);
         if (res.ok) {
           const details = await res.json();
           if (details.lat && details.lng) {
@@ -102,7 +102,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       } catch (err) {
         console.warn("Error fetching place details for pickup:", err);
       }
-      setPickup({ address: item.display_name, lat: 21.0285, lng: 105.8542 });
+
+      try {
+        const geoRes = await fetch(`/api/geocode/search?q=${encodeURIComponent(item.display_name)}`);
+        const geoData = await geoRes.json();
+        if (Array.isArray(geoData) && geoData.length > 0 && geoData[0].lat && geoData[0].lon) {
+          setPickup({ address: item.display_name, lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+          return;
+        }
+      } catch (err) {
+        console.warn("Error geocoding fallback for pickup:", err);
+      }
+
+      setPickup((prev) => ({ address: item.display_name, lat: prev?.lat || 21.0285, lng: prev?.lng || 105.8542 }));
     }
   };
 
@@ -111,12 +123,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     setDestInput(item.display_name);
     setDestDropdownOpen(false);
 
-    if (item.lat && item.lng && !isNaN(item.lat) && !isNaN(item.lng)) {
+    if (item.lat !== undefined && item.lng !== undefined && !isNaN(item.lat) && !isNaN(item.lng)) {
       setDestination({ address: item.display_name, lat: item.lat, lng: item.lng });
     } else {
-      // Resolve place details for lat/lng using Google Places Details API
+      // Resolve place details for lat/lng using details endpoint or search endpoint
       try {
-        const res = await fetch(`/api/places/details?place_id=${item.place_id}`);
+        const res = await fetch(`/api/places/details?place_id=${item.place_id}&address=${encodeURIComponent(item.display_name)}`);
         if (res.ok) {
           const details = await res.json();
           if (details.lat && details.lng) {
@@ -128,13 +140,73 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       } catch (err) {
         console.warn("Error fetching place details for destination:", err);
       }
-      setDestination({ address: item.display_name, lat: 21.0285, lng: 105.8542 });
+
+      try {
+        const geoRes = await fetch(`/api/geocode/search?q=${encodeURIComponent(item.display_name)}`);
+        const geoData = await geoRes.json();
+        if (Array.isArray(geoData) && geoData.length > 0 && geoData[0].lat && geoData[0].lon) {
+          setDestination({ address: item.display_name, lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+          return;
+        }
+      } catch (err) {
+        console.warn("Error geocoding fallback for destination:", err);
+      }
+
+      setDestination((prev) => ({ address: item.display_name, lat: prev?.lat || 21.0285, lng: prev?.lng || 105.8542 }));
     }
+  };
+
+  // Handle manual typing blur for Pickup (geocode typed address if no dropdown item clicked)
+  const handlePickupBlur = () => {
+    setTimeout(async () => {
+      setPickupDropdownOpen(false);
+      if (!pickupInput || pickupInput.trim().length < 3) return;
+      if (pickup?.address === pickupInput) return;
+
+      try {
+        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(pickupInput)}`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const first = data[0];
+          const lat = first.lat !== undefined ? parseFloat(first.lat) : undefined;
+          const lng = first.lon !== undefined ? parseFloat(first.lon) : (first.lng !== undefined ? parseFloat(first.lng) : undefined);
+          if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+            setPickup({ address: pickupInput, lat, lng });
+          }
+        }
+      } catch (err) {
+        console.warn("Error resolving manual pickup address:", err);
+      }
+    }, 200);
+  };
+
+  // Handle manual typing blur for Destination
+  const handleDestBlur = () => {
+    setTimeout(async () => {
+      setDestDropdownOpen(false);
+      if (!destInput || destInput.trim().length < 3) return;
+      if (destination?.address === destInput) return;
+
+      try {
+        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(destInput)}`);
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const first = data[0];
+          const lat = first.lat !== undefined ? parseFloat(first.lat) : undefined;
+          const lng = first.lon !== undefined ? parseFloat(first.lon) : (first.lng !== undefined ? parseFloat(first.lng) : undefined);
+          if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+            setDestination({ address: destInput, lat, lng });
+          }
+        }
+      } catch (err) {
+        console.warn("Error resolving manual destination address:", err);
+      }
+    }, 200);
   };
 
   // Handle Autocomplete Search for Pickup Input
   useEffect(() => {
-    if (!pickupInput || pickupInput.length < 2 || !pickupDropdownOpen) {
+    if (!pickupInput || pickupInput.trim().length < 2 || !pickupDropdownOpen) {
       setPickupSuggestions([]);
       return;
     }
@@ -149,8 +221,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             data.map((item: any) => ({
               place_id: item.place_id,
               display_name: item.display_name,
-              lat: item.lat ? parseFloat(item.lat) : undefined,
-              lng: item.lon ? parseFloat(item.lon) : (item.lng ? parseFloat(item.lng) : undefined)
+              lat: item.lat !== undefined && item.lat !== null ? parseFloat(item.lat) : undefined,
+              lng: item.lon !== undefined && item.lon !== null ? parseFloat(item.lon) : (item.lng !== undefined && item.lng !== null ? parseFloat(item.lng) : undefined)
             }))
           );
         }
@@ -166,7 +238,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
   // Handle Autocomplete Search for Destination Input
   useEffect(() => {
-    if (!destInput || destInput.length < 2 || !destDropdownOpen) {
+    if (!destInput || destInput.trim().length < 2 || !destDropdownOpen) {
       setDestSuggestions([]);
       return;
     }
@@ -181,8 +253,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             data.map((item: any) => ({
               place_id: item.place_id,
               display_name: item.display_name,
-              lat: item.lat ? parseFloat(item.lat) : undefined,
-              lng: item.lon ? parseFloat(item.lon) : (item.lng ? parseFloat(item.lng) : undefined)
+              lat: item.lat !== undefined && item.lat !== null ? parseFloat(item.lat) : undefined,
+              lng: item.lon !== undefined && item.lon !== null ? parseFloat(item.lon) : (item.lng !== undefined && item.lng !== null ? parseFloat(item.lng) : undefined)
             }))
           );
         }
@@ -238,7 +310,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           setPickup({ address, lat, lng });
         } catch (err) {
           console.error("GPS Reverse Geocoding Error:", err);
-          const fallbackAddress = `Vị trí điểm đón hiện tại`;
+          const fallbackAddress = `Vị trí điểm đón GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
           setPickupInput(fallbackAddress);
           setPickup({ address: fallbackAddress, lat, lng });
         } finally {
@@ -249,11 +321,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         setIsLoadingGps(false);
         let msg = 'Không thể lấy vị trí GPS hiện tại.';
         if (error.code === error.PERMISSION_DENIED) {
-          msg = 'Vui lòng cho phép truy cập vị trí hoặc tự nhập địa chỉ thủ công.';
+          msg = 'Quyền định vị GPS bị từ chối. Vui lòng bật chia sẻ vị trí trong trình duyệt hoặc tự nhập địa chỉ thủ công.';
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          msg = 'Tín hiệu GPS không khả dụng. Vui lòng cho phép truy cập vị trí hoặc tự nhập địa chỉ thủ công.';
+          msg = 'Tín hiệu GPS không khả dụng. Vui lòng thử lại hoặc tự nhập địa chỉ thủ công.';
         } else if (error.code === error.TIMEOUT) {
-          msg = 'Hết thời gian chờ định vị GPS. Vui lòng thử lại hoặc tự nhập địa chỉ thủ công.';
+          msg = 'Hết thời gian chờ GPS. Vui lòng thử lại hoặc tự nhập địa chỉ thủ công.';
         }
         onFormValidationFail(msg);
       },
@@ -356,6 +428,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setPickupDropdownOpen(true);
               }}
               onFocus={() => setPickupDropdownOpen(true)}
+              onBlur={handlePickupBlur}
               disabled={isLoadingGps}
               className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all disabled:opacity-80"
             />
@@ -386,8 +459,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <button
                   key={item.place_id}
                   type="button"
-                  onClick={() => handleSelectPickupSuggestion(item)}
-                  className="w-full text-left px-3.5 py-2.5 hover:bg-amber-50 text-xs text-slate-800 border-b border-slate-100 flex items-start gap-2.5 transition-colors"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelectPickupSuggestion(item);
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 hover:bg-amber-50 text-xs text-slate-800 border-b border-slate-100 flex items-start gap-2.5 transition-colors cursor-pointer"
                 >
                   <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                   <span className="line-clamp-2 leading-relaxed">{item.display_name}</span>
@@ -414,6 +490,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setDestDropdownOpen(true);
               }}
               onFocus={() => setDestDropdownOpen(true)}
+              onBlur={handleDestBlur}
               className="w-full bg-slate-50 border border-slate-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
             />
             {isSearchingDest && (
@@ -443,8 +520,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <button
                   key={item.place_id}
                   type="button"
-                  onClick={() => handleSelectDestSuggestion(item)}
-                  className="w-full text-left px-3.5 py-2.5 hover:bg-rose-50 text-xs text-slate-800 border-b border-slate-100 flex items-start gap-2.5 transition-colors"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelectDestSuggestion(item);
+                  }}
+                  className="w-full text-left px-3.5 py-2.5 hover:bg-rose-50 text-xs text-slate-800 border-b border-slate-100 flex items-start gap-2.5 transition-colors cursor-pointer"
                 >
                   <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                   <span className="line-clamp-2 leading-relaxed">{item.display_name}</span>

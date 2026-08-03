@@ -319,9 +319,6 @@ export default function App() {
         activeBookingsCount={bookingHistory.filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED').length}
       />
 
-      {/* Hero Banner Showcase */}
-      <HeroBanner onOpenPriceTable={() => setIsPriceTableOpen(true)} />
-
       {/* Main Form & Interactive Stage */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
@@ -431,6 +428,11 @@ export default function App() {
 
           </div>
 
+        </div>
+
+        {/* Hero Banner Showcase */}
+        <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-sm">
+          <HeroBanner onOpenPriceTable={() => setIsPriceTableOpen(true)} />
         </div>
 
         {/* Advantage Highlights Section */}
