@@ -160,14 +160,11 @@ export default function App() {
     }
   }, [pickup?.lat, pickup?.lng, destination?.lat, destination?.lng, pickup?.address, destination?.address]);
 
-  // Calculate Distance & Price dynamically
+  // Calculate Distance & Price dynamically (Strictly driving distance from actual roads)
   const calculatedDistanceKm = useMemo(() => {
     if (roadDistanceKm !== null && roadDistanceKm > 0) return roadDistanceKm;
-    if (pickup?.lat && pickup?.lng && destination?.lat && destination?.lng) {
-      return PriceCalculator.calculateDistance(pickup.lat, pickup.lng, destination.lat, destination.lng);
-    }
     return 0;
-  }, [pickup, destination, roadDistanceKm]);
+  }, [roadDistanceKm]);
 
   const priceBreakdown = useMemo(() => {
     return PriceCalculator.calculatePrice(
@@ -423,6 +420,7 @@ export default function App() {
               vehicleType={vehicleType}
               needVat={needVat}
               isSubmitting={isSubmitting}
+              isCalculatingRoute={isCalculatingRoute}
               onConfirmBooking={handleConfirmBooking}
             />
 

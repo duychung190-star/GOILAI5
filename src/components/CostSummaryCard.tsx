@@ -9,6 +9,7 @@ interface CostSummaryCardProps {
   vehicleType: VehicleTypeOption;
   needVat: boolean;
   isSubmitting: boolean;
+  isCalculatingRoute?: boolean;
   onConfirmBooking: () => void;
 }
 
@@ -17,6 +18,7 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
   vehicleType,
   needVat,
   isSubmitting,
+  isCalculatingRoute,
   onConfirmBooking
 }) => {
   const { t } = useLanguage();
@@ -46,8 +48,13 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
         {/* Distance & Est Duration */}
         <div className="flex items-center justify-between text-slate-700">
           <span className="text-slate-500">{t.summary.distance}:</span>
-          <span className="font-semibold text-slate-900">
-            {breakdown.isHourly ? (
+          <span className="font-semibold text-slate-900 flex items-center gap-1.5">
+            {isCalculatingRoute ? (
+              <span className="inline-flex items-center gap-1.5 text-blue-600 animate-pulse text-xs">
+                <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                <span>Đang tính đường đường bộ...</span>
+              </span>
+            ) : breakdown.isHourly ? (
               `${breakdown.hourlyHours}h`
             ) : breakdown.distanceKm > 0 ? (
               `${breakdown.distanceKm} km (~ ${breakdown.estimatedMinutes} ${t.form.estimatedDuration})`
