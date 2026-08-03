@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Clock, Award, Sparkles, CheckCircle2 } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
-import headerBgImg from '../assets/images/header_bg_banner_1785395640428.jpg';
+import headerBgImg from '../assets/images/bac_ninh_cultural_center_1785735650224.jpg';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface HeroBannerProps {
@@ -12,23 +12,23 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
   const { t } = useLanguage();
 
   return (
-    <div className="relative overflow-hidden bg-slate-950 pt-8 pb-10 border-b border-slate-800/80">
+    <div className="relative overflow-hidden bg-amber-50/60 pt-8 pb-10 border-b border-amber-200/60">
       
-      {/* Header Background Image Overlay */}
+      {/* Header Background Image Overlay - Bright Daytime Bac Ninh Cultural Center */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src={headerBgImg}
-          alt="D.GO Gọi Lái Xe 247 Background"
+          alt="D.GO Gọi Lái Xe 247 Bac Ninh Background"
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover object-center opacity-70 brightness-105 contrast-105 scale-105 transition-all duration-700"
+          className="w-full h-full object-cover object-center opacity-85 brightness-105 contrast-105 scale-105 transition-all duration-700"
         />
-        {/* Lighter Gradient Overlay for Increased Image Visibility & Sharp Contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/50 to-slate-950/85" />
-        <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-950/30 to-slate-950/80" />
+        {/* Soft Daytime Gradient Overlay for Maximum Legibility & Bright Vibrant Look */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-slate-100/95" />
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-white/30 to-white/70" />
       </div>
 
       {/* Subtle Background Glow Accent */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-72 bg-gradient-to-r from-blue-600/20 via-amber-500/20 to-cyan-500/20 blur-[110px] pointer-events-none rounded-full z-0" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-72 bg-gradient-to-r from-amber-300/30 via-orange-300/20 to-sky-300/30 blur-[100px] pointer-events-none rounded-full z-0" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto space-y-5">
@@ -36,73 +36,73 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
           {/* Main Official Logo Hero Emblem */}
           <div className="flex justify-center mb-2">
             <div className="relative group cursor-pointer" onClick={onOpenPriceTable}>
-              <div className="absolute -inset-1.5 bg-gradient-to-r from-blue-500 via-amber-400 to-cyan-400 rounded-full blur-md opacity-70 group-hover:opacity-100 transition duration-500"></div>
-              <div className="relative flex items-center gap-3 bg-slate-950/90 border border-slate-800 p-2 pr-5 rounded-full shadow-2xl backdrop-blur-md">
+              <div className="absolute -inset-1.5 bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 rounded-full blur-md opacity-70 group-hover:opacity-100 transition duration-500"></div>
+              <div className="relative flex items-center gap-3 bg-white/95 border border-amber-200/90 p-2 pr-5 rounded-full shadow-xl backdrop-blur-md">
                 <img
                   src={dgoLogoImg}
                   alt="DGO - DỊCH VỤ LÁI XE HỘ - GOILAI247.COM"
                   referrerPolicy="no-referrer"
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover shadow-lg border-2 border-slate-700/80"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover shadow-md border-2 border-amber-400/80"
                 />
                 <div className="text-left">
                   <div className="flex items-center gap-2">
-                    <span className="text-amber-400 text-xs sm:text-sm font-black tracking-wider uppercase">D.GO 247</span>
-                    <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">Official</span>
+                    <span className="text-amber-700 text-xs sm:text-sm font-black tracking-wider uppercase">D.GO 247</span>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">Official</span>
                   </div>
-                  <p className="text-white text-xs sm:text-sm font-extrabold tracking-tight">DỊCH VỤ LÁI XE HỘ - GOILAI247.COM</p>
+                  <p className="text-slate-900 text-xs sm:text-sm font-extrabold tracking-tight">DỊCH VỤ LÁI XE HỘ - GOILAI247.COM</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/90 border border-amber-500/30 text-amber-400 text-xs font-semibold shadow-inner">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-amber-300/80 text-amber-900 text-xs font-semibold shadow-sm backdrop-blur-sm">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
             <span>{t.hero.badgeTitle}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            <span className="text-slate-300">{t.hero.badgeEta}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            <span className="text-slate-700">{t.hero.badgeEta}</span>
           </div>
 
           {/* Heading */}
-          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            {t.hero.mainTitle}<span className="bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 bg-clip-text text-transparent">{t.hero.mainTitleHighlight}</span>
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            {t.hero.mainTitle}<span className="bg-gradient-to-r from-amber-600 via-amber-500 to-orange-600 bg-clip-text text-transparent">{t.hero.mainTitleHighlight}</span>
           </h2>
 
-          <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base text-slate-700 font-medium leading-relaxed max-w-2xl mx-auto">
             {t.hero.description}
           </p>
 
           {/* Quick Features List */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 max-w-4xl mx-auto text-left">
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-              <CheckCircle2 className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-sm backdrop-blur-sm">
+              <CheckCircle2 className="w-5 h-5 text-amber-600 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">{t.hero.feat1Title}</p>
-                <p className="text-[11px] text-slate-400">{t.hero.feat1Sub}</p>
+                <p className="text-xs font-bold text-slate-900">{t.hero.feat1Title}</p>
+                <p className="text-[11px] text-slate-600">{t.hero.feat1Sub}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-              <Clock className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-sm backdrop-blur-sm">
+              <Clock className="w-5 h-5 text-amber-600 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">{t.hero.feat2Title}</p>
-                <p className="text-[11px] text-slate-400">{t.hero.feat2Sub}</p>
+                <p className="text-xs font-bold text-slate-900">{t.hero.feat2Title}</p>
+                <p className="text-[11px] text-slate-600">{t.hero.feat2Sub}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-              <Award className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-sm backdrop-blur-sm">
+              <Award className="w-5 h-5 text-amber-600 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">{t.hero.feat3Title}</p>
-                <p className="text-[11px] text-slate-400">{t.hero.feat3Sub}</p>
+                <p className="text-xs font-bold text-slate-900">{t.hero.feat3Title}</p>
+                <p className="text-[11px] text-slate-600">{t.hero.feat3Sub}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 backdrop-blur-sm">
-              <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/90 border border-slate-200/80 shadow-sm backdrop-blur-sm">
+              <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0" />
               <div>
-                <p className="text-xs font-bold text-white">{t.hero.feat4Title}</p>
-                <p className="text-[11px] text-slate-400">{t.hero.feat4Sub}</p>
+                <p className="text-xs font-bold text-slate-900">{t.hero.feat4Title}</p>
+                <p className="text-[11px] text-slate-600">{t.hero.feat4Sub}</p>
               </div>
             </div>
           </div>

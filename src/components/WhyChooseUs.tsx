@@ -30,7 +30,7 @@ export const WhyChooseUs: React.FC = () => {
   ];
 
   return (
-    <div className="bg-slate-900 border-t border-slate-800 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-slate-50 border-t border-slate-200 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
         <div className="text-center max-w-2xl mx-auto space-y-3">
@@ -39,17 +39,17 @@ export const WhyChooseUs: React.FC = () => {
               src={dgoLogoImg}
               alt="DGO Official Badge"
               referrerPolicy="no-referrer"
-              className="w-16 h-16 rounded-full shadow-xl border-2 border-slate-700/80 ring-4 ring-amber-500/10"
+              className="w-16 h-16 rounded-full shadow-lg border-2 border-amber-400 ring-4 ring-amber-400/20"
             />
           </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-xs font-bold border border-amber-500/20">
-            <Award className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-300">
+            <Award className="w-3.5 h-3.5 text-amber-600" />
             <span>THƯƠNG HIỆU D.GO - GOILAI247.COM</span>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
             {t.whyUs.heading}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className="text-xs sm:text-sm text-slate-600">
             {t.whyUs.subheading}
           </p>
         </div>
@@ -60,15 +60,15 @@ export const WhyChooseUs: React.FC = () => {
             return (
               <div
                 key={idx}
-                className="bg-slate-950 p-5 rounded-2xl border border-slate-800 hover:border-amber-500/40 transition-all hover:-translate-y-1 space-y-3 group"
+                className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-400 transition-all hover:-translate-y-1 space-y-3 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:bg-amber-400 group-hover:text-slate-950 transition-colors">
+                <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 group-hover:bg-amber-400 group-hover:text-slate-950 transition-colors">
                   <Icon className="w-6 h-6 stroke-[2.2]" />
                 </div>
-                <h4 className="text-base font-bold text-white group-hover:text-amber-400 transition-colors">
+                <h4 className="text-base font-bold text-slate-900 group-hover:text-amber-700 transition-colors">
                   {item.title}
                 </h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-slate-600 leading-relaxed">
                   {item.desc}
                 </p>
               </div>

@@ -308,7 +308,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
       
       {/* Header Bar */}
       <Header
@@ -327,14 +327,14 @@ export default function App() {
         
         {/* Error Notification Alert (if any) */}
         {validationError && (
-          <div className="bg-rose-500/10 border border-rose-500/40 p-4 rounded-xl text-rose-300 text-xs font-semibold flex items-center justify-between shadow-lg animate-fadeIn">
+          <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-800 text-xs font-semibold flex items-center justify-between shadow-sm animate-fadeIn">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
               <span>{validationError}</span>
             </div>
             <button
               onClick={() => setValidationError(null)}
-              className="text-slate-400 hover:text-white text-xs font-bold"
+              className="text-slate-500 hover:text-slate-800 text-xs font-bold"
             >
               Đóng
             </button>
@@ -377,19 +377,19 @@ export default function App() {
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
             
             {/* Map Click Selector Target Switcher */}
-            <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-semibold flex items-center gap-1.5">
-                <Navigation className="w-4 h-4 text-amber-400" />
+            <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-sm flex items-center justify-between text-xs">
+              <span className="text-slate-700 font-semibold flex items-center gap-1.5">
+                <Navigation className="w-4 h-4 text-amber-600" />
                 <span>Chế độ bấm bản đồ:</span>
               </span>
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
                 <button
                   type="button"
                   onClick={() => setMapClickTarget('pickup')}
                   className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
                     mapClickTarget === 'pickup'
-                      ? 'bg-emerald-500 text-slate-950'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   Chọn Đón
@@ -399,8 +399,8 @@ export default function App() {
                   onClick={() => setMapClickTarget('destination')}
                   className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
                     mapClickTarget === 'destination'
-                      ? 'bg-rose-500 text-white'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-rose-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   Chọn Đến
@@ -409,7 +409,7 @@ export default function App() {
             </div>
 
             {/* Interactive Leaflet Route Map */}
-            <div className="h-[320px] w-full shadow-2xl rounded-2xl overflow-hidden border border-slate-800">
+            <div className="h-[320px] w-full shadow-md rounded-2xl overflow-hidden border border-slate-200/90">
               <InteractiveMap
                 pickup={pickup}
                 destination={destination}
@@ -439,25 +439,25 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-950 border-t border-slate-900 py-10 text-center text-xs text-slate-500 space-y-4">
+      <footer className="bg-white border-t border-slate-200 py-10 text-center text-xs text-slate-600 space-y-4">
         <div className="flex justify-center items-center gap-3">
           <img
             src={dgoLogoImg}
             alt="D.GO Logo"
             referrerPolicy="no-referrer"
-            className="w-12 h-12 rounded-full border-2 border-slate-800 shadow-md"
+            className="w-12 h-12 rounded-full border-2 border-amber-400 shadow-sm"
           />
           <div className="text-left">
-            <h4 className="font-black text-white text-base tracking-tight">D.GO - DỊCH VỤ LÁI XE HỘ</h4>
-            <p className="text-amber-400 text-xs font-bold">GOILAI247.COM • HOTLINE: 0971.999.734</p>
+            <h4 className="font-black text-slate-900 text-base tracking-tight">D.GO - DỊCH VỤ LÁI XE HỘ</h4>
+            <p className="text-amber-700 text-xs font-bold">GOILAI247.COM • HOTLINE: 0971.999.734</p>
           </div>
         </div>
 
-        <p className="max-w-xl mx-auto text-slate-400 font-medium">
+        <p className="max-w-xl mx-auto text-slate-600 font-medium">
           Dịch vụ lái xe hộ an toàn - Uy tín - Phục vụ 24/7 trên toàn quốc
         </p>
 
-        <p className="text-[11px] text-slate-600">
+        <p className="text-[11px] text-slate-500">
           © {new Date().getFullYear()} D.GO 247. Bảo lưu mọi bản quyền.
         </p>
       </footer>

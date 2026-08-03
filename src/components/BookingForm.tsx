@@ -270,11 +270,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   ];
 
   return (
-    <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 sm:p-6 shadow-xl space-y-6">
+    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-lg shadow-slate-200/50 space-y-6">
       
       {/* Section 1: Customer Info */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+        <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
           <User className="w-4 h-4" />
           <span>{t.form.secCustomer}</span>
         </h3>
@@ -283,8 +283,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           
           {/* Customer Name */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              {t.form.nameLabel} <span className="text-rose-400">*</span>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              {t.form.nameLabel} <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <User className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -293,15 +293,15 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 placeholder={t.form.namePlaceholder}
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl py-2.5 pl-9 pr-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
               />
             </div>
           </div>
 
           {/* Customer Phone */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              {t.form.phoneLabel} <span className="text-rose-400">*</span>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+              {t.form.phoneLabel} <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <Phone className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -310,7 +310,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 placeholder={t.form.phonePlaceholder}
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl py-2.5 pl-9 pr-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl py-2.5 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
               />
             </div>
           </div>
@@ -320,7 +320,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Section 2: Pickup & Destination Locations */}
       <div className="space-y-4">
-        <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+        <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
           <MapPin className="w-4 h-4" />
           <span>{t.form.secRoute}</span>
         </h3>
@@ -328,8 +328,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         {/* Pickup Address Field */}
         <div className="relative">
           <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
-            <label className="block text-xs font-semibold text-slate-300">
-              {t.form.pickupLabel} <span className="text-rose-400">*</span>
+            <label className="block text-xs font-semibold text-slate-700">
+              {t.form.pickupLabel} <span className="text-rose-500">*</span>
             </label>
 
             {/* GPS Location Button */}
@@ -337,16 +337,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               type="button"
               onClick={handleGetCurrentLocation}
               disabled={isLoadingGps}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-300 hover:text-emerald-200 bg-emerald-500/20 hover:bg-emerald-500/30 px-3 py-1.5 rounded-lg border border-emerald-500/40 transition-all cursor-pointer shadow-sm active:scale-95"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-300 transition-all cursor-pointer shadow-sm active:scale-95"
               title="GPS"
             >
-              <Navigation className={`w-3.5 h-3.5 text-emerald-400 ${isLoadingGps ? 'animate-spin text-amber-400' : ''}`} />
+              <Navigation className={`w-3.5 h-3.5 text-emerald-600 ${isLoadingGps ? 'animate-spin text-amber-500' : ''}`} />
               <span>{isLoadingGps ? t.form.gettingGps : t.form.getGpsBtn}</span>
             </button>
           </div>
 
           <div className="relative">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 absolute left-3.5 top-3.5 border-2 border-slate-900 shadow-sm"></span>
+            <span className="w-3 h-3 rounded-full bg-emerald-500 absolute left-3.5 top-3.5 border-2 border-white shadow-sm"></span>
             <input
               type="text"
               placeholder={isLoadingGps ? 'Đang định vị vị trí GPS và tìm địa chỉ...' : t.form.pickupPlaceholder}
@@ -357,28 +357,28 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               }}
               onFocus={() => setPickupDropdownOpen(true)}
               disabled={isLoadingGps}
-              className="w-full bg-slate-950 border border-slate-700 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 rounded-xl py-2.5 pl-9 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all disabled:opacity-80"
+              className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all disabled:opacity-80"
             />
             {(isSearchingPickup || isLoadingGps) && (
               <div className="absolute right-3 top-3 flex items-center gap-1.5">
-                <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
               </div>
             )}
           </div>
 
           {/* Autocomplete Dropdown for Pickup */}
           {pickupDropdownOpen && (pickupSuggestions.length > 0 || isSearchingPickup) && (
-            <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
-              <div className="bg-slate-950/80 px-3 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
-                <span className="flex items-center gap-1 text-emerald-400">
+            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
+              <div className="bg-slate-50 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between text-[11px] text-slate-600 font-semibold">
+                <span className="flex items-center gap-1 text-emerald-700">
                   <Sparkles className="w-3 h-3" />
                   <span>Google Places Autocomplete</span>
                 </span>
                 <span>Gợi ý địa chỉ tự động</span>
               </div>
               {isSearchingPickup && pickupSuggestions.length === 0 && (
-                <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-                  <div className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                <div className="p-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                  <div className="w-3.5 h-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
                   <span>Đang tìm kiếm gợi ý địa chỉ...</span>
                 </div>
               )}
@@ -387,9 +387,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   key={item.place_id}
                   type="button"
                   onClick={() => handleSelectPickupSuggestion(item)}
-                  className="w-full text-left px-3.5 py-2.5 hover:bg-slate-800/90 text-xs text-slate-200 border-b border-slate-800/80 flex items-start gap-2.5 transition-colors"
+                  className="w-full text-left px-3.5 py-2.5 hover:bg-amber-50 text-xs text-slate-800 border-b border-slate-100 flex items-start gap-2.5 transition-colors"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                  <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                   <span className="line-clamp-2 leading-relaxed">{item.display_name}</span>
                 </button>
               ))}
@@ -399,12 +399,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
         {/* Destination Address Field */}
         <div className="relative">
-          <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-            {t.form.destLabel} <span className="text-rose-400">*</span>
+          <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+            {t.form.destLabel} <span className="text-rose-500">*</span>
           </label>
 
           <div className="relative">
-            <span className="w-3 h-3 rounded-full bg-rose-500 absolute left-3.5 top-3.5 border-2 border-slate-900 shadow-sm"></span>
+            <span className="w-3 h-3 rounded-full bg-rose-500 absolute left-3.5 top-3.5 border-2 border-white shadow-sm"></span>
             <input
               type="text"
               placeholder={t.form.destPlaceholder}
@@ -414,28 +414,28 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setDestDropdownOpen(true);
               }}
               onFocus={() => setDestDropdownOpen(true)}
-              className="w-full bg-slate-950 border border-slate-700 focus:border-rose-400 focus:ring-1 focus:ring-rose-400 rounded-xl py-2.5 pl-9 pr-10 text-sm text-white placeholder-slate-500 outline-none transition-all"
+              className="w-full bg-slate-50 border border-slate-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
             />
             {isSearchingDest && (
               <div className="absolute right-3 top-3">
-                <div className="w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
               </div>
             )}
           </div>
 
           {/* Autocomplete Dropdown for Destination */}
           {destDropdownOpen && (destSuggestions.length > 0 || isSearchingDest) && (
-            <div className="absolute z-50 left-0 right-0 mt-1 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
-              <div className="bg-slate-950/80 px-3 py-1.5 border-b border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
-                <span className="flex items-center gap-1 text-rose-400">
+            <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden max-h-64 overflow-y-auto">
+              <div className="bg-slate-50 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between text-[11px] text-slate-600 font-semibold">
+                <span className="flex items-center gap-1 text-rose-700">
                   <Sparkles className="w-3 h-3" />
                   <span>Google Places Autocomplete</span>
                 </span>
                 <span>Gợi ý địa chỉ tự động</span>
               </div>
               {isSearchingDest && destSuggestions.length === 0 && (
-                <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
-                  <div className="w-3.5 h-3.5 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
+                <div className="p-4 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+                  <div className="w-3.5 h-3.5 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
                   <span>Đang tìm kiếm gợi ý địa chỉ...</span>
                 </div>
               )}
@@ -444,9 +444,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   key={item.place_id}
                   type="button"
                   onClick={() => handleSelectDestSuggestion(item)}
-                  className="w-full text-left px-3.5 py-2.5 hover:bg-slate-800/90 text-xs text-slate-200 border-b border-slate-800/80 flex items-start gap-2.5 transition-colors"
+                  className="w-full text-left px-3.5 py-2.5 hover:bg-rose-50 text-xs text-slate-800 border-b border-slate-100 flex items-start gap-2.5 transition-colors"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                  <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                   <span className="line-clamp-2 leading-relaxed">{item.display_name}</span>
                 </button>
               ))}
@@ -456,7 +456,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
         {/* Popular Destination Quick Chips */}
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-[11px] text-slate-400 font-medium mr-1">Gợi ý nhanh:</span>
+          <span className="text-[11px] text-slate-500 font-medium mr-1">Gợi ý nhanh:</span>
           {quickDestinations.map((place) => (
             <button
               key={place.name}
@@ -465,7 +465,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setDestInput(place.address);
                 setDestination({ address: place.address, lat: place.lat, lng: place.lng });
               }}
-              className="px-2.5 py-1 text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition-colors"
+              className="px-2.5 py-1 text-[11px] font-medium bg-slate-100 hover:bg-amber-100 text-slate-700 rounded-lg border border-slate-200 transition-colors"
             >
               + {place.name}
             </button>
@@ -474,8 +474,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
         {/* Driving Route Calculation Status Indicator */}
         {isCalculatingRoute && (
-          <div className="flex items-center gap-2 p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs text-blue-300 shadow-sm">
-            <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0" />
+          <div className="flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 shadow-sm">
+            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0" />
             <span className="font-semibold">Đang tính toán tuyến đường ô tô và khoảng cách thực tế...</span>
           </div>
         )}
@@ -484,7 +484,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Section 3: Vehicle Type Selection */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+        <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
           <Car className="w-4 h-4" />
           <span>{t.form.secVehicle}</span>
         </h3>
@@ -497,13 +497,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             onClick={() => setVehicleType('Ô tô 4-7 chỗ')}
             className={`p-3 rounded-xl border text-left transition-all relative ${
               vehicleType === 'Ô tô 4-7 chỗ'
-                ? 'bg-amber-500/10 border-amber-400 text-white shadow-lg shadow-amber-500/10'
-                : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md'
+                : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300'
             }`}
           >
-            <Car className={`w-6 h-6 mb-2 ${vehicleType === 'Ô tô 4-7 chỗ' ? 'text-amber-400' : 'text-slate-400'}`} />
+            <Car className={`w-6 h-6 mb-2 ${vehicleType === 'Ô tô 4-7 chỗ' ? 'text-slate-950' : 'text-slate-500'}`} />
             <p className="font-bold text-xs">{t.vehicle.car4_7}</p>
-            <p className="text-[10px] text-slate-400">Sedan, SUV, Hatchback</p>
+            <p className={`text-[10px] ${vehicleType === 'Ô tô 4-7 chỗ' ? 'text-slate-900' : 'text-slate-500'}`}>Sedan, SUV, Hatchback</p>
           </button>
 
           {/* Xe máy */}
@@ -512,13 +512,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             onClick={() => setVehicleType('Xe máy')}
             className={`p-3 rounded-xl border text-left transition-all relative ${
               vehicleType === 'Xe máy'
-                ? 'bg-amber-500/10 border-amber-400 text-white shadow-lg shadow-amber-500/10'
-                : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md'
+                : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300'
             }`}
           >
-            <Bike className={`w-6 h-6 mb-2 ${vehicleType === 'Xe máy' ? 'text-amber-400' : 'text-slate-400'}`} />
+            <Bike className={`w-6 h-6 mb-2 ${vehicleType === 'Xe máy' ? 'text-slate-950' : 'text-slate-500'}`} />
             <p className="font-bold text-xs">{t.vehicle.motorbike}</p>
-            <p className="text-[10px] text-slate-400">Scooter, Manual, Clutch</p>
+            <p className={`text-[10px] ${vehicleType === 'Xe máy' ? 'text-slate-900' : 'text-slate-500'}`}>Scooter, Manual, Clutch</p>
           </button>
 
           {/* Xe sang / Bán tải */}
@@ -527,13 +527,13 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             onClick={() => setVehicleType('Xe sang / Bán tải')}
             className={`p-3 rounded-xl border text-left transition-all relative ${
               vehicleType === 'Xe sang / Bán tải'
-                ? 'bg-amber-500/10 border-amber-400 text-white shadow-lg shadow-amber-500/10'
-                : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md'
+                : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300'
             }`}
           >
-            <ShieldCheck className={`w-6 h-6 mb-2 ${vehicleType === 'Xe sang / Bán tải' ? 'text-amber-400' : 'text-slate-400'}`} />
+            <ShieldCheck className={`w-6 h-6 mb-2 ${vehicleType === 'Xe sang / Bán tải' ? 'text-slate-950' : 'text-slate-500'}`} />
             <p className="font-bold text-xs">{t.vehicle.luxury}</p>
-            <p className="text-[10px] text-slate-400">Mercedes, BMW, Pickup...</p>
+            <p className={`text-[10px] ${vehicleType === 'Xe sang / Bán tải' ? 'text-slate-900' : 'text-slate-500'}`}>Mercedes, BMW, Pickup...</p>
           </button>
 
           {/* Thuê theo giờ */}
@@ -542,36 +542,36 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             onClick={() => setVehicleType('Thuê theo giờ')}
             className={`p-3 rounded-xl border text-left transition-all relative ${
               vehicleType === 'Thuê theo giờ'
-                ? 'bg-amber-500/10 border-amber-400 text-white shadow-lg shadow-amber-500/10'
-                : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md'
+                : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300'
             }`}
           >
-            <Clock className={`w-6 h-6 mb-2 ${vehicleType === 'Thuê theo giờ' ? 'text-amber-400' : 'text-slate-400'}`} />
+            <Clock className={`w-6 h-6 mb-2 ${vehicleType === 'Thuê theo giờ' ? 'text-slate-950' : 'text-slate-500'}`} />
             <p className="font-bold text-xs">{t.vehicle.hourly}</p>
-            <p className="text-[10px] text-slate-400">Combo 3h (500k)</p>
+            <p className={`text-[10px] ${vehicleType === 'Thuê theo giờ' ? 'text-slate-900' : 'text-slate-500'}`}>Combo 3h (500k)</p>
           </button>
 
         </div>
 
         {/* Hourly Hours Stepper (Only shown if vehicleType == 'Thuê theo giờ') */}
         {vehicleType === 'Thuê theo giờ' && (
-          <div className="bg-slate-950 p-3.5 rounded-xl border border-amber-500/30 flex items-center justify-between">
+          <div className="bg-amber-50 p-3.5 rounded-xl border border-amber-200 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-white">{t.form.hourlySelectLabel}:</p>
+              <p className="text-xs font-bold text-slate-900">{t.form.hourlySelectLabel}:</p>
             </div>
-            <div className="flex items-center gap-3 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1">
+            <div className="flex items-center gap-3 bg-white border border-slate-300 rounded-lg px-2 py-1 shadow-sm">
               <button
                 type="button"
                 onClick={() => setHourlyHours(Math.max(3, hourlyHours - 1))}
-                className="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold text-sm"
+                className="w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded font-bold text-sm"
               >
                 -
               </button>
-              <span className="font-extrabold text-amber-400 text-sm px-1">{hourlyHours}h</span>
+              <span className="font-extrabold text-amber-700 text-sm px-1">{hourlyHours}h</span>
               <button
                 type="button"
                 onClick={() => setHourlyHours(hourlyHours + 1)}
-                className="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold text-sm"
+                className="w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded font-bold text-sm"
               >
                 +
               </button>
@@ -581,38 +581,38 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
         {/* Live Distance & Estimated Total Price Banner (Google Maps Distance Matrix / Directions API) */}
         {priceBreakdown && (
-          <div className="bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-slate-900 border border-amber-500/40 p-4 rounded-xl shadow-lg transition-all animate-fadeIn">
+          <div className="bg-amber-50/90 border border-amber-300 p-4 rounded-xl shadow-sm transition-all animate-fadeIn">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-black uppercase text-amber-400 tracking-wider">
+                  <Calculator className="w-4 h-4 text-amber-700" />
+                  <span className="text-xs font-black uppercase text-amber-800 tracking-wider">
                     {t.form.liveTotalTitle} ({vehicleType})
                   </span>
                   {isCalculatingRoute && (
-                    <span className="flex items-center gap-1 text-[11px] text-amber-300 font-normal">
-                      <span className="w-3 h-3 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="flex items-center gap-1 text-[11px] text-amber-700 font-normal">
+                      <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
                       {t.form.calculatingRoute}
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-300 flex items-center gap-1.5">
-                  <Route className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <p className="text-[11px] text-slate-700 flex items-center gap-1.5">
+                  <Route className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   {priceBreakdown.isHourly ? (
                     <span>{t.form.hourlyRentalFor} <strong>{priceBreakdown.hourlyHours}h</strong></span>
                   ) : priceBreakdown.distanceKm > 0 ? (
-                    <span>{t.form.roadDistance} <strong className="text-white">{priceBreakdown.distanceKm} km</strong> (~ <strong className="text-emerald-300">{priceBreakdown.estimatedMinutes} {t.form.estimatedDuration}</strong>)</span>
+                    <span>{t.form.roadDistance} <strong className="text-slate-900">{priceBreakdown.distanceKm} km</strong> (~ <strong className="text-emerald-700">{priceBreakdown.estimatedMinutes} {t.form.estimatedDuration}</strong>)</span>
                   ) : (
-                    <span className="text-slate-400">{t.form.enterAddressPrompt}</span>
+                    <span className="text-slate-500">{t.form.enterAddressPrompt}</span>
                   )}
                 </p>
               </div>
 
               <div className="text-left sm:text-right shrink-0">
-                <span className="text-xl sm:text-2xl font-black text-amber-400 tracking-tight">
+                <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
                   {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
                 </span>
-                <p className="text-[10px] text-slate-400">{t.form.noVatNote}</p>
+                <p className="text-[10px] text-slate-500">{t.form.noVatNote}</p>
               </div>
             </div>
           </div>
@@ -621,7 +621,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Section 4: Scheduled Pickup Time */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+        <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
           <Clock className="w-4 h-4" />
           <span>{t.form.secTime}</span>
         </h3>
@@ -636,9 +636,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 setTimeOption('NOW');
                 setScheduledTime(new Date());
               }}
-              className="accent-amber-400 w-4 h-4"
+              className="accent-amber-500 w-4 h-4"
             />
-            <span className="text-xs font-semibold text-white">{t.form.pickupNow}</span>
+            <span className="text-xs font-semibold text-slate-800">{t.form.pickupNow}</span>
           </label>
 
           <label className="flex items-center gap-2 cursor-pointer">
@@ -647,9 +647,9 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               name="timeOpt"
               checked={timeOption === 'SCHEDULED'}
               onChange={() => setTimeOption('SCHEDULED')}
-              className="accent-amber-400 w-4 h-4"
+              className="accent-amber-500 w-4 h-4"
             />
-            <span className="text-xs font-semibold text-white">{t.form.schedulePickup}</span>
+            <span className="text-xs font-semibold text-slate-800">{t.form.schedulePickup}</span>
           </label>
         </div>
 
@@ -665,7 +665,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   setScheduledTime(new Date(e.target.value));
                 }
               }}
-              className="bg-slate-950 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-xs text-white outline-none"
+              className="bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-slate-900 outline-none"
             />
           </div>
         )}
@@ -673,7 +673,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       {/* Section 5: Note for Driver */}
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+        <h3 className="text-sm font-bold text-amber-700 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
           <Edit3 className="w-4 h-4" />
           <span>{t.form.noteLabel}</span>
         </h3>
@@ -683,7 +683,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           placeholder={t.form.notePlaceholder}
           value={noteForDriver}
           onChange={(e) => setNoteForDriver(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 rounded-xl p-3 text-xs text-white placeholder-slate-500 outline-none transition-all"
+          className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all"
         />
 
         {/* Quick note option chips */}
@@ -695,7 +695,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               onClick={() => {
                 setNoteForDriver(noteForDriver ? `${noteForDriver}, ${chip}` : chip);
               }}
-              className="px-2.5 py-1 text-[11px] bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-lg border border-slate-800"
+              className="px-2.5 py-1 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200"
             >
               + {chip}
             </button>
@@ -704,7 +704,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       </div>
 
       {/* Section 6: VAT Invoice Option */}
-      <div className="space-y-3 pt-2 border-t border-slate-800">
+      <div className="space-y-3 pt-2 border-t border-slate-200">
         
         <div className="flex items-center justify-between">
           <label className="flex items-center gap-3 cursor-pointer">
@@ -719,10 +719,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   backgroundColor: needVat ? '#F59E0B' : '#ffffff'
                 }}
               />
-              <span className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer border ${needVat ? 'bg-amber-500/30 border-amber-400' : 'bg-slate-950 border-slate-700'}`}></span>
+              <span className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer border ${needVat ? 'bg-amber-100 border-amber-400' : 'bg-slate-100 border-slate-300'}`}></span>
             </div>
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-amber-400" />
+            <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-amber-600" />
               <span>{t.form.vatCheck}</span>
             </span>
           </label>
@@ -730,51 +730,51 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
         {/* Conditional VAT Fields */}
         {needVat && (
-          <div className="bg-slate-950 p-4 rounded-xl border border-amber-500/30 space-y-3 animate-fadeIn">
+          <div className="bg-slate-50 p-4 rounded-xl border border-amber-300 space-y-3 animate-fadeIn">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.companyName}</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">{t.form.companyName}</label>
                 <input
                   type="text"
                   placeholder={t.form.companyNamePlaceholder}
                   value={vatDetails.companyName}
                   onChange={(e) => setVatDetails({ ...vatDetails, companyName: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.taxCode}</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">{t.form.taxCode}</label>
                 <input
                   type="text"
                   placeholder={t.form.taxCodePlaceholder}
                   value={vatDetails.taxCode}
                   onChange={(e) => setVatDetails({ ...vatDetails, taxCode: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.companyAddress}</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">{t.form.companyAddress}</label>
                 <input
                   type="text"
                   placeholder={t.form.companyAddressPlaceholder}
                   value={vatDetails.companyAddress}
                   onChange={(e) => setVatDetails({ ...vatDetails, companyAddress: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">{t.form.vatEmail}</label>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">{t.form.vatEmail}</label>
                 <input
                   type="email"
                   placeholder={t.form.vatEmailPlaceholder}
                   value={vatDetails.email}
                   onChange={(e) => setVatDetails({ ...vatDetails, email: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900"
                 />
               </div>
             </div>
