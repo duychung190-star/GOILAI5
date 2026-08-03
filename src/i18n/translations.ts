@@ -94,21 +94,21 @@ export const translations = {
     },
     // Summary Card
     summary: {
-      title: "TÓM TẮT CHI PHÍ ĐẮT XE",
+      title: "TÓM TẮT CHI PHÍ ĐẶT XE",
       routeSummary: "Lộ trình di chuyển",
       from: "Từ:",
       to: "Đến:",
       vehicleType: "Loại phương tiện:",
-      distance: "Khoảng cách di chuyển:",
-      basePrice: "Giá cước ban đầu:",
-      nightSurcharge: "Phụ phí đêm (22h - 6h):",
-      vatFee: "Thuế VAT (10%):",
+      distance: "Khoảng cách & Thời gian:",
+      basePrice: "Cước phí dịch vụ gốc:",
+      nightSurcharge: "Phụ phí đêm:",
+      vatFee: "Thuế VAT (8%):",
       totalEst: "TỔNG TIỀN DỰ KIẾN",
-      noVatNote: "Chưa bao gồm VAT",
-      waitingFeeNoteTitle: "Lưu ý phí thời gian chờ & phát sinh:",
-      waitingFeeNoteBody: "Giá trên chưa bao gồm phát sinh thời gian chờ cho tài xế (đồng giá +60.000 VNĐ/giờ chờ). Phí phát sinh khi quý khách có thêm điểm dừng/đón phụ.",
-      contactHotlineText: "Vui lòng liên hệ hotline",
-      contactHotlineSub: "để được tư vấn chi tiết."
+      noVatNote: "Giá trên chưa bao gồm thuế VAT (nếu chọn)",
+      waitingFeeNoteTitle: "Lưu ý:",
+      waitingFeeNoteBody: "Tổng số tiền chưa bao gồm phí chờ cho tài xế (+60.000 VNĐ/h chờ) và Phí phát sinh khi phát sinh thêm điểm đến.",
+      contactHotlineText: "(vui lòng liên hệ hotline",
+      contactHotlineSub: "để được tư vấn)"
     },
     // Modals
     modals: {
@@ -243,16 +243,16 @@ export const translations = {
       from: "From:",
       to: "To:",
       vehicleType: "Vehicle Type:",
-      distance: "Driving Distance:",
-      basePrice: "Base Fare:",
-      nightSurcharge: "Night Surcharge (22:00 - 06:00):",
-      vatFee: "VAT Tax (10%):",
+      distance: "Distance & Est Time:",
+      basePrice: "Base Service Fee:",
+      nightSurcharge: "Night Surcharge:",
+      vatFee: "VAT Tax (8%):",
       totalEst: "ESTIMATED TOTAL FARE",
-      noVatNote: "Excluding VAT",
-      waitingFeeNoteTitle: "Waiting fee & extra stops note:",
-      waitingFeeNoteBody: "Fares do not include extra waiting time (+60,000 VND/hour). Extra charges apply for additional pickup/drop-off stops.",
-      contactHotlineText: "Please contact hotline",
-      contactHotlineSub: "for detailed consultation."
+      noVatNote: "Fare excludes VAT (unless selected)",
+      waitingFeeNoteTitle: "Note:",
+      waitingFeeNoteBody: "Total amount excludes driver waiting fee (+60,000 VND/hour) and extra destination fees.",
+      contactHotlineText: "(please contact hotline",
+      contactHotlineSub: "for consultation)"
     },
     // Modals
     modals: {

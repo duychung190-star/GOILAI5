@@ -248,34 +248,66 @@ function formatNominatimAddress(data: any): string {
   return displayName || parts.join(', ') || '';
 }
 
-// Proxy route for Nominatim OpenStreetMap Geocoding (search places in Vietnam)
+// Proxy route for Google Places Autocomplete and Geocoding (search places in Vietnam)
 app.get("/api/geocode/search", async (req, res) => {
   try {
     const query = req.query.q as string;
     if (!query) return res.json([]);
 
-    // Check Google Maps API Key if available
-    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
     if (googleApiKey) {
       try {
-        const gUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&components=country:VN&key=${googleApiKey}&language=vi`;
-        const gRes = await fetch(gUrl);
+        // 1. Try Google Places Text Search API for places, POIs, streets, airports, stations
+        const gPlacesUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&region=vn&language=vi&key=${googleApiKey}`;
+        const gRes = await fetch(gPlacesUrl);
         const gData = await gRes.json();
         if (gData.status === 'OK' && gData.results && gData.results.length > 0) {
-          const formatted = gData.results.map((item: any, idx: number) => ({
+          const formatted = gData.results.slice(0, 6).map((item: any) => ({
+            place_id: item.place_id,
+            display_name: item.name && !item.formatted_address.includes(item.name) 
+              ? `${item.name}, ${item.formatted_address}` 
+              : item.formatted_address,
+            lat: item.geometry.location.lat,
+            lon: item.geometry.location.lng,
+            source: 'google_places'
+          }));
+          return res.json(formatted);
+        }
+
+        // 2. Try Google Places Autocomplete API
+        const gAutoUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&components=country:vn&language=vi&key=${googleApiKey}`;
+        const gAutoRes = await fetch(gAutoUrl);
+        const gAutoData = await gAutoRes.json();
+        if (gAutoData.status === 'OK' && gAutoData.predictions && gAutoData.predictions.length > 0) {
+          const formatted = gAutoData.predictions.slice(0, 6).map((item: any) => ({
+            place_id: item.place_id,
+            display_name: item.description,
+            source: 'google_autocomplete'
+          }));
+          return res.json(formatted);
+        }
+
+        // 3. Fallback to Google Geocoding API
+        const gUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&components=country:VN&key=${googleApiKey}&language=vi`;
+        const gGeoRes = await fetch(gUrl);
+        const gGeoData = await gGeoRes.json();
+        if (gGeoData.status === 'OK' && gGeoData.results && gGeoData.results.length > 0) {
+          const formatted = gGeoData.results.slice(0, 6).map((item: any, idx: number) => ({
             place_id: item.place_id || idx,
             display_name: item.formatted_address,
             lat: item.geometry.location.lat,
-            lon: item.geometry.location.lng
+            lon: item.geometry.location.lng,
+            source: 'google_geocode'
           }));
           return res.json(formatted);
         }
       } catch (gErr) {
-        console.warn('Google Maps Geocoding search fallback:', gErr);
+        console.warn('Google Maps Places search fallback:', gErr);
       }
     }
 
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=5&addressdetails=1&accept-language=vi`;
+    // Fallback to OpenStreetMap Nominatim
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=6&addressdetails=1&accept-language=vi`;
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'DGO-GoiLai247-App/1.0 (contact@dgo247.vn)',
@@ -287,13 +319,46 @@ app.get("/api/geocode/search", async (req, res) => {
       const formatted = data.map((item: any) => {
         const customAddr = formatNominatimAddress(item);
         return {
-          ...item,
-          display_name: customAddr || item.display_name
+          place_id: item.place_id,
+          display_name: customAddr || item.display_name,
+          lat: parseFloat(item.lat),
+          lon: parseFloat(item.lon),
+          source: 'nominatim'
         };
       });
       return res.json(formatted);
     }
     res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Proxy route for Google Place Details (retrieve lat/lng by place_id if needed)
+app.get("/api/places/details", async (req, res) => {
+  try {
+    const { place_id } = req.query;
+    if (!place_id) return res.status(400).json({ error: "Missing place_id" });
+
+    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
+    if (googleApiKey) {
+      const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,formatted_address,geometry&language=vi&key=${googleApiKey}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.status === 'OK' && data.result) {
+        const result = data.result;
+        return res.json({
+          place_id,
+          display_name: result.name && !result.formatted_address.includes(result.name)
+            ? `${result.name}, ${result.formatted_address}`
+            : result.formatted_address,
+          lat: result.geometry?.location?.lat,
+          lng: result.geometry?.location?.lng
+        });
+      }
+    }
+
+    res.status(404).json({ error: "Place details not found" });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -306,14 +371,15 @@ app.get("/api/geocode/reverse", async (req, res) => {
     if (!lat || !lng) return res.status(400).json({ error: "Missing lat/lng" });
 
     // 1. Try Google Maps Geocoding API if key is set
-    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+    const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
     if (googleApiKey) {
       try {
         const googleUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleApiKey}&language=vi`;
         const gRes = await fetch(googleUrl);
         const gData = await gRes.json();
         if (gData.status === 'OK' && gData.results && gData.results.length > 0) {
-          const formattedAddress = gData.results[0].formatted_address;
+          let formattedAddress = gData.results[0].formatted_address || '';
+          formattedAddress = formattedAddress.replace(/, Việt Nam$/gi, '').trim();
           return res.json({
             display_name: formattedAddress,
             source: 'google',

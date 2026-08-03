@@ -14,30 +14,9 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   const priceTiers = [
-    { distance: '1 - 3 km', price: '238.000 VNĐ' },
-    { distance: '4 km', price: '254.000 VNĐ' },
-    { distance: '5 km', price: '270.000 VNĐ' },
-    { distance: '6 km', price: '286.000 VNĐ' },
-    { distance: '7 km', price: '302.000 VNĐ' },
-    { distance: '8 km', price: '318.000 VNĐ' },
-    { distance: '9 km', price: '334.000 VNĐ' },
-    { distance: '10 km', price: '350.000 VNĐ' },
-    { distance: '11 km', price: '365.000 VNĐ' },
-    { distance: '12 km', price: '380.000 VNĐ' },
-    { distance: '13 km', price: '395.000 VNĐ' },
-    { distance: '14 km', price: '410.000 VNĐ' },
-    { distance: '15 km', price: '425.000 VNĐ' },
-    { distance: '16 km', price: '440.000 VNĐ' },
-    { distance: '17 km', price: '455.000 VNĐ' },
-    { distance: '18 km', price: '470.000 VNĐ' },
-    { distance: '19 km', price: '485.000 VNĐ' },
-    { distance: '20 km', price: '500.000 VNĐ' },
-    { distance: '21 km', price: '513.000 VNĐ' },
-    { distance: '22 km', price: '526.000 VNĐ' },
-    { distance: '23 km', price: '539.000 VNĐ' },
-    { distance: '24 km', price: '552.000 VNĐ' },
-    { distance: '25 km', price: '565.000 VNĐ' },
-    { distance: 'Từ km 26 trở đi', price: '565.000đ + 12.000đ/km' },
+    { distance: '1 - 5 km đầu tiên', price: '250.000 VNĐ' },
+    { distance: 'km 6 đến km 10', price: '350.000 VNĐ' },
+    { distance: 'Km thứ 11 trở đi', price: '350.000đ + 15.000đ/km' },
   ];
 
   return (

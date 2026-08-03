@@ -80,9 +80,61 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     if (destination?.address) setDestInput(destination.address);
   }, [destination?.address]);
 
+  // Handle selection of a pickup suggestion
+  const handleSelectPickupSuggestion = async (item: SearchSuggestion) => {
+    setPickupInput(item.display_name);
+    setPickupDropdownOpen(false);
+
+    if (item.lat && item.lng && !isNaN(item.lat) && !isNaN(item.lng)) {
+      setPickup({ address: item.display_name, lat: item.lat, lng: item.lng });
+    } else {
+      // Resolve place details for lat/lng using Google Places Details API
+      try {
+        const res = await fetch(`/api/places/details?place_id=${item.place_id}`);
+        if (res.ok) {
+          const details = await res.json();
+          if (details.lat && details.lng) {
+            setPickup({ address: details.display_name || item.display_name, lat: details.lat, lng: details.lng });
+            if (details.display_name) setPickupInput(details.display_name);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Error fetching place details for pickup:", err);
+      }
+      setPickup({ address: item.display_name, lat: 21.0285, lng: 105.8542 });
+    }
+  };
+
+  // Handle selection of a destination suggestion
+  const handleSelectDestSuggestion = async (item: SearchSuggestion) => {
+    setDestInput(item.display_name);
+    setDestDropdownOpen(false);
+
+    if (item.lat && item.lng && !isNaN(item.lat) && !isNaN(item.lng)) {
+      setDestination({ address: item.display_name, lat: item.lat, lng: item.lng });
+    } else {
+      // Resolve place details for lat/lng using Google Places Details API
+      try {
+        const res = await fetch(`/api/places/details?place_id=${item.place_id}`);
+        if (res.ok) {
+          const details = await res.json();
+          if (details.lat && details.lng) {
+            setDestination({ address: details.display_name || item.display_name, lat: details.lat, lng: details.lng });
+            if (details.display_name) setDestInput(details.display_name);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Error fetching place details for destination:", err);
+      }
+      setDestination({ address: item.display_name, lat: 21.0285, lng: 105.8542 });
+    }
+  };
+
   // Handle Autocomplete Search for Pickup Input
   useEffect(() => {
-    if (!pickupInput || pickupInput.length < 3 || !pickupDropdownOpen) {
+    if (!pickupInput || pickupInput.length < 2 || !pickupDropdownOpen) {
       setPickupSuggestions([]);
       return;
     }
@@ -97,8 +149,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             data.map((item: any) => ({
               place_id: item.place_id,
               display_name: item.display_name,
-              lat: parseFloat(item.lat),
-              lng: parseFloat(item.lon)
+              lat: item.lat ? parseFloat(item.lat) : undefined,
+              lng: item.lon ? parseFloat(item.lon) : (item.lng ? parseFloat(item.lng) : undefined)
             }))
           );
         }
@@ -107,14 +159,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       } finally {
         setIsSearchingPickup(false);
       }
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [pickupInput, pickupDropdownOpen]);
 
   // Handle Autocomplete Search for Destination Input
   useEffect(() => {
-    if (!destInput || destInput.length < 3 || !destDropdownOpen) {
+    if (!destInput || destInput.length < 2 || !destDropdownOpen) {
       setDestSuggestions([]);
       return;
     }
@@ -129,8 +181,8 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             data.map((item: any) => ({
               place_id: item.place_id,
               display_name: item.display_name,
-              lat: parseFloat(item.lat),
-              lng: parseFloat(item.lon)
+              lat: item.lat ? parseFloat(item.lat) : undefined,
+              lng: item.lon ? parseFloat(item.lon) : (item.lng ? parseFloat(item.lng) : undefined)
             }))
           );
         }
@@ -139,7 +191,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       } finally {
         setIsSearchingDest(false);
       }
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [destInput, destDropdownOpen]);
@@ -334,11 +386,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 <button
                   key={item.place_id}
                   type="button"
-                  onClick={() => {
-                    setPickupInput(item.display_name);
-                    setPickup({ address: item.display_name, lat: item.lat, lng: item.lng });
-                    setPickupDropdownOpen(false);
-                  }}
+                  onClick={() => handleSelectPickupSuggestion(item)}
                   className="w-full text-left px-3.5 py-2.5 hover:bg-slate-800/90 text-xs text-slate-200 border-b border-slate-800/80 flex items-start gap-2.5 transition-colors"
                 >
                   <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -383,23 +431,19 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                   <Sparkles className="w-3 h-3" />
                   <span>Google Places Autocomplete</span>
                 </span>
-                <span>Places Autocomplete</span>
+                <span>Gợi ý địa chỉ tự động</span>
               </div>
               {isSearchingDest && destSuggestions.length === 0 && (
                 <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
                   <div className="w-3.5 h-3.5 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Searching...</span>
+                  <span>Đang tìm kiếm gợi ý địa chỉ...</span>
                 </div>
               )}
               {destSuggestions.map((item) => (
                 <button
                   key={item.place_id}
                   type="button"
-                  onClick={() => {
-                    setDestInput(item.display_name);
-                    setDestination({ address: item.display_name, lat: item.lat, lng: item.lng });
-                    setDestDropdownOpen(false);
-                  }}
+                  onClick={() => handleSelectDestSuggestion(item)}
                   className="w-full text-left px-3.5 py-2.5 hover:bg-slate-800/90 text-xs text-slate-200 border-b border-slate-800/80 flex items-start gap-2.5 transition-colors"
                 >
                   <MapPin className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />

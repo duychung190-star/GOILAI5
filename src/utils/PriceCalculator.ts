@@ -2,8 +2,8 @@ import { PriceBreakdown, VehicleTypeOption } from '../types';
 
 export class PriceCalculator {
   /**
-   * Tính khoảng cách giữa 2 điểm tọa độ GPS bằng công thức Haversine (tương tự Location.distanceTo)
-   * Trả về số KM (làm tròn 1 chữ số thập phân)
+   * Tính khoảng cách đường bộ dự kiến (Driving Distance) dựa trên lộ trình giao thông thực tế.
+   * Ưu tiên số km trả về trực tiếp từ Google Maps Directions API (travelMode: 'DRIVING').
    */
   static calculateDistance(
     lat1: number,
@@ -25,10 +25,13 @@ export class PriceCalculator {
         Math.sin(dLng / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
+    const straightLineDistance = R * c;
+
+    // Áp dụng hệ số chuyển đổi đường bộ thực tế (Road Driving Factor ~1.35x) thay vì đường chim bay
+    const estimatedDrivingDistance = straightLineDistance * 1.35;
 
     // Làm tròn 1 chữ số thập phân
-    return Math.round(distance * 10) / 10;
+    return Math.round(estimatedDrivingDistance * 10) / 10;
   }
 
   /**
@@ -58,68 +61,26 @@ export class PriceCalculator {
 
       if (dist === 0) {
         basePrice = 0;
-      } else if (dist <= 3) {
-        basePrice = 238000;
-      } else if (dist <= 4) {
-        basePrice = 254000;
       } else if (dist <= 5) {
-        basePrice = 270000;
-      } else if (dist <= 6) {
-        basePrice = 286000;
-      } else if (dist <= 7) {
-        basePrice = 302000;
-      } else if (dist <= 8) {
-        basePrice = 318000;
-      } else if (dist <= 9) {
-        basePrice = 334000;
+        basePrice = 250000; // 5 km đầu tiên: 250.000 VNĐ
       } else if (dist <= 10) {
-        basePrice = 350000;
-      } else if (dist <= 11) {
-        basePrice = 365000;
-      } else if (dist <= 12) {
-        basePrice = 380000;
-      } else if (dist <= 13) {
-        basePrice = 395000;
-      } else if (dist <= 14) {
-        basePrice = 410000;
-      } else if (dist <= 15) {
-        basePrice = 425000;
-      } else if (dist <= 16) {
-        basePrice = 440000;
-      } else if (dist <= 17) {
-        basePrice = 455000;
-      } else if (dist <= 18) {
-        basePrice = 470000;
-      } else if (dist <= 19) {
-        basePrice = 485000;
-      } else if (dist <= 20) {
-        basePrice = 500000;
-      } else if (dist <= 21) {
-        basePrice = 513000;
-      } else if (dist <= 22) {
-        basePrice = 526000;
-      } else if (dist <= 23) {
-        basePrice = 539000;
-      } else if (dist <= 24) {
-        basePrice = 552000;
-      } else if (dist <= 25) {
-        basePrice = 565000;
+        basePrice = 350000; // km thứ 6 đến km thứ 10: 350.000 VNĐ
       } else {
-        // Từ km thứ 26 trở đi: 565,000 + 12.000đ/km
-        const extraKm = Math.ceil(dist - 25);
-        basePrice = 565000 + extraKm * 12000;
+        // Km thứ 11 trở đi: +15.000 VNĐ/km
+        const extraKm = Math.ceil(dist - 10);
+        basePrice = 350000 + extraKm * 15000;
       }
     }
 
     // Phụ phí đêm:
-    // 23:00 - 23:59 (+10%)
-    // 00:00 - 05:00 (+20%)
+    // 23:00 - 23:59 (+10% tổng cước)
+    // 00:00 - 05:00 (+20% tổng cước)
     const hours = scheduledTimeDate.getHours();
     let nightPercent = 0;
 
     if (hours === 23) {
       nightPercent = 10;
-    } else if (hours >= 0 && hours < 5) {
+    } else if (hours >= 0 && hours <= 5) {
       nightPercent = 20;
     }
 
