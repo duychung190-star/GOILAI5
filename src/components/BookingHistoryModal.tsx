@@ -1,20 +1,22 @@
 import React from 'react';
 import { BookingRequest } from '../types';
 import { PriceCalculator } from '../utils/PriceCalculator';
-import { X, History, Car, Phone, Clock, MapPin, CheckCircle, Trash2 } from 'lucide-react';
+import { X, History, Car, Phone, Clock, MapPin, CheckCircle, Trash2, Star, MessageSquare } from 'lucide-react';
 
 interface BookingHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   bookings: BookingRequest[];
   onClearHistory: () => void;
+  onRateDriver?: (booking: BookingRequest) => void;
 }
 
 export const BookingHistoryModal: React.FC<BookingHistoryModalProps> = ({
   isOpen,
   onClose,
   bookings,
-  onClearHistory
+  onClearHistory,
+  onRateDriver,
 }) => {
   if (!isOpen) return null;
 
@@ -48,7 +50,7 @@ export const BookingHistoryModal: React.FC<BookingHistoryModalProps> = ({
             bookings.map((item) => (
               <div
                 key={item.id}
-                className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 relative"
+                className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 relative"
               >
                 <div className="flex items-center justify-between border-b border-slate-800 pb-2">
                   <span className="text-xs font-extrabold text-amber-400">
@@ -66,7 +68,7 @@ export const BookingHistoryModal: React.FC<BookingHistoryModalProps> = ({
                   </span>
                 </div>
 
-                <div className="text-xs space-y-1 text-slate-300 pt-1">
+                <div className="text-xs space-y-1 text-slate-300">
                   <p className="flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                     <span><strong className="text-slate-400">Đón:</strong> {item.pickupAddress}</span>
@@ -82,6 +84,73 @@ export const BookingHistoryModal: React.FC<BookingHistoryModalProps> = ({
                     </span>
                   </div>
                 </div>
+
+                {/* Rating Display or Rating Trigger Button */}
+                <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                  {item.rating ? (
+                    <div className="space-y-1 w-full">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              className={`w-3.5 h-3.5 ${
+                                s <= item.rating!.stars
+                                  ? 'fill-amber-400 text-amber-400'
+                                  : 'text-slate-700'
+                              }`}
+                            />
+                          ))}
+                          <span className="text-[11px] font-bold text-amber-300 ml-1">
+                            {item.rating.stars}/5 Sao
+                          </span>
+                        </div>
+                        {onRateDriver && (
+                          <button
+                            onClick={() => onRateDriver(item)}
+                            className="text-[10px] text-amber-400 hover:underline font-semibold"
+                          >
+                            Sửa đánh giá
+                          </button>
+                        )}
+                      </div>
+
+                      {item.rating.tags && item.rating.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {item.rating.tags.map((t, idx) => (
+                            <span key={idx} className="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-800">
+                              ✓ {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {item.rating.review && (
+                        <p className="text-[11px] text-slate-300 italic bg-slate-900 p-2 rounded border border-slate-800 mt-1">
+                          "{item.rating.review}"
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[11px] text-slate-400 italic">
+                        {item.status === 'COMPLETED'
+                          ? 'Chưa có đánh giá tài xế'
+                          : 'Đánh giá sau khi chuyến đi kết thúc'}
+                      </span>
+                      {onRateDriver && (
+                        <button
+                          onClick={() => onRateDriver(item)}
+                          className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs rounded-lg shadow-sm flex items-center gap-1.5 transition-all"
+                        >
+                          <Star className="w-3.5 h-3.5 fill-slate-950" />
+                          <span>Đánh Giá Tài Xế</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
               </div>
             ))
           )}

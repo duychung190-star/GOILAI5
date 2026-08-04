@@ -350,10 +350,10 @@ export function decodeGoongPolyline(encoded: string): [number, number][] {
 
 
 /**
- * 4. FARE CALCULATION: D.GO 247 Driver Service Pricing Rule (Bắc Ninh)
- * - First 2km base fare: 100,000 VNĐ
- * - Subsequent km: 15,000 VNĐ/km
- * - Night surcharge (22:00 - 05:00): +20%
+ * 4. FARE CALCULATION: D.GO 247 Driver Service Pricing Rule
+ * - 1st km base fare: 220,000 VNĐ
+ * - Before 22:00: +10,000 VNĐ / km for 2nd km onwards
+ * - After 22:00 (22:00 - 05:00): +15,000 VNĐ / km for 2nd km onwards
  */
 export function calculateGoongDriverFare(
   distanceKm: number,
@@ -368,31 +368,20 @@ export function calculateGoongDriverFare(
     return { basePrice: 0, perKmPrice: 0, totalPrice: 0, nightSurcharge: 0 };
   }
 
-  const BASE_PRICE = 100000; // First 2km base fee: 100,000 VND
-  const BASE_KM = 2;
-  const KM_RATE = 15000; // 15,000 VND per additional km
+  const BASE_PRICE = 220000; // First 1km base fee: 220,000 VND
+  const ratePerKm = isNightTime ? 15000 : 10000;
 
-  let basePrice = BASE_PRICE;
-  let additionalKmPrice = 0;
-
-  if (distanceKm > BASE_KM) {
-    const extraKm = distanceKm - BASE_KM;
-    additionalKmPrice = Math.ceil(extraKm) * KM_RATE;
+  let extraKmPrice = 0;
+  if (distanceKm > 1) {
+    extraKmPrice = Math.round((distanceKm - 1) * ratePerKm);
   }
 
-  let subtotal = basePrice + additionalKmPrice;
-  let nightSurcharge = 0;
-
-  if (isNightTime) {
-    nightSurcharge = Math.round(subtotal * 0.2); // 20% night surcharge
-  }
-
-  const totalPrice = subtotal + nightSurcharge;
+  const totalPrice = BASE_PRICE + extraKmPrice;
 
   return {
-    basePrice,
-    perKmPrice: additionalKmPrice,
-    nightSurcharge,
+    basePrice: BASE_PRICE,
+    perKmPrice: extraKmPrice,
+    nightSurcharge: 0,
     totalPrice,
   };
 }

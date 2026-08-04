@@ -14,9 +14,8 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   const priceTiers = [
-    { distance: '1 - 5 km đầu tiên', price: '250.000 VNĐ' },
-    { distance: 'km 6 đến km 10', price: '350.000 VNĐ' },
-    { distance: 'Km thứ 11 trở đi', price: '350.000đ + 15.000đ/km' },
+    { timeFrame: 'Trước 22:00', firstKm: '220.000 VNĐ', nextKm: '+10.000 VNĐ / km' },
+    { timeFrame: 'Sau 22:00 (22:00 - 05:00)', firstKm: '220.000 VNĐ', nextKm: '+15.000 VNĐ / km' },
   ];
 
   return (
@@ -52,20 +51,22 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
           
           {/* Section 1: Distance Table */}
           <div>
-            <h4 className="text-sm font-bold text-amber-400 mb-2 uppercase tracking-wide">1. Bảng giá tính theo Kilomet (Xe máy, Ô tô 4-7 chỗ, Bán tải)</h4>
+            <h4 className="text-sm font-bold text-amber-400 mb-2 uppercase tracking-wide">1. Bảng giá lái hộ tính theo Kilomet (Xe máy, Ô tô 4-7 chỗ, Bán tải)</h4>
             <div className="overflow-hidden rounded-xl border border-slate-800">
               <table className="w-full text-xs text-left">
                 <thead className="bg-slate-950 text-amber-400 uppercase font-bold border-b border-slate-800">
                   <tr>
-                    <th className="px-4 py-2.5">Khoảng Cách (KM)</th>
-                    <th className="px-4 py-2.5">Giá Cước Niêm Yết (VNĐ)</th>
+                    <th className="px-4 py-2.5">Khung Giờ</th>
+                    <th className="px-4 py-2.5">1 KM Đầu Tiên</th>
+                    <th className="px-4 py-2.5">Từ KM Thứ 2 Trở Đi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 bg-slate-900/60">
                   {priceTiers.map((tier, idx) => (
                     <tr key={idx} className={idx % 2 === 0 ? 'bg-slate-900/30' : 'bg-slate-900/80'}>
-                      <td className="px-4 py-2 font-medium text-slate-200">{tier.distance}</td>
-                      <td className="px-4 py-2 font-bold text-amber-300">{tier.price}</td>
+                      <td className="px-4 py-2.5 font-medium text-slate-200">{tier.timeFrame}</td>
+                      <td className="px-4 py-2.5 font-bold text-amber-300">{tier.firstKm}</td>
+                      <td className="px-4 py-2.5 font-bold text-emerald-400">{tier.nextKm}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -85,15 +86,16 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
             </div>
           </div>
 
-          {/* Section 3: Night Surcharge */}
+          {/* Section 3: Time Surcharge Note */}
           <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/30 space-y-2">
             <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
               <Moon className="w-4 h-4 text-amber-400" />
-              <span>3. Phụ Phí Đêm Khung Giờ Khuya</span>
+              <span>3. Quy Định Đơn Giá Theo Khung Giờ</span>
             </h4>
             <div className="text-xs text-slate-300 space-y-1">
-              <p>• Khung giờ <strong className="text-white">23:00 - 23:59</strong>: Cộng thêm <strong className="text-amber-300">10%</strong> tổng cước</p>
-              <p>• Khung giờ <strong className="text-white">00:00 - 05:00</strong>: Cộng thêm <strong className="text-amber-300">20%</strong> tổng cước</p>
+              <p>• Hệ thống tự động tính giá chính xác theo khung giờ thực tế khi quý khách đặt dịch vụ.</p>
+              <p>• Khung giờ <strong className="text-white">Trước 22:00</strong>: Cước phí km thứ 2 trở đi là <strong className="text-amber-300">10.000 VNĐ / km</strong>.</p>
+              <p>• Khung giờ <strong className="text-white">Sau 22:00 (22:00 - 05:00)</strong>: Cước phí km thứ 2 trở đi là <strong className="text-amber-300">15.000 VNĐ / km</strong>.</p>
             </div>
           </div>
 

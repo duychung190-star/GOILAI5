@@ -17,18 +17,13 @@ export class PriceCalculator {
   }
 
   /**
-   * Thuật toán Tính giá D.GO 247:
-   * 1. Lái hộ theo cuốc (Dựa trên số Km lấy từ Goong Map):
-   *    - Km <= 5km: 250.000 VNĐ
-   *    - 5km < Km <= 10km: 350.000 VNĐ
-   *    - Km > 10km: 350.000 + ((Khoảng cách - 10) * 15.000) VNĐ
+   * Thuật toán Tính giá D.GO 247 (Cập nhật):
+   * 1. Lái hộ theo cuốc (Dựa trên số Km lấy từ Goong Map & Khung giờ):
+   *    - Trước 22h: 220.000đ cho km đầu tiên, từ km thứ 2 trở đi +10.000đ/km.
+   *    - Sau 22h (22:00 - 04:59): 220.000đ cho km đầu tiên, từ km thứ 2 trở đi +15.000đ/km.
    * 2. Thuê theo giờ (Dựa vào số giờ khách chọn):
    *    - <= 3 giờ: 450.000 VNĐ
    *    - > 3 giờ: 450.000 + ((Số giờ - 3) * 100.000) VNĐ
-   * 3. Phụ phí đêm (Dựa trên thời gian thực tế - Realtime trên thiết bị của khách):
-   *    - 23:00 - 23:59 (hour === 23): 10% * Phí cơ bản
-   *    - 00:00 - 04:59 (hour >= 0 && hour < 5): 20% * Phí cơ bản
-   *    - Cộng phụ phí đêm vào Phí cơ bản = Tạm tính
    */
   static calculatePrice(
     distanceKm: number,
@@ -40,6 +35,9 @@ export class PriceCalculator {
     roadDurationMinutes: number | null = null
   ): PriceBreakdown {
     let basePrice = 0;
+
+    const currentHour = scheduledTimeDate ? scheduledTimeDate.getHours() : new Date().getHours();
+    const isAfter22h = currentHour >= 22 || currentHour < 5;
 
     if (isHourly || vehicleType === 'Thuê theo giờ') {
       const hours = Math.max(1, hourlyHours);
@@ -54,30 +52,21 @@ export class PriceCalculator {
 
       if (dist === 0) {
         basePrice = 0;
-      } else if (dist <= 5) {
-        basePrice = 250000; // Khoảng cách <= 5km: 250.000 VNĐ
-      } else if (dist <= 10) {
-        basePrice = 350000; // Khoảng cách > 5km và <= 10km: 350.000 VNĐ
+      } else if (dist <= 1) {
+        basePrice = 220000; // 1km đầu tiên: 220.000 VNĐ
       } else {
-        // Khoảng cách > 10km: 350.000 + ((Khoảng cách - 10) * 15.000) VNĐ
-        basePrice = Math.round(350000 + (dist - 10) * 15000);
+        // Từ km thứ 2 trở đi:
+        // Trước 22h: +10.000đ/km
+        // Sau 22h: +15.000đ/km
+        const ratePerKm = isAfter22h ? 15000 : 10000;
+        basePrice = Math.round(220000 + (dist - 1) * ratePerKm);
       }
     }
 
-    // Phụ phí đêm (Realtime trên thiết bị khách hoặc giờ đặt hẹn):
-    // hour === 23 -> 10%
-    // 00:00 - 04:59 (hour >= 0 && hour < 5) -> 20%
-    const currentHour = scheduledTimeDate ? scheduledTimeDate.getHours() : new Date().getHours();
-    let nightPercent = 0;
+    const nightPercent = 0;
+    const nightSurcharge = 0;
 
-    if (currentHour === 23) {
-      nightPercent = 10;
-    } else if (currentHour >= 0 && currentHour < 5) {
-      nightPercent = 20;
-    }
-
-    const nightSurcharge = Math.round(basePrice * (nightPercent / 100));
-    const totalBeforeVat = basePrice + nightSurcharge; // Tạm tính
+    const totalBeforeVat = basePrice; // Tạm tính
 
     let vatAmount = 0;
     if (needVat) {

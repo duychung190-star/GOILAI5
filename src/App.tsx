@@ -16,8 +16,9 @@ import { FloatingActions } from './components/FloatingActions';
 import { BookingHistoryModal } from './components/BookingHistoryModal';
 import { DispatcherDrawer } from './components/DispatcherDrawer';
 import { GoogleSheetsModal } from './components/GoogleSheetsModal';
+import { DriverRatingModal } from './components/DriverRatingModal';
 
-import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest } from './types';
+import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating } from './types';
 import { PriceCalculator } from './utils/PriceCalculator';
 import { getDirectionsGoong, reverseGeocodeGoong } from './utils/goong';
 import { sendTelegramNotification } from './utils/telegram';
@@ -72,6 +73,36 @@ export default function App() {
   const [isDispatcherOpen, setIsDispatcherOpen] = useState(false);
   const [isGoogleSheetsOpen, setIsGoogleSheetsOpen] = useState(false);
   const [isAutoSyncEnabled, setIsAutoSyncEnabled] = useState(true);
+
+  // Driver Rating State
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [ratingBooking, setRatingBooking] = useState<BookingRequest | null>(null);
+
+  const handleOpenRating = (booking: BookingRequest) => {
+    setRatingBooking(booking);
+    setIsRatingModalOpen(true);
+  };
+
+  const handleSubmitRating = async (bookingId: string, rating: DriverRating) => {
+    try {
+      await fetch(`/api/booking/${bookingId}/rating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rating),
+      });
+    } catch (err) {
+      console.error('Rating API error:', err);
+    }
+
+    // Update local history
+    setBookingHistory((prev) =>
+      prev.map((item) => (item.id === bookingId ? { ...item, rating } : item))
+    );
+
+    if (submittedBooking && submittedBooking.id === bookingId) {
+      setSubmittedBooking((prev) => (prev ? { ...prev, rating } : null));
+    }
+  };
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -374,53 +405,9 @@ export default function App() {
             />
           </div>
 
-          {/* Right Column: Map & Price Summary (5 Cols) */}
+          {/* Right Column: Price Summary (5 Cols) */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
             
-            {/* Map Click Selector Target Switcher */}
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-sm flex items-center justify-between text-xs">
-              <span className="text-slate-700 font-semibold flex items-center gap-1.5">
-                <Navigation className="w-4 h-4 text-amber-600" />
-                <span>Chế độ bấm bản đồ:</span>
-              </span>
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setMapClickTarget('pickup')}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
-                    mapClickTarget === 'pickup'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Chọn Đón
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMapClickTarget('destination')}
-                  className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${
-                    mapClickTarget === 'destination'
-                      ? 'bg-rose-600 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Chọn Đến
-                </button>
-              </div>
-            </div>
-
-            {/* Interactive Leaflet Route Map */}
-            <div className="h-[320px] w-full shadow-md rounded-2xl overflow-hidden border border-slate-200/90">
-              <InteractiveMap
-                pickup={pickup}
-                destination={destination}
-                routeGeometry={routeGeometry}
-                isCalculatingRoute={isCalculatingRoute}
-                onSelectMapLocation={handleSelectMapLocation}
-                targetMode={mapClickTarget}
-              />
-            </div>
-
             {/* Real-time Cost Breakdown & Action Card */}
             <CostSummaryCard
               breakdown={priceBreakdown}
@@ -478,6 +465,7 @@ export default function App() {
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}
         telegramStatus={telegramStatus}
+        onRateDriver={handleOpenRating}
       />
 
       <PriceTableModal
@@ -490,6 +478,14 @@ export default function App() {
         onClose={() => setIsHistoryOpen(false)}
         bookings={bookingHistory}
         onClearHistory={() => setBookingHistory([])}
+        onRateDriver={handleOpenRating}
+      />
+
+      <DriverRatingModal
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        booking={ratingBooking}
+        onSubmitRating={handleSubmitRating}
       />
 
       <DispatcherDrawer

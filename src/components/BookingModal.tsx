@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookingRequest } from '../types';
 import { PriceCalculator } from '../utils/PriceCalculator';
-import { CheckCircle2, Phone, X, ShieldCheck, Send, MessageCircle } from 'lucide-react';
+import { CheckCircle2, Phone, X, ShieldCheck, Send, MessageCircle, Star } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -10,13 +10,15 @@ interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   telegramStatus?: any;
+  onRateDriver?: (booking: BookingRequest) => void;
 }
 
 export const BookingModal: React.FC<BookingModalProps> = ({
   booking,
   isOpen,
   onClose,
-  telegramStatus
+  telegramStatus,
+  onRateDriver,
 }) => {
   const { t } = useLanguage();
 
@@ -154,10 +156,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-3">
+          {onRateDriver && (
+            <button
+              onClick={() => {
+                onClose();
+                onRateDriver(booking);
+              }}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-md"
+            >
+              <Star className="w-4 h-4 fill-slate-950" />
+              <span>Đánh Giá Chuyến Đi</span>
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition-colors"
+            className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition-colors text-center"
           >
             {t.modals.close}
           </button>

@@ -139,6 +139,36 @@ app.patch("/api/booking/:id/status", (req, res) => {
   }
 });
 
+// Submit driver rating & review for a booking
+app.post("/api/booking/:id/rating", (req, res) => {
+  const { id } = req.params;
+  const { stars, review, tags, driverName } = req.body;
+  const booking = bookingsStore.find(b => b.id === id);
+  
+  if (booking) {
+    booking.rating = {
+      stars: stars || 5,
+      review: review || '',
+      tags: tags || [],
+      driverName: driverName || 'Tài xế D.GO 247',
+      createdAt: Date.now()
+    };
+    res.json({ success: true, booking });
+  } else {
+    // If booking was stored in localStorage on client side, return success with structured rating object
+    res.json({
+      success: true,
+      rating: {
+        stars: stars || 5,
+        review: review || '',
+        tags: tags || [],
+        driverName: driverName || 'Tài xế D.GO 247',
+        createdAt: Date.now()
+      }
+    });
+  }
+});
+
 // Helper to decode Google Maps overview_polyline string into Lat/Lng coordinate tuples
 function decodeGooglePolyline(encoded: string): [number, number][] {
   const points: [number, number][] = [];

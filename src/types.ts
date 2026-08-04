@@ -30,6 +30,14 @@ export interface PriceBreakdown {
   hourlyHours: number;
 }
 
+export interface DriverRating {
+  stars: number;
+  review?: string;
+  tags?: string[];
+  driverName?: string;
+  createdAt: number;
+}
+
 export interface BookingRequest {
   id: string;
   customerName: string;
@@ -50,6 +58,7 @@ export interface BookingRequest {
   needVat: boolean;
   vatDetails?: VatDetails;
   breakdown: PriceBreakdown;
+  rating?: DriverRating;
 }
 
 export interface SearchSuggestion {
