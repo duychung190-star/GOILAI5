@@ -2,8 +2,8 @@ import { PriceBreakdown, VehicleTypeOption } from '../types';
 
 export class PriceCalculator {
   /**
-   * Tính khoảng cách đường bộ dự kiến (Driving Distance) dựa trên lộ trình giao thông thực tế.
-   * Ưu tiên số km trả về trực tiếp từ Google Maps Directions API (travelMode: 'DRIVING').
+   * Tính khoảng cách đường bộ thực tế (Driving Distance) từ Goong Maps API.
+   * Tuyệt đối không tính khoảng cách đường chim bay.
    */
   static calculateDistance(
     lat1: number,
@@ -11,31 +11,24 @@ export class PriceCalculator {
     lat2: number,
     lng2: number
   ): number {
-    if (!lat1 || !lng1 || !lat2 || !lng2) return 0;
-
-    const R = 6371; // Bán kính Trái Đất (km)
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLng = ((lng2 - lng1) * Math.PI) / 180;
-
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const straightLineDistance = R * c;
-
-    // Áp dụng hệ số chuyển đổi đường bộ thực tế (Road Driving Factor ~1.35x) thay vì đường chim bay
-    const estimatedDrivingDistance = straightLineDistance * 1.35;
-
-    // Làm tròn 1 chữ số thập phân
-    return Math.round(estimatedDrivingDistance * 10) / 10;
+    // Không dùng công thức haversine/đường chim bay.
+    // Việc tính quãng đường đường bộ 100% dùng dữ liệu từ Goong Direction API.
+    return 0;
   }
 
   /**
-   * Áp dụng bảng giá chuẩn D.GO - Gọi Lái 247
+   * Thuật toán Tính giá D.GO 247:
+   * 1. Lái hộ theo cuốc (Dựa trên số Km lấy từ Goong Map):
+   *    - Km <= 5km: 250.000 VNĐ
+   *    - 5km < Km <= 10km: 350.000 VNĐ
+   *    - Km > 10km: 350.000 + ((Khoảng cách - 10) * 15.000) VNĐ
+   * 2. Thuê theo giờ (Dựa vào số giờ khách chọn):
+   *    - <= 3 giờ: 450.000 VNĐ
+   *    - > 3 giờ: 450.000 + ((Số giờ - 3) * 100.000) VNĐ
+   * 3. Phụ phí đêm (Dựa trên thời gian thực tế - Realtime trên thiết bị của khách):
+   *    - 23:00 - 23:59 (hour === 23): 10% * Phí cơ bản
+   *    - 00:00 - 04:59 (hour >= 0 && hour < 5): 20% * Phí cơ bản
+   *    - Cộng phụ phí đêm vào Phí cơ bản = Tạm tính
    */
   static calculatePrice(
     distanceKm: number,
@@ -49,43 +42,42 @@ export class PriceCalculator {
     let basePrice = 0;
 
     if (isHourly || vehicleType === 'Thuê theo giờ') {
-      const validHours = Math.max(3, hourlyHours);
-      if (validHours <= 3) {
-        basePrice = 500000; // Combo 3h đầu tiên
+      const hours = Math.max(1, hourlyHours);
+      if (hours <= 3) {
+        basePrice = 450000; // Package <= 3 hours: 450.000 VNĐ
       } else {
-        basePrice = 500000 + (validHours - 3) * 100000;
+        basePrice = 450000 + (hours - 3) * 100000; // Extra hours: +100.000 VNĐ/h
       }
     } else {
-      // Tính theo số KM
+      // Lái hộ theo cuốc (Km từ Goong Direction API)
       const dist = Math.max(0, distanceKm);
 
       if (dist === 0) {
         basePrice = 0;
       } else if (dist <= 5) {
-        basePrice = 250000; // 5 km đầu tiên: 250.000 VNĐ
+        basePrice = 250000; // Khoảng cách <= 5km: 250.000 VNĐ
       } else if (dist <= 10) {
-        basePrice = 350000; // km thứ 6 đến km thứ 10: 350.000 VNĐ
+        basePrice = 350000; // Khoảng cách > 5km và <= 10km: 350.000 VNĐ
       } else {
-        // Km thứ 11 trở đi: +15.000 VNĐ/km
-        const extraKm = Math.ceil(dist - 10);
-        basePrice = 350000 + extraKm * 15000;
+        // Khoảng cách > 10km: 350.000 + ((Khoảng cách - 10) * 15.000) VNĐ
+        basePrice = Math.round(350000 + (dist - 10) * 15000);
       }
     }
 
-    // Phụ phí đêm:
-    // 23:00 - 23:59 (+10% tổng cước)
-    // 00:00 - 05:00 (+20% tổng cước)
-    const hours = scheduledTimeDate.getHours();
+    // Phụ phí đêm (Realtime trên thiết bị khách hoặc giờ đặt hẹn):
+    // hour === 23 -> 10%
+    // 00:00 - 04:59 (hour >= 0 && hour < 5) -> 20%
+    const currentHour = scheduledTimeDate ? scheduledTimeDate.getHours() : new Date().getHours();
     let nightPercent = 0;
 
-    if (hours === 23) {
+    if (currentHour === 23) {
       nightPercent = 10;
-    } else if (hours >= 0 && hours <= 5) {
+    } else if (currentHour >= 0 && currentHour < 5) {
       nightPercent = 20;
     }
 
     const nightSurcharge = Math.round(basePrice * (nightPercent / 100));
-    const totalBeforeVat = basePrice + nightSurcharge;
+    const totalBeforeVat = basePrice + nightSurcharge; // Tạm tính
 
     let vatAmount = 0;
     if (needVat) {
@@ -94,13 +86,11 @@ export class PriceCalculator {
 
     const totalPrice = totalBeforeVat + vatAmount;
 
-    // Ước tính thời gian di chuyển bằng ô tô
-    const estimatedMinutes = isHourly || vehicleType === 'Thuê theo giờ'
+    // Thời gian di chuyển
+    const estimatedMinutes = (isHourly || vehicleType === 'Thuê theo giờ')
       ? hourlyHours * 60
       : (roadDurationMinutes !== null && roadDurationMinutes > 0)
       ? roadDurationMinutes
-      : distanceKm > 0
-      ? Math.max(5, Math.round((distanceKm / 28) * 60))
       : 0;
 
     return {
@@ -128,3 +118,4 @@ export class PriceCalculator {
     }).format(amount);
   }
 }
+

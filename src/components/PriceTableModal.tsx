@@ -80,7 +80,7 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
               <span>2. Thuê Tài Xế Theo Giờ (Gói Combo)</span>
             </h4>
             <div className="text-xs text-slate-300 space-y-1">
-              <p>• Combo 3 giờ đầu tiên: <strong className="text-amber-300">500.000 VNĐ</strong></p>
+              <p>• Combo đến 3 giờ đầu tiên: <strong className="text-amber-300">450.000 VNĐ</strong></p>
               <p>• Từ giờ thứ 4 trở đi: <strong className="text-amber-300">+100.000 VNĐ / giờ</strong></p>
             </div>
           </div>

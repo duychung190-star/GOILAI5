@@ -260,7 +260,7 @@ app.get("/api/geocode/search", async (req, res) => {
     // 1. Primary: Try Goong Maps AutoComplete API (centered on Bac Ninh / Northern VN: 21.1861, 106.0763)
     if (goongApiKey) {
       try {
-        const goongAutoUrl = `https://api.goong.io/Place/AutoComplete?api_key=${goongApiKey}&input=${encodeURIComponent(cleanQuery)}&location=21.1861,106.0763&radius=50000&more_compound=true`;
+        const goongAutoUrl = `https://rsapi.goong.io/Place/AutoComplete?api_key=${goongApiKey}&input=${encodeURIComponent(cleanQuery)}&location=21.1861,106.0763&radius=50000&more_compound=true`;
         const goongRes = await fetch(goongAutoUrl);
         const goongData = await goongRes.json();
 
@@ -274,7 +274,7 @@ app.get("/api/geocode/search", async (req, res) => {
         }
 
         // 2. Try Goong Geocode API if AutoComplete returned 0 predictions
-        const goongGeoUrl = `https://api.goong.io/Geocode?address=${encodeURIComponent(cleanQuery)}&api_key=${goongApiKey}`;
+        const goongGeoUrl = `https://rsapi.goong.io/Geocode?address=${encodeURIComponent(cleanQuery)}&api_key=${goongApiKey}`;
         const goongGeoRes = await fetch(goongGeoUrl);
         const goongGeoData = await goongGeoRes.json();
 
@@ -416,7 +416,7 @@ app.get("/api/places/details", async (req, res) => {
     // 1. Primary: Try Goong Place Detail API
     if (goongApiKey && place_id) {
       try {
-        const goongDetailUrl = `https://api.goong.io/Place/Detail?place_id=${place_id}&api_key=${goongApiKey}`;
+        const goongDetailUrl = `https://rsapi.goong.io/Place/Detail?place_id=${place_id}&api_key=${goongApiKey}`;
         const goongRes = await fetch(goongDetailUrl);
         const goongData = await goongRes.json();
 
@@ -438,7 +438,7 @@ app.get("/api/places/details", async (req, res) => {
     // 2. Try Goong Geocode search if searchAddress is present and place_id lookup failed
     if (goongApiKey && searchAddress) {
       try {
-        const goongGeoUrl = `https://api.goong.io/Geocode?address=${encodeURIComponent(searchAddress)}&api_key=${goongApiKey}`;
+        const goongGeoUrl = `https://rsapi.goong.io/Geocode?address=${encodeURIComponent(searchAddress)}&api_key=${goongApiKey}`;
         const goongGeoRes = await fetch(goongGeoUrl);
         const goongGeoData = await goongGeoRes.json();
 
@@ -525,7 +525,7 @@ app.get("/api/geocode/reverse", async (req, res) => {
     // 1. Primary: Try Goong Maps Geocode Reverse API
     if (goongApiKey) {
       try {
-        const goongReverseUrl = `https://api.goong.io/Geocode?latlng=${lat},${lng}&api_key=${goongApiKey}`;
+        const goongReverseUrl = `https://rsapi.goong.io/Geocode?latlng=${lat},${lng}&api_key=${goongApiKey}`;
         const goongRes = await fetch(goongReverseUrl);
         const goongData = await goongRes.json();
 
@@ -631,7 +631,7 @@ app.get("/api/route", async (req, res) => {
     // 1. Primary: Try Goong Maps Direction API
     if (goongApiKey && startLat && startLng && endLat && endLng) {
       try {
-        const goongDirUrl = `https://api.goong.io/Direction?origin=${startLat},${startLng}&destination=${endLat},${endLng}&vehicle=car&api_key=${goongApiKey}`;
+        const goongDirUrl = `https://rsapi.goong.io/Direction?origin=${startLat},${startLng}&destination=${endLat},${endLng}&vehicle=car&api_key=${goongApiKey}`;
         const goongRes = await fetch(goongDirUrl);
         const goongData = await goongRes.json();
 

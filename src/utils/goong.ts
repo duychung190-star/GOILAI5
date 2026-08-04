@@ -1,16 +1,19 @@
 /**
  * Goong Maps API Utility Module for D.GO 247
- * Provides direct & proxy integration with Goong.io APIs:
- * - Reverse Geocoding (/Geocode)
- * - Place AutoComplete (/Place/AutoComplete)
- * - Place Detail (/Place/Detail)
- * - Directions & Routing (/Direction)
- * - Fare Calculation based on actual driving road distance
+ * Provides integration with Goong.io APIs:
+ * - Place AutoComplete (rsapi.goong.io/Place/AutoComplete)
+ * - Place Detail (rsapi.goong.io/Place/Detail)
+ * - Direction & Driving Route (rsapi.goong.io/Direction)
+ * - Reverse Geocoding (rsapi.goong.io/Geocode)
+ * - Fare Calculation based on exact Goong road distance
  */
+
+export const GOONG_API_KEY_AUTOCOMPLETE = 'rudsCqy11hsus94Pxv1DgUTSB5EbRcMMcwY3Q4Ut';
+export const GOONG_API_KEY_DIRECTION = 'rudsCqy11hsus94Pxv1DgUTSB5EbRcMMcwY3Q4Ut';
 
 export const GOONG_API_KEY =
   (import.meta.env.VITE_GOONG_API_KEY as string) ||
-  'rudsCqy11hsus94Pxv1DgUTSB5EbRcMMcwY3Q4Ut';
+  GOONG_API_KEY_AUTOCOMPLETE;
 
 // Bac Ninh center coordinate default for Location Bias (Lat: 21.1861, Lng: 106.0763)
 export const BAC_NINH_CENTER = {
@@ -78,12 +81,11 @@ export interface GoongRouteResult {
 export async function reverseGeocodeGoong(
   lat: number,
   lng: number,
-  apiKey: string = GOONG_API_KEY
+  apiKey: string = GOONG_API_KEY_AUTOCOMPLETE
 ): Promise<string> {
   try {
-    // Primary: Call Goong Geocode API directly if key is active
     if (apiKey) {
-      const url = `https://api.goong.io/Geocode?latlng=${lat},${lng}&api_key=${apiKey}`;
+      const url = `https://rsapi.goong.io/Geocode?latlng=${lat},${lng}&api_key=${apiKey}`;
       const response = await fetch(url);
       const data = await response.json();
 
@@ -107,11 +109,11 @@ export async function reverseGeocodeGoong(
 
 /**
  * 2. PLACES AUTOCOMPLETE: Smart address suggestions biased around Bac Ninh region
- * Applies location bias (21.1861, 106.0763) to boost local Bac Ninh locations
+ * Calls: https://rsapi.goong.io/Place/AutoComplete?api_key=${GOONG_API_KEY_AUTOCOMPLETE}&input=${text}
  */
 export async function autoCompleteGoong(
   input: string,
-  apiKey: string = GOONG_API_KEY,
+  apiKey: string = GOONG_API_KEY_AUTOCOMPLETE,
   centerLat: number = BAC_NINH_CENTER.lat,
   centerLng: number = BAC_NINH_CENTER.lng
 ): Promise<GoongAutoCompletePrediction[]> {
@@ -120,7 +122,7 @@ export async function autoCompleteGoong(
   const cleanInput = input.trim();
   try {
     if (apiKey) {
-      const url = `https://api.goong.io/Place/AutoComplete?api_key=${apiKey}&input=${encodeURIComponent(
+      const url = `https://rsapi.goong.io/Place/AutoComplete?api_key=${apiKey}&input=${encodeURIComponent(
         cleanInput
       )}&location=${centerLat},${centerLng}&radius=${BAC_NINH_CENTER.radiusMeters}&more_compound=true`;
 
@@ -157,16 +159,17 @@ export async function autoCompleteGoong(
 }
 
 /**
- * 2b. PLACE DETAIL: Get exact Lat/Lng coordinates when a suggestion is clicked
+ * 2b. PLACE DETAIL: Get exact Lat, Lng coordinates when a suggestion is clicked
+ * Calls: https://rsapi.goong.io/Place/Detail?place_id=${place_id}&api_key=${GOONG_API_KEY_AUTOCOMPLETE}
  */
 export async function getPlaceDetailGoong(
   placeId: string,
-  apiKey: string = GOONG_API_KEY,
+  apiKey: string = GOONG_API_KEY_AUTOCOMPLETE,
   fallbackAddress?: string
 ): Promise<GoongPlaceDetailResult | null> {
   try {
     if (apiKey && placeId) {
-      const url = `https://api.goong.io/Place/Detail?place_id=${placeId}&api_key=${apiKey}`;
+      const url = `https://rsapi.goong.io/Place/Detail?place_id=${placeId}&api_key=${apiKey}`;
       const response = await fetch(url);
       const data = await response.json();
 
@@ -212,13 +215,14 @@ export async function getPlaceDetailGoong(
 }
 
 /**
- * 3. DIRECTIONS API: Get actual driving route, exact road distance & duration
+ * 3. DIRECTION API: Extract exact road distance (km) & duration (mins) from Goong Map
+ * Calls: https://rsapi.goong.io/Direction?origin=${lat1},${lng1}&destination=${lat2},${lng2}&vehicle=car&api_key=${GOONG_API_KEY_DIRECTION}
  */
 export async function getDirectionsGoong(
   origin: GoongLocation | string,
   destination: GoongLocation | string,
   vehicle: 'car' | 'bike' | 'taxi' | 'truck' = 'car',
-  apiKey: string = GOONG_API_KEY
+  apiKey: string = GOONG_API_KEY_DIRECTION
 ): Promise<GoongRouteResult | null> {
   try {
     let originStr = '';
@@ -237,7 +241,7 @@ export async function getDirectionsGoong(
     }
 
     if (apiKey && originStr && destStr) {
-      const url = `https://api.goong.io/Direction?origin=${encodeURIComponent(
+      const url = `https://rsapi.goong.io/Direction?origin=${encodeURIComponent(
         originStr
       )}&destination=${encodeURIComponent(destStr)}&vehicle=${vehicle}&api_key=${apiKey}`;
 
@@ -343,6 +347,7 @@ export function decodeGoongPolyline(encoded: string): [number, number][] {
   }
   return points;
 }
+
 
 /**
  * 4. FARE CALCULATION: D.GO 247 Driver Service Pricing Rule (Bắc Ninh)
