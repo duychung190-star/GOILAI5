@@ -58,9 +58,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         zoomControl: true,
       });
 
-      // Add OpenStreetMap tile layer
+      // Add tile layer with Goong.io Maps & OSM attribution
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors | D.GO - Gọi Lái 247',
+        attribution: '&copy; <a href="https://goong.io" target="_blank" rel="noreferrer">Goong Maps</a> &copy; OpenStreetMap | D.GO - Gọi Lái 247',
         maxZoom: 19,
       }).addTo(map);
 
@@ -79,6 +79,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
+
+    // Ensure map container size is updated before computing bounds
+    map.invalidateSize();
 
     // Remove existing markers & route
     if (pickupMarkerRef.current) map.removeLayer(pickupMarkerRef.current);
@@ -118,10 +121,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       // Add route geometry points to bounds to ensure complete route fits on screen
       routeGeometry.forEach(pt => bounds.push(pt));
-
-      if (bounds.length > 0) {
-        map.fitBounds(L.latLngBounds(bounds), { padding: [45, 45], maxZoom: 16 });
-      }
     } else if (pickup && pickup.lat && pickup.lng && destination && destination.lat && destination.lng) {
       // Fallback straight line while route is calculating
       const latlngs: [number, number][] = [
@@ -135,10 +134,18 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         opacity: 0.8,
         dashArray: '8, 8'
       }).addTo(map);
+    }
 
-      map.fitBounds(L.latLngBounds(bounds), { padding: [50, 50] });
-    } else if (bounds.length > 0) {
-      map.setView(bounds[0], 14);
+    // Automatically fit bounds to display pickup, destination, and driving route
+    if (bounds.length >= 2) {
+      const latLngBounds = L.latLngBounds(bounds);
+      map.fitBounds(latLngBounds, {
+        padding: [50, 50],
+        maxZoom: 16,
+        animate: true,
+      });
+    } else if (bounds.length === 1) {
+      map.flyTo(bounds[0], 15, { animate: true });
     }
   }, [pickup, destination, routeGeometry]);
 

@@ -248,13 +248,50 @@ function formatNominatimAddress(data: any): string {
   return displayName || parts.join(', ') || '';
 }
 
-// Proxy route for Google Places Autocomplete and Geocoding (search places in Vietnam)
+// Proxy route for Places Autocomplete and Geocoding (search places in Vietnam with Goong API primary)
 app.get("/api/geocode/search", async (req, res) => {
   try {
     const query = req.query.q as string;
     if (!query || query.trim().length === 0) return res.json([]);
 
     const cleanQuery = query.trim();
+    const goongApiKey = (process.env.GOONG_API_KEY || "rudsCqy11hsus94Pxv1DgUTSB5EbRcMMcwY3Q4Ut").trim();
+
+    // 1. Primary: Try Goong Maps AutoComplete API (centered on Bac Ninh / Northern VN: 21.1861, 106.0763)
+    if (goongApiKey) {
+      try {
+        const goongAutoUrl = `https://api.goong.io/Place/AutoComplete?api_key=${goongApiKey}&input=${encodeURIComponent(cleanQuery)}&location=21.1861,106.0763&radius=50000&more_compound=true`;
+        const goongRes = await fetch(goongAutoUrl);
+        const goongData = await goongRes.json();
+
+        if (goongData.status === 'OK' && Array.isArray(goongData.predictions) && goongData.predictions.length > 0) {
+          const formatted = goongData.predictions.slice(0, 8).map((item: any) => ({
+            place_id: item.place_id,
+            display_name: item.description,
+            source: 'goong_autocomplete'
+          }));
+          return res.json(formatted);
+        }
+
+        // 2. Try Goong Geocode API if AutoComplete returned 0 predictions
+        const goongGeoUrl = `https://api.goong.io/Geocode?address=${encodeURIComponent(cleanQuery)}&api_key=${goongApiKey}`;
+        const goongGeoRes = await fetch(goongGeoUrl);
+        const goongGeoData = await goongGeoRes.json();
+
+        if (goongGeoData.status === 'OK' && Array.isArray(goongGeoData.results) && goongGeoData.results.length > 0) {
+          const formatted = goongGeoData.results.slice(0, 8).map((item: any) => ({
+            place_id: item.place_id,
+            display_name: item.formatted_address,
+            lat: item.geometry?.location?.lat,
+            lon: item.geometry?.location?.lng,
+            source: 'goong_geocode'
+          }));
+          return res.json(formatted);
+        }
+      } catch (goongErr) {
+        console.warn('Goong Maps search error, trying Google/OSM fallbacks:', goongErr);
+      }
+    }
 
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
     if (googleApiKey) {
@@ -369,11 +406,56 @@ app.get("/api/geocode/search", async (req, res) => {
   }
 });
 
-// Proxy route for Place Details (retrieve lat/lng by place_id or fallback to address search)
+// Proxy route for Place Details (retrieve lat/lng by place_id using Goong API primary)
 app.get("/api/places/details", async (req, res) => {
   try {
     const { place_id, address, q } = req.query;
     const searchAddress = (address || q || '').toString();
+    const goongApiKey = (process.env.GOONG_API_KEY || "rudsCqy11hsus94Pxv1DgUTSB5EbRcMMcwY3Q4Ut").trim();
+
+    // 1. Primary: Try Goong Place Detail API
+    if (goongApiKey && place_id) {
+      try {
+        const goongDetailUrl = `https://api.goong.io/Place/Detail?place_id=${place_id}&api_key=${goongApiKey}`;
+        const goongRes = await fetch(goongDetailUrl);
+        const goongData = await goongRes.json();
+
+        if (goongData.status === 'OK' && goongData.result) {
+          const result = goongData.result;
+          return res.json({
+            place_id: result.place_id || place_id,
+            display_name: result.formatted_address || result.name,
+            lat: result.geometry?.location?.lat,
+            lng: result.geometry?.location?.lng,
+            source: 'goong_details'
+          });
+        }
+      } catch (goongErr) {
+        console.warn('Goong Place Detail API failed:', goongErr);
+      }
+    }
+
+    // 2. Try Goong Geocode search if searchAddress is present and place_id lookup failed
+    if (goongApiKey && searchAddress) {
+      try {
+        const goongGeoUrl = `https://api.goong.io/Geocode?address=${encodeURIComponent(searchAddress)}&api_key=${goongApiKey}`;
+        const goongGeoRes = await fetch(goongGeoUrl);
+        const goongGeoData = await goongGeoRes.json();
+
+        if (goongGeoData.status === 'OK' && Array.isArray(goongGeoData.results) && goongGeoData.results.length > 0) {
+          const first = goongGeoData.results[0];
+          return res.json({
+            place_id: first.place_id || place_id,
+            display_name: first.formatted_address || searchAddress,
+            lat: first.geometry?.location?.lat,
+            lng: first.geometry?.location?.lng,
+            source: 'goong_geocode_details'
+          });
+        }
+      } catch (goongGeoErr) {
+        console.warn('Goong Geocode fallback details failed:', goongGeoErr);
+      }
+    }
 
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
     if (googleApiKey && place_id) {
@@ -432,13 +514,36 @@ app.get("/api/places/details", async (req, res) => {
   }
 });
 
-// Proxy route for Reverse Geocoding (lat, lng -> address string)
+// Proxy route for Reverse Geocoding (lat, lng -> address string using Goong API primary)
 app.get("/api/geocode/reverse", async (req, res) => {
   try {
     const { lat, lng } = req.query;
     if (!lat || !lng) return res.status(400).json({ error: "Missing lat/lng" });
 
-    // 1. Try Google Maps Geocoding API if key is set
+    const goongApiKey = (process.env.GOONG_API_KEY || "rudsCqy11hsus94Pxv1DgUTSB5EbRcMMcwY3Q4Ut").trim();
+
+    // 1. Primary: Try Goong Maps Geocode Reverse API
+    if (goongApiKey) {
+      try {
+        const goongReverseUrl = `https://api.goong.io/Geocode?latlng=${lat},${lng}&api_key=${goongApiKey}`;
+        const goongRes = await fetch(goongReverseUrl);
+        const goongData = await goongRes.json();
+
+        if (goongData.status === 'OK' && Array.isArray(goongData.results) && goongData.results.length > 0) {
+          let formattedAddress = goongData.results[0].formatted_address || '';
+          formattedAddress = formattedAddress.replace(/, Việt Nam$/gi, '').trim();
+          return res.json({
+            display_name: formattedAddress,
+            source: 'goong_reverse',
+            raw: goongData.results[0]
+          });
+        }
+      } catch (goongErr) {
+        console.warn('Goong Maps reverse geocoding error:', goongErr);
+      }
+    }
+
+    // 2. Try Google Maps Geocoding API if key is set
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
     if (googleApiKey) {
       try {
@@ -459,7 +564,7 @@ app.get("/api/geocode/reverse", async (req, res) => {
       }
     }
 
-    // 2. Try Nominatim OpenStreetMap with Vietnamese language headers
+    // 3. Try Nominatim OpenStreetMap with Vietnamese language headers
     try {
       const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=vi`;
       const response = await fetch(url, {
@@ -483,7 +588,7 @@ app.get("/api/geocode/reverse", async (req, res) => {
       console.warn('Nominatim reverse geocoding failed:', nomErr);
     }
 
-    // 3. Fallback to BigDataCloud Reverse Geocode
+    // 4. Fallback to BigDataCloud Reverse Geocode
     try {
       const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=vi`;
       const bdcRes = await fetch(bdcUrl);
@@ -513,7 +618,7 @@ app.get("/api/geocode/reverse", async (req, res) => {
   }
 });
 
-// Proxy route for Driving Route & Distance Calculation (Google Maps Directions / Distance Matrix API with OSRM fallback)
+// Proxy route for Driving Route & Distance Calculation (Goong Maps Direction API primary with Google & OSRM fallbacks)
 app.get("/api/route", async (req, res) => {
   try {
     const { startLat, startLng, endLat, endLng, origin, destination } = req.query;
@@ -521,9 +626,50 @@ app.get("/api/route", async (req, res) => {
       return res.status(400).json({ error: "Missing start or end location coordinates/addresses" });
     }
 
+    const goongApiKey = (process.env.GOONG_API_KEY || "rudsCqy11hsus94Pxv1DgUTSB5EbRcMMcwY3Q4Ut").trim();
+
+    // 1. Primary: Try Goong Maps Direction API
+    if (goongApiKey && startLat && startLng && endLat && endLng) {
+      try {
+        const goongDirUrl = `https://api.goong.io/Direction?origin=${startLat},${startLng}&destination=${endLat},${endLng}&vehicle=car&api_key=${goongApiKey}`;
+        const goongRes = await fetch(goongDirUrl);
+        const goongData = await goongRes.json();
+
+        if (goongData.routes && goongData.routes[0] && goongData.routes[0].legs && goongData.routes[0].legs[0]) {
+          const leg = goongData.routes[0].legs[0];
+          const distanceMeters = leg.distance ? leg.distance.value : 0;
+          const distanceKm = Math.round((distanceMeters / 1000) * 10) / 10;
+          const durationSeconds = leg.duration ? leg.duration.value : 0;
+          const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
+
+          let routeGeometry: [number, number][] = [];
+          if (goongData.routes[0].overview_polyline && goongData.routes[0].overview_polyline.points) {
+            routeGeometry = decodeGooglePolyline(goongData.routes[0].overview_polyline.points);
+          }
+
+          return res.json({
+            success: true,
+            source: 'goong_directions',
+            distanceMeters,
+            distanceKm,
+            distanceText: leg.distance ? leg.distance.text : `${distanceKm} km`,
+            durationSeconds,
+            durationMinutes,
+            durationText: leg.duration ? leg.duration.text : `${durationMinutes} phút`,
+            startAddress: leg.start_address,
+            endAddress: leg.end_address,
+            routeGeometry,
+            routes: goongData.routes
+          });
+        }
+      } catch (goongDirErr) {
+        console.warn('Goong Direction API failed, trying Google/OSRM fallback:', goongDirErr);
+      }
+    }
+
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_PLATFORM_KEY;
 
-    // 1. Try Google Maps Directions API if key is available
+    // 2. Try Google Maps Directions API
     if (googleApiKey) {
       try {
         const originParam = (startLat && startLng) ? `${startLat},${startLng}` : encodeURIComponent(String(origin));
@@ -565,7 +711,7 @@ app.get("/api/route", async (req, res) => {
       }
     }
 
-    // 2. Fallback to OSRM Driving Route API
+    // 3. Fallback to OSRM Driving Route API
     if (startLat && startLng && endLat && endLng) {
       const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
       const response = await fetch(url);

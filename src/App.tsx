@@ -19,6 +19,7 @@ import { GoogleSheetsModal } from './components/GoogleSheetsModal';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest } from './types';
 import { PriceCalculator } from './utils/PriceCalculator';
+import { getDirectionsGoong, reverseGeocodeGoong } from './utils/goong';
 import { sendTelegramNotification } from './utils/telegram';
 import { getAccessToken } from './utils/googleAuth';
 import { appendBookingToSheet, SPREADSHEET_KEY } from './utils/googleSheets';
@@ -103,48 +104,57 @@ export default function App() {
   const [routeGeometry, setRouteGeometry] = useState<[number, number][] | null>(null);
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
-  // Fetch precise driving route distance and duration from backend API when pickup or destination changes
+  // Fetch precise driving route distance and duration using Goong API when pickup or destination changes
   useEffect(() => {
     if ((pickup?.lat && pickup?.lng && destination?.lat && destination?.lng) || (pickup?.address && destination?.address)) {
       setIsCalculatingRoute(true);
-      const params = new URLSearchParams();
-      if (pickup?.lat && pickup?.lng) {
-        params.append('startLat', pickup.lat.toString());
-        params.append('startLng', pickup.lng.toString());
-      }
-      if (destination?.lat && destination?.lng) {
-        params.append('endLat', destination.lat.toString());
-        params.append('endLng', destination.lng.toString());
-      }
-      if (pickup?.address) params.append('origin', pickup.address);
-      if (destination?.address) params.append('destination', destination.address);
 
-      fetch(`/api/route?${params.toString()}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data && typeof data.distanceKm === 'number' && data.distanceKm > 0) {
-            setRoadDistanceKm(data.distanceKm);
-            if (typeof data.durationMinutes === 'number') {
-              setRoadDurationMinutes(data.durationMinutes);
-            }
-            if (Array.isArray(data.routeGeometry) && data.routeGeometry.length > 0) {
-              setRouteGeometry(data.routeGeometry);
+      const origin = (pickup?.lat && pickup?.lng) ? { lat: pickup.lat, lng: pickup.lng } : (pickup?.address || '');
+      const dest = (destination?.lat && destination?.lng) ? { lat: destination.lat, lng: destination.lng } : (destination?.address || '');
+
+      getDirectionsGoong(origin, dest)
+        .then(route => {
+          if (route && typeof route.distanceKm === 'number' && route.distanceKm > 0) {
+            setRoadDistanceKm(route.distanceKm);
+            setRoadDurationMinutes(route.durationMinutes);
+            if (Array.isArray(route.decodedPath) && route.decodedPath.length > 0) {
+              setRouteGeometry(route.decodedPath);
             } else {
               setRouteGeometry(null);
             }
-          } else if (data && data.routes && data.routes[0]) {
-            const meters = data.routes[0].distance || (data.routes[0].legs && data.routes[0].legs[0]?.distance?.value);
-            const km = Math.round((meters / 1000) * 10) / 10;
-            setRoadDistanceKm(km);
-            const secs = data.routes[0].duration || (data.routes[0].legs && data.routes[0].legs[0]?.duration?.value);
-            if (secs) {
-              setRoadDurationMinutes(Math.round(secs / 60));
-            }
-            setRouteGeometry(null);
           } else {
-            setRoadDistanceKm(null);
-            setRoadDurationMinutes(null);
-            setRouteGeometry(null);
+            // Fallback to backend route proxy
+            const params = new URLSearchParams();
+            if (pickup?.lat && pickup?.lng) {
+              params.append('startLat', pickup.lat.toString());
+              params.append('startLng', pickup.lng.toString());
+            }
+            if (destination?.lat && destination?.lng) {
+              params.append('endLat', destination.lat.toString());
+              params.append('endLng', destination.lng.toString());
+            }
+            if (pickup?.address) params.append('origin', pickup.address);
+            if (destination?.address) params.append('destination', destination.address);
+
+            return fetch(`/api/route?${params.toString()}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data && typeof data.distanceKm === 'number' && data.distanceKm > 0) {
+                  setRoadDistanceKm(data.distanceKm);
+                  if (typeof data.durationMinutes === 'number') {
+                    setRoadDurationMinutes(data.durationMinutes);
+                  }
+                  if (Array.isArray(data.routeGeometry) && data.routeGeometry.length > 0) {
+                    setRouteGeometry(data.routeGeometry);
+                  } else {
+                    setRouteGeometry(null);
+                  }
+                } else {
+                  setRoadDistanceKm(null);
+                  setRoadDurationMinutes(null);
+                  setRouteGeometry(null);
+                }
+              });
           }
         })
         .catch(() => {
@@ -178,13 +188,10 @@ export default function App() {
     );
   }, [calculatedDistanceKm, vehicleType, hourlyHours, scheduledTime, needVat, roadDurationMinutes]);
 
-  // Handle Map Location Selection via map click
+  // Handle Map Location Selection via map click using Goong Reverse Geocoding
   const handleSelectMapLocation = async (lat: number, lng: number, target: 'pickup' | 'destination') => {
     try {
-      const res = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
-      const data = await res.json();
-      const address = data.display_name || (target === 'pickup' ? 'Vị trí điểm đón đã chọn' : 'Vị trí điểm đến đã chọn');
-
+      const address = await reverseGeocodeGoong(lat, lng);
       if (target === 'pickup') {
         setPickup({ address, lat, lng });
       } else {

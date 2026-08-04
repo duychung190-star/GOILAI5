@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { LocationPoint, VehicleTypeOption, VatDetails, SearchSuggestion, PriceBreakdown } from '../types';
 import { PriceCalculator } from '../utils/PriceCalculator';
+import { autoCompleteGoong, getPlaceDetailGoong, reverseGeocodeGoong } from '../utils/goong';
 import { useLanguage } from '../i18n/LanguageContext';
 import { MapPin, Navigation, Car, Bike, ShieldCheck, Clock, FileText, User, Phone, Edit3, Sparkles, Check, AlertCircle, Calculator, Route } from 'lucide-react';
 
@@ -88,30 +89,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     if (item.lat !== undefined && item.lng !== undefined && !isNaN(item.lat) && !isNaN(item.lng)) {
       setPickup({ address: item.display_name, lat: item.lat, lng: item.lng });
     } else {
-      // Resolve place details for lat/lng using details endpoint or search endpoint
+      // Resolve place details for lat/lng using Goong place detail API
       try {
-        const res = await fetch(`/api/places/details?place_id=${item.place_id}&address=${encodeURIComponent(item.display_name)}`);
-        if (res.ok) {
-          const details = await res.json();
-          if (details.lat && details.lng) {
-            setPickup({ address: details.display_name || item.display_name, lat: details.lat, lng: details.lng });
-            if (details.display_name) setPickupInput(details.display_name);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn("Error fetching place details for pickup:", err);
-      }
-
-      try {
-        const geoRes = await fetch(`/api/geocode/search?q=${encodeURIComponent(item.display_name)}`);
-        const geoData = await geoRes.json();
-        if (Array.isArray(geoData) && geoData.length > 0 && geoData[0].lat && geoData[0].lon) {
-          setPickup({ address: item.display_name, lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+        const detail = await getPlaceDetailGoong(String(item.place_id), undefined, item.display_name);
+        if (detail && detail.location?.lat && detail.location?.lng) {
+          setPickup({ address: detail.formatted_address || item.display_name, lat: detail.location.lat, lng: detail.location.lng });
+          if (detail.formatted_address) setPickupInput(detail.formatted_address);
           return;
         }
       } catch (err) {
-        console.warn("Error geocoding fallback for pickup:", err);
+        console.warn("Error fetching Goong place details for pickup:", err);
       }
 
       setPickup((prev) => ({ address: item.display_name, lat: prev?.lat || 21.0285, lng: prev?.lng || 105.8542 }));
@@ -126,30 +113,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     if (item.lat !== undefined && item.lng !== undefined && !isNaN(item.lat) && !isNaN(item.lng)) {
       setDestination({ address: item.display_name, lat: item.lat, lng: item.lng });
     } else {
-      // Resolve place details for lat/lng using details endpoint or search endpoint
+      // Resolve place details for lat/lng using Goong place detail API
       try {
-        const res = await fetch(`/api/places/details?place_id=${item.place_id}&address=${encodeURIComponent(item.display_name)}`);
-        if (res.ok) {
-          const details = await res.json();
-          if (details.lat && details.lng) {
-            setDestination({ address: details.display_name || item.display_name, lat: details.lat, lng: details.lng });
-            if (details.display_name) setDestInput(details.display_name);
-            return;
-          }
-        }
-      } catch (err) {
-        console.warn("Error fetching place details for destination:", err);
-      }
-
-      try {
-        const geoRes = await fetch(`/api/geocode/search?q=${encodeURIComponent(item.display_name)}`);
-        const geoData = await geoRes.json();
-        if (Array.isArray(geoData) && geoData.length > 0 && geoData[0].lat && geoData[0].lon) {
-          setDestination({ address: item.display_name, lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+        const detail = await getPlaceDetailGoong(String(item.place_id), undefined, item.display_name);
+        if (detail && detail.location?.lat && detail.location?.lng) {
+          setDestination({ address: detail.formatted_address || item.display_name, lat: detail.location.lat, lng: detail.location.lng });
+          if (detail.formatted_address) setDestInput(detail.formatted_address);
           return;
         }
       } catch (err) {
-        console.warn("Error geocoding fallback for destination:", err);
+        console.warn("Error fetching Goong place details for destination:", err);
       }
 
       setDestination((prev) => ({ address: item.display_name, lat: prev?.lat || 21.0285, lng: prev?.lng || 105.8542 }));
@@ -164,14 +137,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       if (pickup?.address === pickupInput) return;
 
       try {
-        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(pickupInput)}`);
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const first = data[0];
-          const lat = first.lat !== undefined ? parseFloat(first.lat) : undefined;
-          const lng = first.lon !== undefined ? parseFloat(first.lon) : (first.lng !== undefined ? parseFloat(first.lng) : undefined);
-          if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
-            setPickup({ address: pickupInput, lat, lng });
+        const predictions = await autoCompleteGoong(pickupInput);
+        if (predictions.length > 0) {
+          const firstDetail = await getPlaceDetailGoong(predictions[0].place_id, undefined, pickupInput);
+          if (firstDetail && firstDetail.location?.lat && firstDetail.location?.lng) {
+            setPickup({ address: pickupInput, lat: firstDetail.location.lat, lng: firstDetail.location.lng });
           }
         }
       } catch (err) {
@@ -188,14 +158,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
       if (destination?.address === destInput) return;
 
       try {
-        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(destInput)}`);
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const first = data[0];
-          const lat = first.lat !== undefined ? parseFloat(first.lat) : undefined;
-          const lng = first.lon !== undefined ? parseFloat(first.lon) : (first.lng !== undefined ? parseFloat(first.lng) : undefined);
-          if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
-            setDestination({ address: destInput, lat, lng });
+        const predictions = await autoCompleteGoong(destInput);
+        if (predictions.length > 0) {
+          const firstDetail = await getPlaceDetailGoong(predictions[0].place_id, undefined, destInput);
+          if (firstDetail && firstDetail.location?.lat && firstDetail.location?.lng) {
+            setDestination({ address: destInput, lat: firstDetail.location.lat, lng: firstDetail.location.lng });
           }
         }
       } catch (err) {
@@ -204,7 +171,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     }, 200);
   };
 
-  // Handle Autocomplete Search for Pickup Input
+  // Handle Autocomplete Search for Pickup Input with Goong API & 300ms debounce
   useEffect(() => {
     if (!pickupInput || pickupInput.trim().length < 2 || !pickupDropdownOpen) {
       setPickupSuggestions([]);
@@ -214,15 +181,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     const timer = setTimeout(async () => {
       setIsSearchingPickup(true);
       try {
-        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(pickupInput)}`);
-        const data = await res.json();
-        if (Array.isArray(data)) {
+        const predictions = await autoCompleteGoong(pickupInput);
+        if (Array.isArray(predictions)) {
           setPickupSuggestions(
-            data.map((item: any) => ({
+            predictions.map((item) => ({
               place_id: item.place_id,
-              display_name: item.display_name,
-              lat: item.lat !== undefined && item.lat !== null ? parseFloat(item.lat) : undefined,
-              lng: item.lon !== undefined && item.lon !== null ? parseFloat(item.lon) : (item.lng !== undefined && item.lng !== null ? parseFloat(item.lng) : undefined)
+              display_name: item.description,
             }))
           );
         }
@@ -236,7 +200,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     return () => clearTimeout(timer);
   }, [pickupInput, pickupDropdownOpen]);
 
-  // Handle Autocomplete Search for Destination Input
+  // Handle Autocomplete Search for Destination Input with Goong API & 300ms debounce
   useEffect(() => {
     if (!destInput || destInput.trim().length < 2 || !destDropdownOpen) {
       setDestSuggestions([]);
@@ -246,15 +210,12 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     const timer = setTimeout(async () => {
       setIsSearchingDest(true);
       try {
-        const res = await fetch(`/api/geocode/search?q=${encodeURIComponent(destInput)}`);
-        const data = await res.json();
-        if (Array.isArray(data)) {
+        const predictions = await autoCompleteGoong(destInput);
+        if (Array.isArray(predictions)) {
           setDestSuggestions(
-            data.map((item: any) => ({
+            predictions.map((item) => ({
               place_id: item.place_id,
-              display_name: item.display_name,
-              lat: item.lat !== undefined && item.lat !== null ? parseFloat(item.lat) : undefined,
-              lng: item.lon !== undefined && item.lon !== null ? parseFloat(item.lon) : (item.lng !== undefined && item.lng !== null ? parseFloat(item.lng) : undefined)
+              display_name: item.description,
             }))
           );
         }
@@ -282,26 +243,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         const lng = position.coords.longitude;
 
         try {
-          const res = await fetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`);
-          const data = await res.json();
-          let address = data.display_name;
-
-          // If server response is empty or raw coords, attempt direct client-side reverse geocoding
-          if (!address || (address.includes('(') && address.includes(')'))) {
-            try {
-              const nomRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=vi`);
-              const nomData = await nomRes.json();
-              if (nomData && nomData.display_name) {
-                address = nomData.display_name
-                  .replace(/, \d{5,6}/g, '')
-                  .replace(/, Việt Nam$/gi, '')
-                  .trim();
-              }
-            } catch {
-              // Ignore client fetch error
-            }
-          }
-
+          let address = await reverseGeocodeGoong(lat, lng);
           if (!address) {
             address = `Vị trí điểm đón GPS (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
           }
