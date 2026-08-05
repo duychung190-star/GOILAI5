@@ -1,10 +1,19 @@
 import { db } from '../lib/firebase';
-import { doc, getDoc, setDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { UserProfile, BookingRequest } from '../types';
 
 /**
  * Service kết nối Cloud Firestore để quản lý Hồ sơ người dùng & Lịch sử đơn hàng
  */
+
+function withTimeout<T>(promise: Promise<T>, ms = 4000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error('Firestore request timed out')), ms)
+    ),
+  ]);
+}
 
 // 1. Lưu hoặc Cập nhật Hồ sơ người dùng vào Firestore
 export async function saveUserProfileToFirestore(userProfile: UserProfile): Promise<void> {
@@ -27,10 +36,9 @@ export async function saveUserProfileToFirestore(userProfile: UserProfile): Prom
       updatedAt: Date.now()
     };
 
-    await setDoc(userDocRef, dataToSave, { merge: true });
-    console.log(`[Firestore Service] Đã lưu hồ sơ người dùng ${cleanPhone} thành công.`);
-  } catch (err) {
-    console.warn('[Firestore Service] Lỗi khi lưu hồ sơ người dùng:', err);
+    await withTimeout(setDoc(userDocRef, dataToSave, { merge: true }));
+  } catch (err: any) {
+    console.log('[Firestore Service] Unreachable or offline when saving profile:', err?.message || err);
   }
 }
 
@@ -41,7 +49,7 @@ export async function getUserProfileFromFirestore(phone: string): Promise<UserPr
     if (!cleanPhone) return null;
 
     const userDocRef = doc(db, 'users', cleanPhone);
-    const snap = await getDoc(userDocRef);
+    const snap = await withTimeout(getDoc(userDocRef));
 
     if (snap.exists()) {
       const data = snap.data();
@@ -57,8 +65,8 @@ export async function getUserProfileFromFirestore(phone: string): Promise<UserPr
         createdAt: data.createdAt || Date.now()
       } as UserProfile;
     }
-  } catch (err) {
-    console.warn('[Firestore Service] Lỗi khi tải hồ sơ người dùng:', err);
+  } catch (err: any) {
+    console.log('[Firestore Service] Unreachable or offline when loading profile:', err?.message || err);
   }
   return null;
 }
@@ -75,7 +83,7 @@ export async function getUserBookingHistoryFromFirestore(phone: string): Promise
       where('customerPhoneClean', '==', cleanPhone)
     );
 
-    const snap = await getDocs(q);
+    const snap = await withTimeout(getDocs(q));
     const bookings: BookingRequest[] = [];
 
     snap.forEach((docSnap) => {
@@ -84,8 +92,8 @@ export async function getUserBookingHistoryFromFirestore(phone: string): Promise
 
     // Sắp xếp theo thời gian mới nhất
     return bookings.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  } catch (err) {
-    console.warn('[Firestore Service] Lỗi khi tải lịch sử đơn hàng từ Firestore:', err);
+  } catch (err: any) {
+    console.log('[Firestore Service] Unreachable or offline when loading booking history:', err?.message || err);
     return [];
   }
 }
@@ -94,40 +102,47 @@ export async function getUserBookingHistoryFromFirestore(phone: string): Promise
 export async function syncUserFromFirestore(loginUser: UserProfile): Promise<{ user: UserProfile; orderHistory: BookingRequest[] }> {
   const cleanPhone = (loginUser.phone || '').replace(/\D/g, '');
 
-  // Luôn lưu bản ghi mới nhất vào Firestore
-  await saveUserProfileToFirestore(loginUser);
+  try {
+    // Lưu bản ghi mới nhất vào Firestore
+    await saveUserProfileToFirestore(loginUser);
 
-  // Lấy dữ liệu từ Firestore
-  const fsUser = await getUserProfileFromFirestore(cleanPhone);
-  const orderHistory = await getUserBookingHistoryFromFirestore(cleanPhone);
+    // Lấy dữ liệu từ Firestore
+    const fsUser = await getUserProfileFromFirestore(cleanPhone);
+    const orderHistory = await getUserBookingHistoryFromFirestore(cleanPhone);
 
-  const mergedTripsCount = Math.max(
-    loginUser.tripsCount || 0,
-    fsUser?.tripsCount || 0,
-    orderHistory.length
-  );
+    const mergedTripsCount = Math.max(
+      loginUser.tripsCount || 0,
+      fsUser?.tripsCount || 0,
+      orderHistory.length
+    );
 
-  let updatedTier: 'MỚI' | 'THÂN THIẾT' | 'VIP' | 'KIM CƯƠNG' = 'MỚI';
-  if (mergedTripsCount >= 10) updatedTier = 'KIM CƯƠNG';
-  else if (mergedTripsCount >= 5) updatedTier = 'VIP';
-  else if (mergedTripsCount >= 2) updatedTier = 'THÂN THIẾT';
+    let updatedTier: 'MỚI' | 'THÂN THIẾT' | 'VIP' | 'KIM CƯƠNG' = 'MỚI';
+    if (mergedTripsCount >= 10) updatedTier = 'KIM CƯƠNG';
+    else if (mergedTripsCount >= 5) updatedTier = 'VIP';
+    else if (mergedTripsCount >= 2) updatedTier = 'THÂN THIẾT';
 
-  const mergedUser: UserProfile = {
-    ...loginUser,
-    ...(fsUser || {}),
-    name: loginUser.name || fsUser?.name || '',
-    phone: cleanPhone || loginUser.phone,
-    tripsCount: mergedTripsCount,
-    tier: updatedTier,
-    loyaltyPoints: mergedTripsCount * 10,
-    loyaltyScorePercent: Math.min(99, 85 + mergedTripsCount * 3)
-  };
+    const mergedUser: UserProfile = {
+      ...loginUser,
+      ...(fsUser || {}),
+      name: loginUser.name || fsUser?.name || '',
+      phone: cleanPhone || loginUser.phone,
+      tripsCount: mergedTripsCount,
+      tier: updatedTier,
+      loyaltyPoints: mergedTripsCount * 10,
+      loyaltyScorePercent: Math.min(99, 85 + mergedTripsCount * 3)
+    };
 
-  // Cập nhật lại bản ghi chuẩn hóa lên Firestore
-  await saveUserProfileToFirestore(mergedUser);
+    // Cập nhật lại bản ghi chuẩn hóa lên Firestore
+    await saveUserProfileToFirestore(mergedUser);
 
-  return {
-    user: mergedUser,
-    orderHistory
-  };
+    return {
+      user: mergedUser,
+      orderHistory
+    };
+  } catch (e) {
+    return {
+      user: loginUser,
+      orderHistory: []
+    };
+  }
 }
