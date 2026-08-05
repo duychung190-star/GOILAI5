@@ -10,7 +10,6 @@ import { BookingForm } from './components/BookingForm';
 import { CostSummaryCard } from './components/CostSummaryCard';
 import { InteractiveMap } from './components/InteractiveMap';
 import { BookingModal } from './components/BookingModal';
-import { PriceTableModal } from './components/PriceTableModal';
 import { WhyChooseUs } from './components/WhyChooseUs';
 import { FloatingActions } from './components/FloatingActions';
 import { BookingHistoryModal } from './components/BookingHistoryModal';
@@ -169,7 +168,6 @@ export default function App() {
   };
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [isPriceTableOpen, setIsPriceTableOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDispatcherOpen, setIsDispatcherOpen] = useState(false);
   const [isGoogleSheetsOpen, setIsGoogleSheetsOpen] = useState(false);
@@ -471,7 +469,6 @@ export default function App() {
       
       {/* Header Bar */}
       <Header
-        onOpenPriceTable={() => setIsPriceTableOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenDispatcher={() => setIsDispatcherOpen(true)}
         onOpenGoogleSheets={() => setIsGoogleSheetsOpen(true)}
@@ -485,7 +482,7 @@ export default function App() {
         
         {/* Hero Banner Showcase (Logo & Service Introduction placed at top) */}
         <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-sm">
-          <HeroBanner onOpenPriceTable={() => setIsPriceTableOpen(true)} />
+          <HeroBanner />
         </div>
 
         {/* Error Notification Alert (if any) */}
@@ -675,11 +672,6 @@ export default function App() {
         onClose={() => setIsBookingModalOpen(false)}
         telegramStatus={telegramStatus}
         onRateDriver={handleOpenRating}
-      />
-
-      <PriceTableModal
-        isOpen={isPriceTableOpen}
-        onClose={() => setIsPriceTableOpen(false)}
       />
 
       <BookingHistoryModal

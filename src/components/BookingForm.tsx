@@ -578,7 +578,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={() => setVehicleType('Ô tô / Xe máy')}
-              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-start gap-3 cursor-pointer ${
+              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
                 vehicleType === 'Ô tô / Xe máy'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
@@ -589,7 +589,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
               <div>
                 <p className="font-extrabold text-xs">Ô tô / Xe máy</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Ô tô / Xe máy' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Ô tô / Xe máy' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
                   Lái hộ ô tô, xe máy tính theo lượt
                 </p>
               </div>
@@ -599,7 +599,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={() => setVehicleType('Xe Sang')}
-              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-start gap-3 cursor-pointer ${
+              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
                 vehicleType === 'Xe Sang'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
@@ -610,7 +610,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
               <div>
                 <p className="font-extrabold text-xs">Xe Sang (Luxury)</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Xe Sang' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Xe Sang' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
                   Lái hộ dòng xe sang tính theo lượt
                 </p>
               </div>
@@ -631,7 +631,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={() => setVehicleType('Thuê theo giờ (Ô tô / Xe máy)')}
-              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-start gap-3 cursor-pointer ${
+              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
                 vehicleType === 'Thuê theo giờ (Ô tô / Xe máy)'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
@@ -642,7 +642,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
               <div>
                 <p className="font-extrabold text-xs">Theo giờ: Ô tô / Xe máy</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo giờ (Ô tô / Xe máy)' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo giờ (Ô tô / Xe máy)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
                   Thuê tài xế lái ô tô, xe máy theo giờ
                 </p>
               </div>
@@ -652,7 +652,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={() => setVehicleType('Thuê theo giờ (Xe Sang)')}
-              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-start gap-3 cursor-pointer ${
+              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
                 vehicleType === 'Thuê theo giờ (Xe Sang)'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
@@ -663,7 +663,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
               <div>
                 <p className="font-extrabold text-xs">Theo giờ: Xe Sang</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo giờ (Xe Sang)' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo giờ (Xe Sang)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
                   Thuê tài xế lái xe sang theo giờ
                 </p>
               </div>
@@ -684,7 +684,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={() => setVehicleType('Thuê theo ngày (Ô tô / Xe máy)')}
-              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-start gap-3 cursor-pointer ${
+              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
                 vehicleType === 'Thuê theo ngày (Ô tô / Xe máy)'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
@@ -695,7 +695,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
               <div>
                 <p className="font-extrabold text-xs">Theo ngày: Ô tô / Xe máy</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo ngày (Ô tô / Xe máy)' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo ngày (Ô tô / Xe máy)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
                   Thuê tài xế lái ô tô, xe máy trọn ngày
                 </p>
               </div>
@@ -705,7 +705,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
             <button
               type="button"
               onClick={() => setVehicleType('Thuê theo ngày (Xe Sang)')}
-              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-start gap-3 cursor-pointer ${
+              className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
                 vehicleType === 'Thuê theo ngày (Xe Sang)'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
@@ -716,7 +716,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
               <div>
                 <p className="font-extrabold text-xs">Theo ngày: Xe Sang</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo ngày (Xe Sang)' ? 'text-slate-900 font-semibold' : 'text-slate-500'}`}>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo ngày (Xe Sang)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
                   Thuê tài xế lái xe sang trọn ngày
                 </p>
               </div>

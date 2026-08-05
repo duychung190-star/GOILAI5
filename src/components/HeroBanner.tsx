@@ -5,7 +5,7 @@ import headerBgImg from '../assets/images/dgo_driver_hero_bg_1785738381902.jpg';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface HeroBannerProps {
-  onOpenPriceTable: () => void;
+  onOpenPriceTable?: () => void;
 }
 
 export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
@@ -35,7 +35,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
           
           {/* Main Official Logo Hero Emblem */}
           <div className="flex justify-center mb-2">
-            <div className="relative group cursor-pointer" onClick={onOpenPriceTable}>
+            <div className={`relative group ${onOpenPriceTable ? 'cursor-pointer' : ''}`} onClick={onOpenPriceTable}>
               <div className="absolute -inset-1.5 bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 rounded-full blur-md opacity-70 group-hover:opacity-100 transition duration-500"></div>
               <div className="relative flex items-center gap-3 bg-white/95 border border-amber-200/90 p-2 pr-5 rounded-full shadow-xl backdrop-blur-md">
                 <img

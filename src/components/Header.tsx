@@ -6,7 +6,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { UserProfile } from '../types';
 
 interface HeaderProps {
-  onOpenPriceTable: () => void;
+  onOpenPriceTable?: () => void;
   onOpenHistory: () => void;
   onOpenDispatcher: () => void;
   onOpenGoogleSheets?: () => void;
@@ -89,13 +89,15 @@ export const Header: React.FC<HeaderProps> = ({
             )}
 
             {/* Price Table Button */}
-            <button
-              onClick={onOpenPriceTable}
-              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"
-            >
-              <FileText className="w-4 h-4 text-amber-600" />
-              <span>{t.header.priceTable}</span>
-            </button>
+            {onOpenPriceTable && (
+              <button
+                onClick={onOpenPriceTable}
+                className="hidden lg:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200"
+              >
+                <FileText className="w-4 h-4 text-amber-600" />
+                <span>{t.header.priceTable}</span>
+              </button>
+            )}
 
             {/* Booking History Button */}
             <button

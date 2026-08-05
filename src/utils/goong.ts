@@ -370,9 +370,7 @@ export function calculateGoongDriverFare(
   }
 
   let basePrice = 0;
-  if (distanceKm <= 5) {
-    basePrice = 250000;
-  } else if (distanceKm <= 10) {
+  if (distanceKm <= 10) {
     basePrice = 350000;
   } else {
     basePrice = Math.round(350000 + (distanceKm - 10) * 15000);
