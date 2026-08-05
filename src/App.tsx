@@ -23,6 +23,7 @@ import { CustomerFeedbackSection } from './components/CustomerFeedbackSection';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
+import { syncUserFromFirestore } from './services/userService';
 import { PriceCalculator } from './utils/PriceCalculator';
 import { getDirectionsGoong, reverseGeocodeGoong } from './utils/goong';
 import { sendTelegramNotification } from './utils/telegram';
@@ -127,7 +128,8 @@ export default function App() {
     }
   }, [user]);
 
-  const handleLoginSuccess = (newUser: UserProfile) => {
+  const handleLoginSuccess = async (newUser: UserProfile) => {
+    // Immediate local state update
     setUser(newUser);
     localStorage.setItem('dgo_user', JSON.stringify(newUser));
     if (newUser.name) {
@@ -137,6 +139,23 @@ export default function App() {
     if (newUser.phone) {
       setCustomerPhone(newUser.phone);
       localStorage.setItem('dgo_customer_phone', newUser.phone);
+    }
+
+    // Sync full profile and order history from Firestore
+    try {
+      const { user: syncedUser } = await syncUserFromFirestore(newUser);
+      setUser(syncedUser);
+      localStorage.setItem('dgo_user', JSON.stringify(syncedUser));
+      if (syncedUser.name) {
+        setCustomerName(syncedUser.name);
+        localStorage.setItem('dgo_customer_name', syncedUser.name);
+      }
+      if (syncedUser.phone) {
+        setCustomerPhone(syncedUser.phone);
+        localStorage.setItem('dgo_customer_phone', syncedUser.phone);
+      }
+    } catch (err) {
+      console.warn('Lỗi đồng bộ hồ sơ từ Firestore:', err);
     }
   };
 
