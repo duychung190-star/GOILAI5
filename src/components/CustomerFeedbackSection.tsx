@@ -70,6 +70,19 @@ export const CustomerFeedbackSection: React.FC<CustomerFeedbackSectionProps> = (
 
   useEffect(() => {
     fetchRatings();
+    // Pre-fill name from logged in user if available
+    const savedName = localStorage.getItem('dgo_customer_name');
+    if (savedName) {
+      setFormName(savedName);
+    } else {
+      const savedUserStr = localStorage.getItem('dgo_user');
+      if (savedUserStr) {
+        try {
+          const u = JSON.parse(savedUserStr);
+          if (u.name) setFormName(u.name);
+        } catch (e) {}
+      }
+    }
   }, [newRatings]);
 
   const toggleTag = (tag: string) => {
@@ -84,6 +97,10 @@ export const CustomerFeedbackSection: React.FC<CustomerFeedbackSectionProps> = (
 
     setIsSubmitting(true);
     try {
+      const finalTags = isEnterpriseForm && !selectedTags.includes('Xuất hóa đơn VAT chuẩn chỉnh') 
+        ? ['Xuất hóa đơn VAT chuẩn chỉnh', ...selectedTags] 
+        : selectedTags;
+
       const res = await fetch('/api/ratings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,24 +110,34 @@ export const CustomerFeedbackSection: React.FC<CustomerFeedbackSectionProps> = (
           isEnterprise: isEnterpriseForm,
           stars: formStars,
           review: formReview.trim(),
-          tags: isEnterpriseForm && !selectedTags.includes('Xuất hóa đơn VAT chuẩn chỉnh') 
-            ? ['Xuất hóa đơn VAT chuẩn chỉnh', ...selectedTags] 
-            : selectedTags,
+          tags: finalTags,
           driverName: 'Tài xế D.GO 247',
         }),
       });
 
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.rating) {
         setSubmitSuccess(true);
-        fetchRatings();
+        
+        // Optimistic live update
+        setRatings(prev => [data.rating, ...prev]);
+        setStats(prev => {
+          const newTotal = prev.totalReviews + 1;
+          const newAvg = (prev.averageStars * prev.totalReviews + formStars) / newTotal;
+          return {
+            ...prev,
+            totalReviews: newTotal,
+            averageStars: Number(newAvg.toFixed(1))
+          };
+        });
+
         setTimeout(() => {
           setSubmitSuccess(false);
           setShowDirectForm(false);
-          setFormName('');
-          setFormCompany('');
           setFormReview('');
         }, 1800);
+      } else {
+        fetchRatings();
       }
     } catch (err) {
       console.error('Lỗi khi gửi đánh giá:', err);
@@ -230,13 +257,166 @@ export const CustomerFeedbackSection: React.FC<CustomerFeedbackSectionProps> = (
 
         {/* Direct Review Open Trigger */}
         <button
-          onClick={() => setShowDirectForm(true)}
+          onClick={() => setShowDirectForm(!showDirectForm)}
           className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg flex items-center gap-2 transition-all active:scale-95 border border-amber-300/50"
         >
           <PlusCircle className="w-4 h-4" />
-          <span>ĐÁNH GIÁ TRỰC TIẾP DỊCH VỤ</span>
+          <span>{showDirectForm ? 'ẨN FORM ĐÁNH GIÁ' : 'ĐÁNH GIÁ TRỰC TIẾP DỊCH VỤ'}</span>
         </button>
       </div>
+
+      {/* Embedded Direct Customer Review Form */}
+      {showDirectForm && (
+        <div className="mb-6 p-5 bg-slate-950 border border-amber-500/40 rounded-2xl shadow-2xl relative overflow-hidden animate-fadeIn">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                <Star className="w-4 h-4 fill-amber-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold text-white">Gửi Nhận Xét & Đánh Giá Trực Tiếp</h3>
+                <p className="text-[11px] text-slate-400">Đánh giá từ 1 đến 5 sao & nhận xét sẽ hiển thị ngay lập tức lên ứng dụng</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowDirectForm(false)}
+              className="p-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {submitSuccess ? (
+            <div className="text-center py-6 space-y-2">
+              <div className="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto border border-emerald-500/40">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-white">Gửi đánh giá thành công!</h4>
+              <p className="text-xs text-slate-300">Nhận xét của bạn đã được xuất bản trực tiếp lên danh sách bên dưới.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleDirectSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 mb-1 block">
+                    Họ tên của bạn <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    placeholder="Ví dụ: Anh Hoàng / Chị Thu"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
+                  />
+                </div>
+
+                {/* Rating selection */}
+                <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-300">Đánh giá sao:</span>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setFormStars(s)}
+                        className="p-0.5 hover:scale-125 transition-transform"
+                      >
+                        <Star
+                          className={`w-6 h-6 ${
+                            s <= formStars ? 'fill-amber-400 text-amber-400' : 'text-slate-700 fill-slate-800'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Checkbox */}
+              <div className="p-2.5 bg-blue-950/40 border border-blue-800/50 rounded-xl space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isEnterpriseForm}
+                    onChange={(e) => setIsEnterpriseForm(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-500 focus:ring-blue-400 bg-slate-900 border-slate-700"
+                  />
+                  <span className="text-xs font-bold text-blue-200 flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-blue-400" />
+                    <span>Tôi là Khách hàng Doanh nghiệp / Cần đánh giá dịch vụ VAT</span>
+                  </span>
+                </label>
+
+                {isEnterpriseForm && (
+                  <input
+                    type="text"
+                    value={formCompany}
+                    onChange={(e) => setFormCompany(e.target.value)}
+                    placeholder="Tên Công ty / Tên Tập đoàn"
+                    className="w-full bg-slate-900 border border-blue-800 rounded-xl p-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-400"
+                  />
+                )}
+              </div>
+
+              {/* Tags */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-300 block">Chọn ưu điểm nổi bật:</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {SUGGESTED_TAGS.map((tag) => {
+                    const active = selectedTags.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                          active
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold'
+                            : 'bg-slate-900 text-slate-400 border border-slate-800'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Review Text */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 mb-1 block">
+                  Nhận xét & cảm nhận trực tiếp:
+                </label>
+                <textarea
+                  rows={3}
+                  value={formReview}
+                  onChange={(e) => setFormReview(e.target.value)}
+                  placeholder="Nhập trải nghiệm thực tế của bạn về thái độ phục vụ, tính an toàn hoặc quy trình hóa đơn..."
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowDirectForm(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 font-bold text-xs rounded-xl"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-extrabold text-xs rounded-xl shadow-md active:scale-95"
+                >
+                  {isSubmitting ? 'Đang xuất bản...' : 'XUẤT BẢN ĐÁNH GIÁ NGAY'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
 
       {/* Ratings Grid Cards */}
       {isLoading ? (

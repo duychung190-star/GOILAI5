@@ -49,6 +49,30 @@ export async function saveFirestoreBooking(bookingData: any) {
   }
 }
 
+export async function saveFirestoreRating(ratingData: any) {
+  try {
+    const ratingRef = doc(db, 'ratings', ratingData.id);
+    await setDoc(ratingRef, { ...ratingData, updatedAt: Date.now() });
+  } catch (err) {
+    console.warn('[Firestore] Error saving rating:', err);
+  }
+}
+
+export async function getFirestoreRatings() {
+  try {
+    const ratingsRef = collection(db, 'ratings');
+    const snap = await getDocs(ratingsRef);
+    const list: any[] = [];
+    snap.forEach((docSnap) => {
+      list.push(docSnap.data());
+    });
+    return list;
+  } catch (err) {
+    console.warn('[Firestore] Error fetching ratings:', err);
+    return [];
+  }
+}
+
 export async function getFirestoreUserBookingsCount(phone: string): Promise<number> {
   try {
     const cleanPhone = phone.replace(/\D/g, '');

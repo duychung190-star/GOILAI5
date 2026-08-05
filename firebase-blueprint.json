@@ -34,6 +34,24 @@
         "totalOrdersCount": { "type": "number" }
       },
       "required": ["customerName", "customerPhone", "pickupAddress", "createdAt"]
+    },
+    "ratings": {
+      "title": "Ratings",
+      "description": "Customer reviews and 1-5 star feedback",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "companyName": { "type": "string" },
+        "isEnterprise": { "type": "boolean" },
+        "customerPhone": { "type": "string" },
+        "stars": { "type": "number" },
+        "review": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "driverName": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["customerName", "stars", "createdAt"]
     }
   }
 }

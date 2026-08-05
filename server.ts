@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
-import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking } from './src/lib/firebase-server';
+import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking, saveFirestoreRating, getFirestoreRatings } from './src/lib/firebase-server';
 
 const app = express();
 const PORT = 3000;
@@ -268,7 +268,7 @@ const sampleRatings = [
 ];
 
 // Get all public driver ratings & reviews
-app.get("/api/ratings", (req, res) => {
+app.get("/api/ratings", async (req, res) => {
   const ratingsFromBookings = bookingsStore
     .filter(b => b.rating)
     .map(b => ({
@@ -284,8 +284,18 @@ app.get("/api/ratings", (req, res) => {
       createdAt: b.rating!.createdAt || b.createdAt,
     }));
 
-  const allRatings = [...sampleRatings, ...ratingsFromBookings];
-  const avgStars = (allRatings.reduce((acc, curr) => acc + curr.stars, 0) / (allRatings.length || 1)).toFixed(1);
+  const firestoreRatings = await getFirestoreRatings();
+
+  // Deduplicate ratings by id
+  const ratingMap = new Map();
+  [...firestoreRatings, ...sampleRatings, ...ratingsFromBookings].forEach(item => {
+    if (item && item.id && !ratingMap.has(item.id)) {
+      ratingMap.set(item.id, item);
+    }
+  });
+
+  const allRatings = Array.from(ratingMap.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const avgStars = (allRatings.reduce((acc, curr) => acc + (curr.stars || 5), 0) / (allRatings.length || 1)).toFixed(1);
 
   res.json({
     success: true,
@@ -299,11 +309,11 @@ app.get("/api/ratings", (req, res) => {
 });
 
 // Post a public direct customer rating & review
-app.post("/api/ratings", (req, res) => {
+app.post("/api/ratings", async (req, res) => {
   try {
     const { customerName, companyName, isEnterprise, stars, review, tags, driverName, customerPhone } = req.body;
     const newRating = {
-      id: `r-user-${Date.now()}`,
+      id: `r-user-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       customerName: customerName || 'Khách hàng',
       companyName: companyName || undefined,
       isEnterprise: !!isEnterprise,
@@ -316,6 +326,8 @@ app.post("/api/ratings", (req, res) => {
     };
 
     sampleRatings.unshift(newRating);
+    await saveFirestoreRating(newRating);
+
     res.json({ success: true, rating: newRating });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
