@@ -7,6 +7,8 @@ export const sendTelegramNotification = async (bookingData: {
   vehicleType?: string;
   distanceKm?: number;
   noteForDriver?: string;
+  isNewCustomer?: boolean;
+  totalOrdersCount?: number;
 }) => {
   const token = "8182785112:AAEO1WlI59qkaCDR1OuO00z2No6cTwk4acE".trim();
   const rawChatId = "-1003936078147".trim();
@@ -15,8 +17,15 @@ export const sendTelegramNotification = async (bookingData: {
     ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bookingData.totalPrice)
     : bookingData.totalPrice;
 
-  let text = `🚗 CÓ ĐƠN ĐẶT XE MỚI!\n` +
-    `Khách: ${bookingData.name} - ${bookingData.phone}\n` +
+  let text = `🚗 CÓ ĐƠN ĐẶT XE MỚI!\n`;
+
+  if (bookingData.isNewCustomer) {
+    text += `👉 🌱 KHÁCH HÀNG MỚI ĐẶT LẦN ĐẦU\n`;
+  } else if (bookingData.totalOrdersCount) {
+    text += `👉 🔥 KHÁCH HÀNG CŨ QUAY LẠI (Cuốc thứ ${bookingData.totalOrdersCount})\n`;
+  }
+
+  text += `Khách: ${bookingData.name} - ${bookingData.phone}\n` +
     `Đón: ${bookingData.pickup}\n` +
     `Đến: ${bookingData.dropoff}\n` +
     `Tổng tiền: ${formattedPrice}`;

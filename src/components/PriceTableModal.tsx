@@ -14,8 +14,9 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   const priceTiers = [
-    { timeFrame: 'Trước 22:00', firstKm: '220.000 VNĐ', nextKm: '+10.000 VNĐ / km' },
-    { timeFrame: 'Sau 22:00 (22:00 - 05:00)', firstKm: '220.000 VNĐ', nextKm: '+15.000 VNĐ / km' },
+    { distance: '1 - 5 km đầu tiên', price: '250.000 VNĐ' },
+    { distance: 'Km thứ 6 đến Km thứ 10', price: '350.000 VNĐ' },
+    { distance: 'Km thứ 11 trở đi', price: '350.000đ + 15.000đ/km' },
   ];
 
   return (
@@ -51,67 +52,122 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
           
           {/* Section 1: Distance Table */}
           <div>
-            <h4 className="text-sm font-bold text-amber-400 mb-2 uppercase tracking-wide">1. Bảng giá lái hộ tính theo Kilomet (Xe máy, Ô tô 4-7 chỗ, Bán tải)</h4>
-            <div className="overflow-hidden rounded-xl border border-slate-800">
+            <h4 className="text-sm font-bold text-amber-400 mb-2 uppercase tracking-wide">
+              1. Bảng giá lái hộ tính theo Kilomet (Lượt)
+            </h4>
+            <div className="overflow-hidden rounded-xl border border-slate-800 space-y-3">
+              
+              {/* Table A: Ô tô / Xe máy */}
+              <div className="bg-slate-950 p-3 rounded-t-xl border-b border-slate-800">
+                <p className="font-extrabold text-xs text-emerald-400 uppercase">A. Gói Ô tô / Xe máy</p>
+              </div>
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-950 text-amber-400 uppercase font-bold border-b border-slate-800">
+                <thead className="bg-slate-950 text-slate-300 font-bold border-b border-slate-800">
                   <tr>
-                    <th className="px-4 py-2.5">Khung Giờ</th>
-                    <th className="px-4 py-2.5">1 KM Đầu Tiên</th>
-                    <th className="px-4 py-2.5">Từ KM Thứ 2 Trở Đi</th>
+                    <th className="px-4 py-2">Khoảng Cách</th>
+                    <th className="px-4 py-2">Giá Cước Niêm Yết (VNĐ)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 bg-slate-900/60">
-                  {priceTiers.map((tier, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-slate-900/30' : 'bg-slate-900/80'}>
-                      <td className="px-4 py-2.5 font-medium text-slate-200">{tier.timeFrame}</td>
-                      <td className="px-4 py-2.5 font-bold text-amber-300">{tier.firstKm}</td>
-                      <td className="px-4 py-2.5 font-bold text-emerald-400">{tier.nextKm}</td>
-                    </tr>
-                  ))}
+                  <tr className="bg-slate-900/30">
+                    <td className="px-4 py-2 font-medium text-slate-200">10 km đầu tiên</td>
+                    <td className="px-4 py-2 font-bold text-amber-300">350.000 VNĐ</td>
+                  </tr>
+                  <tr className="bg-slate-900/80">
+                    <td className="px-4 py-2 font-medium text-slate-200">Từ km thứ 11 trở đi</td>
+                    <td className="px-4 py-2 font-bold text-amber-300">+15.000 VNĐ / km</td>
+                  </tr>
                 </tbody>
               </table>
+
+              {/* Table B: Xe Sang */}
+              <div className="bg-slate-950 p-3 border-y border-slate-800">
+                <p className="font-extrabold text-xs text-amber-400 uppercase">B. Gói Xe Sang (Luxury)</p>
+              </div>
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-950 text-slate-300 font-bold border-b border-slate-800">
+                  <tr>
+                    <th className="px-4 py-2">Khoảng Cách</th>
+                    <th className="px-4 py-2">Giá Cước Niêm Yết (VNĐ)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 bg-slate-900/60">
+                  <tr className="bg-slate-900/30">
+                    <td className="px-4 py-2 font-medium text-slate-200">10 km đầu tiên</td>
+                    <td className="px-4 py-2 font-bold text-amber-300">500.000 VNĐ</td>
+                  </tr>
+                  <tr className="bg-slate-900/80">
+                    <td className="px-4 py-2 font-medium text-slate-200">Từ km thứ 11 trở đi</td>
+                    <td className="px-4 py-2 font-bold text-amber-300">+20.000 VNĐ / km</td>
+                  </tr>
+                </tbody>
+              </table>
+
             </div>
           </div>
 
-          {/* Section 2: Hourly Rental */}
-          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          {/* Section 2: Hourly Rental (Combo 3h) */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
             <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              <span>2. Thuê Tài Xế Theo Giờ (Gói Combo)</span>
+              <span>2. Thuê Tài Xế Theo Giờ (Combo 3h - 10h)</span>
             </h4>
-            <div className="text-xs text-slate-300 space-y-1">
-              <p>• Combo đến 3 giờ đầu tiên: <strong className="text-amber-300">450.000 VNĐ</strong></p>
-              <p>• Từ giờ thứ 4 trở đi: <strong className="text-amber-300">+100.000 VNĐ / giờ</strong></p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+                <p className="font-bold text-emerald-400">Gói Ô tô / Xe máy</p>
+                <p>• 3 giờ đầu tiên: <strong className="text-amber-300">500.000 VNĐ</strong></p>
+                <p>• Từ giờ thứ 4 đến giờ 10: <strong className="text-amber-300">+100.000 VNĐ / giờ</strong></p>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+                <p className="font-bold text-amber-400">Gói Xe Sang</p>
+                <p>• 3 giờ đầu tiên: <strong className="text-amber-300">600.000 VNĐ</strong></p>
+                <p>• Từ giờ thứ 4 đến giờ 10: <strong className="text-amber-300">+150.000 VNĐ / giờ</strong></p>
+              </div>
             </div>
           </div>
 
-          {/* Section 3: Time Surcharge Note */}
+          {/* Section 3: Daily Rental (24h) */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+            <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-2">
+              <Clock className="w-4 h-4 text-emerald-400" />
+              <span>3. Thuê Lái Theo Ngày (24 GIỜ)</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+                <p className="font-bold text-emerald-400">Gói Ô tô / Xe máy</p>
+                <p>• Mức giá nguyên ngày (24h): <strong className="text-amber-300 text-sm">1.500.000 VNĐ / ngày</strong></p>
+              </div>
+              <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
+                <p className="font-bold text-amber-400">Gói Xe Sang</p>
+                <p>• Mức giá nguyên ngày (24h): <strong className="text-amber-300 text-sm">2.000.000 VNĐ / ngày</strong></p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Night Surcharge Note */}
           <div className="bg-amber-500/10 p-4 rounded-xl border border-amber-500/30 space-y-2">
             <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
               <Moon className="w-4 h-4 text-amber-400" />
-              <span>3. Quy Định Đơn Giá Theo Khung Giờ</span>
+              <span>4. Phụ Phí Đêm (Khung Giờ Khuya)</span>
             </h4>
             <div className="text-xs text-slate-300 space-y-1">
-              <p>• Hệ thống tự động tính giá chính xác theo khung giờ thực tế khi quý khách đặt dịch vụ.</p>
-              <p>• Khung giờ <strong className="text-white">Trước 22:00</strong>: Cước phí km thứ 2 trở đi là <strong className="text-amber-300">10.000 VNĐ / km</strong>.</p>
-              <p>• Khung giờ <strong className="text-white">Sau 22:00 (22:00 - 05:00)</strong>: Cước phí km thứ 2 trở đi là <strong className="text-amber-300">15.000 VNĐ / km</strong>.</p>
+              <p>• Khung giờ <strong className="text-white">23:00 - 23:59</strong>: Cộng thêm <strong className="text-amber-300">10%</strong> tổng cước cơ bản</p>
+              <p>• Khung giờ <strong className="text-white">00:00 - 04:59</strong>: Cộng thêm <strong className="text-amber-300">20%</strong> tổng cước cơ bản</p>
             </div>
           </div>
 
-          {/* Section 4: Wait Time & Additional Notes */}
-          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2 text-xs text-slate-400">
+          {/* Section 5: Food & Lodging & Additional Notes */}
+          <div className="bg-slate-950 p-4 rounded-xl border border-amber-400/40 space-y-2 text-xs text-slate-300">
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-slate-200">Ghi chú quan trọng về phí chờ & điểm dừng:</p>
-                <p className="mt-1">
-                  - Bảng giá trên chưa bao gồm phát sinh thời gian chờ (đồng giá +60.000đ/giờ chờ).
+              <div className="space-y-1">
+                <p className="font-extrabold text-amber-300 text-xs">
+                  (Lưu ý: Giá trên chưa bao gồm hỗ trợ chi phí ăn ở cho tài xế)
                 </p>
-                <p>
-                  - Phụ phí phát sinh khi thêm điểm đón / trả khách trên đường đi.
+                <p className="text-slate-400">
+                  - Bảng giá trên chưa bao gồm phát sinh thời gian chờ (+60.000đ/giờ chờ) và phụ phí khi phát sinh thêm điểm dừng.
                 </p>
-                <p className="mt-1 font-semibold text-amber-400">
+                <p className="font-semibold text-amber-400">
                   Hotline tư vấn 24/7: <a href="tel:0971999734" className="underline hover:text-amber-300">0971.999.734</a>
                 </p>
               </div>

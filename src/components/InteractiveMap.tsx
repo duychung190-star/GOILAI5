@@ -108,30 +108,44 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       bounds.push(destLatLng);
     }
 
-    // Render driving route
+    // Render driving route (Vẽ đường vector thể hiện lộ trình di chuyển)
     if (routeGeometry && routeGeometry.length > 0) {
-      // Draw actual driving route polyline along real roads in blue
+      // Background glow vector line
+      const bgLine = L.polyline(routeGeometry, {
+        color: '#3B82F6',
+        weight: 10,
+        opacity: 0.3,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map);
+
+      // Foreground main route vector line
       routePolylineRef.current = L.polyline(routeGeometry, {
-        color: '#2563EB',
+        color: '#1D4ED8',
         weight: 6,
-        opacity: 0.9,
+        opacity: 0.95,
         lineCap: 'round',
         lineJoin: 'round'
       }).addTo(map);
 
       // Add route geometry points to bounds to ensure complete route fits on screen
       routeGeometry.forEach(pt => bounds.push(pt));
+
+      // Cleanup bgLine when layer updates
+      return () => {
+        if (map) map.removeLayer(bgLine);
+      };
     } else if (pickup && pickup.lat && pickup.lng && destination && destination.lat && destination.lng) {
-      // Fallback straight line while route is calculating
+      // Fallback straight vector line while route geometry is resolving
       const latlngs: [number, number][] = [
         [pickup.lat, pickup.lng],
         [destination.lat, destination.lng]
       ];
 
       routePolylineRef.current = L.polyline(latlngs, {
-        color: '#3B82F6',
+        color: '#F59E0B',
         weight: 5,
-        opacity: 0.8,
+        opacity: 0.9,
         dashArray: '8, 8'
       }).addTo(map);
     }

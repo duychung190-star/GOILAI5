@@ -87,10 +87,12 @@ export const translations = {
     },
     // Vehicle types
     vehicle: {
-      car4_7: "Ô tô 4-7 chỗ",
-      motorbike: "Xe máy",
-      luxury: "Xe sang / Bán tải",
-      hourly: "Thuê theo giờ"
+      carAndMotorbike: "Ô tô / Xe máy",
+      luxury: "Xe Sang",
+      hourlyCarAndMotorbike: "Thuê theo giờ (Ô tô / Xe máy)",
+      hourlyLuxury: "Thuê theo giờ (Xe Sang)",
+      dailyCarAndMotorbike: "Thuê theo ngày (Ô tô / Xe máy)",
+      dailyLuxury: "Thuê theo ngày (Xe Sang)"
     },
     // Summary Card
     summary: {
@@ -98,15 +100,15 @@ export const translations = {
       routeSummary: "Lộ trình di chuyển",
       from: "Từ:",
       to: "Đến:",
-      vehicleType: "Loại phương tiện:",
+      vehicleType: "Loại dịch vụ / Phương tiện:",
       distance: "Khoảng cách & Thời gian:",
       basePrice: "Cước phí dịch vụ gốc:",
       nightSurcharge: "Phụ phí đêm:",
       vatFee: "Thuế VAT (8%):",
       totalEst: "TỔNG TIỀN DỰ KIẾN",
       noVatNote: "Giá trên chưa bao gồm thuế VAT (nếu chọn)",
-      waitingFeeNoteTitle: "Lưu ý:",
-      waitingFeeNoteBody: "Tổng số tiền chưa bao gồm phí chờ cho tài xế (+60.000 VNĐ/h chờ) và Phí phát sinh khi phát sinh thêm điểm đến.",
+      waitingFeeNoteTitle: "Lưu ý quan trọng:",
+      waitingFeeNoteBody: "Tổng tiền chưa bao gồm phí chờ (+60.000 VNĐ/h chờ), phí phát sinh điểm dừng. (Lưu ý: Giá trên chưa bao gồm hỗ trợ chi phí ăn ở cho tài xế).",
       contactHotlineText: "(vui lòng liên hệ hotline",
       contactHotlineSub: "để được tư vấn)"
     },

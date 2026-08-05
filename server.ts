@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
 
 const app = express();
@@ -14,6 +15,20 @@ const bookingsStore: any[] = [];
 const TELEGRAM_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || "8182785112:AAEO1WlI59qkaCDR1OuO00z2No6cTwk4acE").trim();
 const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || "-1003936078147").trim();
 
+// Helper to hash passwords securely with salt
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password + 'dgo_salt_247_secret').digest('hex');
+}
+
+// Helper to validate Vietnamese phone numbers
+function isValidVietnamesePhone(phone: string): boolean {
+  if (!phone) return false;
+  const clean = phone.trim().replace(/\D/g, '');
+  if (/^(03|05|07|08|09)\d{8}$/.test(clean)) return true;
+  if (/^84(3|5|7|8|9)\d{8}$/.test(clean)) return true;
+  return clean.length >= 9 && clean.length <= 11;
+}
+
 // Helper function to send Telegram notification
 const sendTelegramNotification = async (bookingData: any) => {
   try {
@@ -26,8 +41,16 @@ const sendTelegramNotification = async (bookingData: any) => {
     const pickup = bookingData.pickupAddress || bookingData.pickup || '';
     const dropoff = bookingData.destinationAddress || bookingData.dropoff || '';
 
-    let text = `🚗 CÓ ĐƠN ĐẶT XE MỚI!\n` +
-      `Khách: ${name} - ${phone}\n` +
+    let text = `🚗 CÓ ĐƠN ĐẶT XE MỚI!\n`;
+
+    // Retention Tracking Badge for Telegram & Dispatcher Team
+    if (bookingData.isNewCustomer) {
+      text += `👉 🌱 KHÁCH HÀNG MỚI ĐẶT LẦN ĐẦU\n`;
+    } else if (bookingData.totalOrdersCount) {
+      text += `👉 🔥 KHÁCH HÀNG CŨ QUAY LẠI (Cuốc thứ ${bookingData.totalOrdersCount})\n`;
+    }
+
+    text += `Khách: ${name} - ${phone}\n` +
       `Đón: ${pickup}\n` +
       `Đến: ${dropoff}\n` +
       `Tổng tiền: ${formattedPrice}`;
@@ -101,7 +124,36 @@ app.post("/api/booking", async (req, res) => {
     bookingData.createdAt = Date.now();
     bookingData.status = bookingData.status || "PENDING";
 
+    // 1. Calculate Retention Metrics for Telegram & Dispatcher tracking
+    const phoneRaw = bookingData.customerPhone || '';
+    const cleanPhone = phoneRaw.replace(/\D/g, '');
+
+    const priorBookings = bookingsStore.filter(b => {
+      const bPhone = (b.customerPhone || '').replace(/\D/g, '');
+      return bPhone && cleanPhone && bPhone === cleanPhone;
+    });
+
+    const totalOrdersCount = priorBookings.length + 1;
+    const isNewCustomer = priorBookings.length === 0;
+
+    bookingData.totalOrdersCount = totalOrdersCount;
+    bookingData.isNewCustomer = isNewCustomer;
+
     bookingsStore.unshift(bookingData);
+
+    // Update user profile in usersStore if existing or logged in
+    if (cleanPhone) {
+      let user = usersStore.get(cleanPhone);
+      if (user) {
+        user.tripsCount = Math.max(user.tripsCount + 1, totalOrdersCount);
+        user.totalSpent = (user.totalSpent || 0) + (bookingData.totalPrice || 0);
+        if (user.tripsCount >= 10) user.tier = 'KIM CƯƠNG';
+        else if (user.tripsCount >= 5) user.tier = 'VIP';
+        else if (user.tripsCount >= 2) user.tier = 'THÂN THIẾT';
+        user.loyaltyPoints = user.tripsCount * 10;
+        user.loyaltyScorePercent = Math.min(99, 85 + user.tripsCount * 3);
+      }
+    }
 
     // Keep store capped at 100 items
     if (bookingsStore.length > 100) {
@@ -121,9 +173,390 @@ app.post("/api/booking", async (req, res) => {
   }
 });
 
-// Get all bookings
-app.get("/api/bookings", (req, res) => {
-  res.json({ success: true, bookings: bookingsStore });
+// User Profiles & Loyalty Store
+interface UserProfileData {
+  phone: string;
+  name: string;
+  passwordHash?: string;
+  agreedTerms?: boolean;
+  token?: string;
+  tier: 'MỚI' | 'THÂN THIẾT' | 'VIP' | 'KIM CƯƠNG';
+  tripsCount: number;
+  totalSpent: number;
+  loyaltyPoints: number;
+  loyaltyScorePercent: number;
+  createdAt: number;
+}
+
+const usersStore: Map<string, UserProfileData> = new Map();
+
+// Sample Driver Ratings Feed for Customer Feedback Showcase
+const sampleRatings = [
+  {
+    id: 'r-corp-1',
+    customerName: 'Anh Nguyễn Thế Vinh',
+    companyName: 'Công ty Logistics Vinh Phát',
+    isEnterprise: true,
+    customerPhone: '098****123',
+    stars: 5,
+    review: 'Công ty chúng tôi thường xuyên cần tài xế lái xe đưa đón sếp và đối tác đi tiệc rượu, công tác tỉnh. Dịch vụ D.GO 247 cực kỳ chuyên nghiệp, tài xế văn minh, lịch sự. Rất hài lòng vì D.GO hỗ trợ xuất hóa đơn GTGT / VAT điện tử rất nhanh chóng và đầy đủ chứng từ, giúp phòng kế toán dễ dàng hạch toán chi phí hợp lệ cho doanh nghiệp!',
+    tags: ['Khách hàng Doanh nghiệp', 'Xuất hóa đơn VAT chuẩn chỉnh', 'Tài xế lịch sự & chu đáo', 'Lái xe an toàn'],
+    driverName: 'Tài xế Nguyễn Văn Hùng',
+    createdAt: Date.now() - 3600000 * 3,
+  },
+  {
+    id: 'r-corp-2',
+    customerName: 'Chị Phạm Thanh Vân',
+    companyName: 'Công ty Truyền thông & Event SunMedia',
+    isEnterprise: true,
+    customerPhone: '091****888',
+    stars: 5,
+    review: 'Là đơn vị sự kiện, bên mình thường phải đặt tài xế lái ô tô cho đoàn khách VIP vào đêm muộn. D.GO 247 luôn có mặt đúng giờ, xe sạch sẽ. Ưu điểm vượt trội là việc xuất hóa đơn VAT tên công ty rõ ràng, thủ tục minh bạch, thanh toán linh hoạt theo hợp đồng doanh nghiệp. Hợp tác lâu dài!',
+    tags: ['Khách hàng Doanh nghiệp', 'Xuất hóa đơn VAT nhanh chóng', 'Phục vụ khách VIP', 'Đến đúng hẹn'],
+    driverName: 'Tài xế Trần Quốc Bảo',
+    createdAt: Date.now() - 3600000 * 12,
+  },
+  {
+    id: 'r-corp-3',
+    customerName: 'Anh Lê Quốc Tuấn',
+    companyName: 'Cty Xây dựng & Thương mại Hưng Thịnh',
+    isEnterprise: true,
+    customerPhone: '093****555',
+    stars: 5,
+    review: 'Điều khiến công ty tôi tin dùng D.GO 247 hơn hẳn các dịch vụ khác là tốc độ phản hồi cực nhanh và dịch vụ xuất hóa đơn GTGT doanh nghiệp trong ngày. Lái xe cẩn thận, biết giữ gìn tài sản của khách. Tiết kiệm đáng kể thời gian và chi phí cho công ty!',
+    tags: ['Khách hàng Doanh nghiệp', 'Hóa đơn VAT điện tử', 'Thanh toán linh hoạt', 'Nhiệt tình hỗ trợ'],
+    driverName: 'Tài xế Lê Hoài Nam',
+    createdAt: Date.now() - 3600000 * 24,
+  },
+  {
+    id: 'r-1',
+    customerName: 'Anh Minh (Thanh Xuân)',
+    customerPhone: '098****321',
+    stars: 5,
+    review: 'Tài xế lái xe rất êm và cẩn thận. Bữa tiệc xong ăn uống no say có tài xế D.GO đưa về nhà an toàn tuyệt đối. Sẽ tiếp tục dùng dịch vụ!',
+    tags: ['Tài xế lịch sự & chu đáo', 'Lái xe an toàn & êm ái', 'Đến đúng hẹn'],
+    driverName: 'Tài xế Phạm Hoàng Nam',
+    createdAt: Date.now() - 3600000 * 36,
+  },
+  {
+    id: 'r-2',
+    customerName: 'Chị Mai (Cầu Giấy)',
+    customerPhone: '091****777',
+    stars: 5,
+    review: 'Đã đặt lần thứ 6 rồi, rất thích thái độ nhiệt tình của các bạn tài xế D.GO 247. Giá cả công khai minh bạch không bị vẽ tiền.',
+    tags: ['Thái độ chuyên nghiệp', 'Cung đường tối ưu', 'Xe sạch sẽ'],
+    driverName: 'Tài xế Vũ Đình Trọng',
+    createdAt: Date.now() - 3600000 * 48,
+  },
+];
+
+// Get all public driver ratings & reviews
+app.get("/api/ratings", (req, res) => {
+  const ratingsFromBookings = bookingsStore
+    .filter(b => b.rating)
+    .map(b => ({
+      id: b.id,
+      customerName: b.customerName,
+      companyName: b.companyName,
+      isEnterprise: b.isEnterprise,
+      customerPhone: b.customerPhone ? b.customerPhone.slice(0, 4) + '****' + b.customerPhone.slice(-3) : 'Khách hàng',
+      stars: b.rating!.stars,
+      review: b.rating!.review,
+      tags: b.rating!.tags,
+      driverName: b.rating!.driverName || 'Tài xế D.GO 247',
+      createdAt: b.rating!.createdAt || b.createdAt,
+    }));
+
+  const allRatings = [...sampleRatings, ...ratingsFromBookings];
+  const avgStars = (allRatings.reduce((acc, curr) => acc + curr.stars, 0) / (allRatings.length || 1)).toFixed(1);
+
+  res.json({
+    success: true,
+    ratings: allRatings,
+    stats: {
+      averageStars: Number(avgStars) || 4.9,
+      totalReviews: allRatings.length,
+      satisfactionRate: 98.6 // Tỷ lệ hài lòng %
+    }
+  });
+});
+
+// Post a public direct customer rating & review
+app.post("/api/ratings", (req, res) => {
+  try {
+    const { customerName, companyName, isEnterprise, stars, review, tags, driverName, customerPhone } = req.body;
+    const newRating = {
+      id: `r-user-${Date.now()}`,
+      customerName: customerName || 'Khách hàng',
+      companyName: companyName || undefined,
+      isEnterprise: !!isEnterprise,
+      customerPhone: customerPhone ? customerPhone.slice(0, 4) + '****' + customerPhone.slice(-3) : undefined,
+      stars: Number(stars) || 5,
+      review: review || '',
+      tags: Array.isArray(tags) && tags.length > 0 ? tags : ['Chất lượng dịch vụ xuất sắc'],
+      driverName: driverName || 'Tài xế D.GO 247',
+      createdAt: Date.now(),
+    };
+
+    sampleRatings.unshift(newRating);
+    res.json({ success: true, rating: newRating });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ================= USER AUTHENTICATION & RETENTION SYSTEM =================
+
+// Register Endpoint
+app.post("/api/auth/register", (req, res) => {
+  try {
+    const { name, phone, password, confirmPassword, agreedTerms } = req.body;
+
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({ success: false, message: "Vui lòng nhập Họ và Tên hợp lệ (ít nhất 2 ký tự)" });
+    }
+
+    if (!isValidVietnamesePhone(phone)) {
+      return res.status(400).json({ success: false, message: "Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0971999734" });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: "Mật khẩu phải chứa ít nhất 6 ký tự" });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ success: false, message: "Mật khẩu xác nhận không trùng khớp" });
+    }
+
+    if (agreedTerms === false) {
+      return res.status(400).json({ success: false, message: "Bạn cần đồng ý với Điều khoản dịch vụ & Chính sách bảo mật để đăng ký" });
+    }
+
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+
+    if (usersStore.has(cleanPhone)) {
+      return res.status(400).json({ success: false, message: "Số điện thoại này đã được đăng ký. Vui lòng chuyển sang Đăng nhập" });
+    }
+
+    // Compute existing trip history for this phone number
+    const customerBookings = bookingsStore.filter(b => b.customerPhone && b.customerPhone.replace(/\D/g, '') === cleanPhone);
+    const tripsCount = Math.max(1, customerBookings.length);
+    const totalSpent = customerBookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+
+    let tier: 'MỚI' | 'THÂN THIẾT' | 'VIP' | 'KIM CƯƠNG' = 'MỚI';
+    if (tripsCount >= 10) tier = 'KIM CƯƠNG';
+    else if (tripsCount >= 5) tier = 'VIP';
+    else if (tripsCount >= 2) tier = 'THÂN THIẾT';
+
+    const token = `dgo_token_${cleanPhone}_${Date.now()}`;
+    const passwordHash = hashPassword(password);
+
+    const newUser: UserProfileData = {
+      phone: cleanPhone,
+      name: name.trim(),
+      passwordHash,
+      agreedTerms: true,
+      token,
+      tier,
+      tripsCount,
+      totalSpent,
+      loyaltyPoints: tripsCount * 10,
+      loyaltyScorePercent: Math.min(99, 85 + tripsCount * 3),
+      createdAt: Date.now()
+    };
+
+    usersStore.set(cleanPhone, newUser);
+
+    const userToReturn = { ...newUser };
+    delete userToReturn.passwordHash;
+
+    res.json({
+      success: true,
+      user: userToReturn,
+      token,
+      message: "Đăng ký tài khoản D.GO 247 thành công!"
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Login Endpoint (Phone + Password)
+app.post("/api/auth/login", (req, res) => {
+  try {
+    const { phone, password } = req.body;
+
+    if (!phone || !isValidVietnamesePhone(phone)) {
+      return res.status(400).json({ success: false, message: "Số điện thoại không hợp lệ" });
+    }
+
+    if (!password) {
+      return res.status(400).json({ success: false, message: "Vui lòng nhập mật khẩu" });
+    }
+
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    let user = usersStore.get(cleanPhone);
+
+    // If user does not exist in store, check if they are an existing customer in bookings or create account
+    if (!user) {
+      return res.status(400).json({ success: false, message: "Số điện thoại chưa được đăng ký tài khoản. Vui lòng chọn Đăng ký" });
+    }
+
+    // Verify Password Hash
+    if (user.passwordHash) {
+      const inputHash = hashPassword(password);
+      if (inputHash !== user.passwordHash) {
+        return res.status(400).json({ success: false, message: "Mật khẩu không chính xác" });
+      }
+    }
+
+    // Refresh trips count and loyalty score
+    const customerBookings = bookingsStore.filter(b => b.customerPhone && b.customerPhone.replace(/\D/g, '') === cleanPhone);
+    const tripsCount = Math.max(customerBookings.length, user.tripsCount);
+    const totalSpent = customerBookings.reduce((sum, b) => sum + (b.totalPrice || 0), user.totalSpent);
+
+    let tier: 'MỚI' | 'THÂN THIẾT' | 'VIP' | 'KIM CƯƠNG' = 'MỚI';
+    if (tripsCount >= 10) tier = 'KIM CƯƠNG';
+    else if (tripsCount >= 5) tier = 'VIP';
+    else if (tripsCount >= 2) tier = 'THÂN THIẾT';
+
+    user.tripsCount = tripsCount;
+    user.totalSpent = totalSpent;
+    user.tier = tier;
+    user.loyaltyPoints = tripsCount * 10;
+    user.loyaltyScorePercent = Math.min(99, 85 + tripsCount * 3);
+    user.token = `dgo_token_${cleanPhone}_${Date.now()}`;
+
+    usersStore.set(cleanPhone, user);
+
+    const userToReturn = { ...user };
+    delete userToReturn.passwordHash;
+
+    res.json({
+      success: true,
+      user: userToReturn,
+      token: user.token,
+      message: "Đăng nhập thành công!"
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Reset Password Endpoint
+app.post("/api/auth/reset-password", (req, res) => {
+  try {
+    const { phone, newPassword } = req.body;
+
+    if (!isValidVietnamesePhone(phone)) {
+      return res.status(400).json({ success: false, message: "Số điện thoại không hợp lệ" });
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: "Mật khẩu mới phải chứa ít nhất 6 ký tự" });
+    }
+
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    const user = usersStore.get(cleanPhone);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Số điện thoại chưa đăng ký tài khoản" });
+    }
+
+    user.passwordHash = hashPassword(newPassword);
+    usersStore.set(cleanPhone, user);
+
+    res.json({ success: true, message: "Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại" });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Get Current User Session Endpoint (Auto Login Persistence)
+app.get("/api/auth/me", (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const phoneQuery = req.query.phone as string;
+
+    let targetPhone = '';
+    if (authHeader && authHeader.startsWith('Bearer dgo_token_')) {
+      const parts = authHeader.replace('Bearer dgo_token_', '').split('_');
+      targetPhone = parts[0];
+    } else if (phoneQuery) {
+      targetPhone = phoneQuery.trim().replace(/\D/g, '');
+    }
+
+    if (!targetPhone) {
+      return res.status(401).json({ success: false, message: "Không tìm thấy phiên đăng nhập" });
+    }
+
+    const user = usersStore.get(targetPhone);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Tài khoản không tồn tại" });
+    }
+
+    // Refresh trips count from bookings
+    const customerBookings = bookingsStore.filter(b => b.customerPhone && b.customerPhone.replace(/\D/g, '') === targetPhone);
+    user.tripsCount = Math.max(customerBookings.length, user.tripsCount);
+    
+    const userToReturn = { ...user };
+    delete userToReturn.passwordHash;
+
+    res.json({ success: true, user: userToReturn });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Phone Authentication & Loyalty Status API (Quick OTP fallback)
+app.post("/api/auth/phone-login", (req, res) => {
+  const { phone, name } = req.body;
+  if (!phone || phone.trim().length < 8) {
+    return res.status(400).json({ success: false, message: "Số điện thoại không hợp lệ" });
+  }
+
+  const cleanPhone = phone.trim().replace(/\D/g, '');
+  let user = usersStore.get(cleanPhone);
+
+  // Calculate customer trips count from bookingStore
+  const customerBookings = bookingsStore.filter(b => b.customerPhone && b.customerPhone.replace(/\D/g, '') === cleanPhone);
+  const tripsCount = Math.max(customerBookings.length, user ? user.tripsCount : 1);
+  const totalSpent = customerBookings.reduce((sum, b) => sum + (b.totalPrice || 0), user ? user.totalSpent : 350000);
+
+  let tier: 'MỚI' | 'THÂN THIẾT' | 'VIP' | 'KIM CƯƠNG' = 'MỚI';
+  if (tripsCount >= 10) tier = 'KIM CƯƠNG';
+  else if (tripsCount >= 5) tier = 'VIP';
+  else if (tripsCount >= 2) tier = 'THÂN THIẾT';
+
+  // Loyalty score percent (e.g. 92% to 99% based on trips)
+  const loyaltyScorePercent = Math.min(99, 85 + tripsCount * 3);
+
+  if (!user) {
+    user = {
+      phone: cleanPhone,
+      name: name ? name.trim() : `Khách hàng ${cleanPhone.slice(-4)}`,
+      tier,
+      tripsCount,
+      totalSpent,
+      loyaltyPoints: tripsCount * 10,
+      loyaltyScorePercent,
+      createdAt: Date.now()
+    };
+    usersStore.set(cleanPhone, user);
+  } else {
+    if (name) user.name = name.trim();
+    user.tripsCount = tripsCount;
+    user.totalSpent = totalSpent;
+    user.tier = tier;
+    user.loyaltyPoints = tripsCount * 10;
+    user.loyaltyScorePercent = loyaltyScorePercent;
+  }
+
+  res.json({
+    success: true,
+    user,
+    message: "Đăng nhập thành công"
+  });
 });
 
 // Update booking status

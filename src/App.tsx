@@ -18,7 +18,11 @@ import { DispatcherDrawer } from './components/DispatcherDrawer';
 import { GoogleSheetsModal } from './components/GoogleSheetsModal';
 import { DriverRatingModal } from './components/DriverRatingModal';
 
-import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating } from './types';
+import { PhoneAuthModal } from './components/PhoneAuthModal';
+import { CustomerFeedbackSection } from './components/CustomerFeedbackSection';
+import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
+
+import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
 import { PriceCalculator } from './utils/PriceCalculator';
 import { getDirectionsGoong, reverseGeocodeGoong } from './utils/goong';
 import { sendTelegramNotification } from './utils/telegram';
@@ -45,8 +49,9 @@ export default function App() {
     lng: 105.8042
   });
 
-  const [vehicleType, setVehicleType] = useState<VehicleTypeOption>('Ô tô 4-7 chỗ');
+  const [vehicleType, setVehicleType] = useState<VehicleTypeOption>('Ô tô / Xe máy');
   const [hourlyHours, setHourlyHours] = useState(3);
+  const [dailyDays, setDailyDays] = useState(1);
   const [noteForDriver, setNoteForDriver] = useState('');
   const [scheduledTime, setScheduledTime] = useState<Date>(new Date());
   
@@ -67,19 +72,118 @@ export default function App() {
   const [submittedBooking, setSubmittedBooking] = useState<BookingRequest | null>(null);
   const [telegramStatus, setTelegramStatus] = useState<any>(null);
 
+  // User Auth & Loyalty State
+  const [isPhoneAuthOpen, setIsPhoneAuthOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('dgo_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Auto-restore persistent login session from server on load
+  useEffect(() => {
+    const token = localStorage.getItem('dgo_token');
+    const savedUserStr = localStorage.getItem('dgo_user');
+    
+    let savedPhone = '';
+    if (savedUserStr) {
+      try {
+        const parsed = JSON.parse(savedUserStr);
+        savedPhone = parsed.phone || '';
+      } catch {}
+    }
+
+    if (token || savedPhone) {
+      fetch(`/api/auth/me?phone=${encodeURIComponent(savedPhone)}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            setUser(data.user);
+            localStorage.setItem('dgo_user', JSON.stringify(data.user));
+            if (data.user.name) {
+              setCustomerName(data.user.name);
+              localStorage.setItem('dgo_customer_name', data.user.name);
+            }
+            if (data.user.phone) {
+              setCustomerPhone(data.user.phone);
+              localStorage.setItem('dgo_customer_phone', data.user.phone);
+            }
+          }
+        })
+        .catch(err => console.warn('Auto login session sync:', err));
+    }
+  }, []);
+
+  // Sync customer name and phone when user changes
+  useEffect(() => {
+    if (user) {
+      if (user.name) setCustomerName(user.name);
+      if (user.phone) setCustomerPhone(user.phone);
+    }
+  }, [user]);
+
+  const handleLoginSuccess = (newUser: UserProfile) => {
+    setUser(newUser);
+    localStorage.setItem('dgo_user', JSON.stringify(newUser));
+    if (newUser.name) {
+      setCustomerName(newUser.name);
+      localStorage.setItem('dgo_customer_name', newUser.name);
+    }
+    if (newUser.phone) {
+      setCustomerPhone(newUser.phone);
+      localStorage.setItem('dgo_customer_phone', newUser.phone);
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('dgo_user');
+    localStorage.removeItem('dgo_token');
+    localStorage.removeItem('dgo_customer_name');
+    localStorage.removeItem('dgo_customer_phone');
+    setIsPhoneAuthOpen(false);
+  };
+
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isPriceTableOpen, setIsPriceTableOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDispatcherOpen, setIsDispatcherOpen] = useState(false);
   const [isGoogleSheetsOpen, setIsGoogleSheetsOpen] = useState(false);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isAutoSyncEnabled, setIsAutoSyncEnabled] = useState(true);
+  const [mapTargetMode, setMapTargetMode] = useState<'pickup' | 'destination'>('destination');
 
   // Driver Rating State
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [ratingBooking, setRatingBooking] = useState<BookingRequest | null>(null);
 
-  const handleOpenRating = (booking: BookingRequest) => {
-    setRatingBooking(booking);
+  const handleOpenRating = (booking?: BookingRequest | null) => {
+    const targetBooking = booking || (bookingHistory.length > 0 ? bookingHistory[0] : {
+      id: `DGO-${Date.now().toString().slice(-6)}`,
+      customerName: customerName || 'Khách hàng D.GO',
+      customerPhone: customerPhone || '0971999734',
+      pickupAddress: pickup?.address || 'Điểm đón của bạn',
+      pickupLat: pickup?.lat || 21.0,
+      pickupLng: pickup?.lng || 105.8,
+      destinationAddress: destination?.address || 'Điểm đến của bạn',
+      destinationLat: destination?.lat || 21.1,
+      destinationLng: destination?.lng || 105.9,
+      distanceKm: 8,
+      totalPrice: 350000,
+      vehicleType: 'Ô tô 4-7 chỗ',
+      noteForDriver: '',
+      scheduledTime: Date.now(),
+      status: 'COMPLETED' as const,
+      createdAt: Date.now(),
+      needVat: false,
+      breakdown: priceBreakdown
+    });
+    setRatingBooking(targetBooking);
     setIsRatingModalOpen(true);
   };
 
@@ -211,13 +315,14 @@ export default function App() {
     return PriceCalculator.calculatePrice(
       calculatedDistanceKm,
       vehicleType,
-      vehicleType === 'Thuê theo giờ',
+      vehicleType.includes('Thuê theo giờ'),
       hourlyHours,
+      dailyDays,
       scheduledTime,
       needVat,
       roadDurationMinutes
     );
-  }, [calculatedDistanceKm, vehicleType, hourlyHours, scheduledTime, needVat, roadDurationMinutes]);
+  }, [calculatedDistanceKm, vehicleType, hourlyHours, dailyDays, scheduledTime, needVat, roadDurationMinutes]);
 
   // Handle Map Location Selection via map click using Goong Reverse Geocoding
   const handleSelectMapLocation = async (lat: number, lng: number, target: 'pickup' | 'destination') => {
@@ -351,12 +456,19 @@ export default function App() {
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenDispatcher={() => setIsDispatcherOpen(true)}
         onOpenGoogleSheets={() => setIsGoogleSheetsOpen(true)}
+        onOpenPhoneAuth={() => setIsPhoneAuthOpen(true)}
+        user={user}
         activeBookingsCount={bookingHistory.filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED').length}
       />
 
       {/* Main Form & Interactive Stage */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
+        {/* Hero Banner Showcase (Logo & Service Introduction placed at top) */}
+        <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-sm">
+          <HeroBanner onOpenPriceTable={() => setIsPriceTableOpen(true)} />
+        </div>
+
         {/* Error Notification Alert (if any) */}
         {validationError && (
           <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-800 text-xs font-semibold flex items-center justify-between shadow-sm animate-fadeIn">
@@ -391,6 +503,8 @@ export default function App() {
               setVehicleType={setVehicleType}
               hourlyHours={hourlyHours}
               setHourlyHours={setHourlyHours}
+              dailyDays={dailyDays}
+              setDailyDays={setDailyDays}
               noteForDriver={noteForDriver}
               setNoteForDriver={setNoteForDriver}
               scheduledTime={scheduledTime}
@@ -402,12 +516,80 @@ export default function App() {
               priceBreakdown={priceBreakdown}
               isCalculatingRoute={isCalculatingRoute}
               onFormValidationFail={(msg) => setValidationError(msg)}
+              onOpenPhoneAuth={() => setIsPhoneAuthOpen(true)}
             />
           </div>
 
-          {/* Right Column: Price Summary (5 Cols) */}
+          {/* Right Column: Interactive Map & Cost Summary (5 Cols) */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
             
+            {/* Interactive Map & Route Vector Display */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-amber-500/10 rounded-lg text-amber-600">
+                    <Navigation className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-900">
+                      Bản Đồ Lộ Trình Di Chuyển
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Vẽ đường vector lộ trình di chuyển khi chọn điểm
+                    </p>
+                  </div>
+                </div>
+
+                {/* Target Selection Switcher */}
+                <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setMapTargetMode('pickup')}
+                    className={`px-2.5 py-1 rounded-md transition-all ${
+                      mapTargetMode === 'pickup'
+                        ? 'bg-emerald-500 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Đón
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMapTargetMode('destination')}
+                    className={`px-2.5 py-1 rounded-md transition-all ${
+                      mapTargetMode === 'destination'
+                        ? 'bg-rose-500 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Đến
+                  </button>
+                </div>
+              </div>
+
+              {/* Map Canvas */}
+              <div className="h-[280px] sm:h-[320px] rounded-xl overflow-hidden border border-slate-200 shadow-inner">
+                <InteractiveMap
+                  pickup={pickup}
+                  destination={destination}
+                  routeGeometry={routeGeometry}
+                  isCalculatingRoute={isCalculatingRoute}
+                  onSelectMapLocation={handleSelectMapLocation}
+                  targetMode={mapTargetMode}
+                />
+              </div>
+
+              {/* Distance and Route Indicator Footer */}
+              {roadDistanceKm !== null && roadDistanceKm > 0 && (
+                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs animate-fadeIn">
+                  <span className="text-slate-600 font-medium">Khoảng cách lộ trình:</span>
+                  <span className="font-black text-blue-700 bg-blue-50 px-2.5 py-1 rounded border border-blue-200 shadow-xs">
+                    {roadDistanceKm} km {roadDurationMinutes ? `(~${roadDurationMinutes} phút)` : ''}
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Real-time Cost Breakdown & Action Card */}
             <CostSummaryCard
               breakdown={priceBreakdown}
@@ -422,13 +604,13 @@ export default function App() {
 
         </div>
 
-        {/* Hero Banner Showcase */}
-        <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-sm">
-          <HeroBanner onOpenPriceTable={() => setIsPriceTableOpen(true)} />
-        </div>
-
         {/* Advantage Highlights Section */}
         <WhyChooseUs />
+
+        {/* Customer Reviews & Driver Ratings Showcase */}
+        <CustomerFeedbackSection
+          onOpenRatingModal={() => handleOpenRating()}
+        />
 
       </main>
 
@@ -451,9 +633,17 @@ export default function App() {
           Dịch vụ lái xe hộ an toàn - Uy tín - Phục vụ 24/7 trên toàn quốc
         </p>
 
-        <p className="text-[11px] text-slate-500">
-          © {new Date().getFullYear()} D.GO 247. Bảo lưu mọi bản quyền.
-        </p>
+        <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500">
+          <span>© {new Date().getFullYear()} D.GO 247. Bảo lưu mọi bản quyền.</span>
+          <span>•</span>
+          <button
+            type="button"
+            onClick={() => setIsPrivacyModalOpen(true)}
+            className="text-amber-700 hover:text-amber-800 font-bold underline cursor-pointer transition-colors"
+          >
+            Chính sách bảo mật
+          </button>
+        </div>
       </footer>
 
       {/* Floating Call & Zalo Action Buttons */}
@@ -488,6 +678,14 @@ export default function App() {
         onSubmitRating={handleSubmitRating}
       />
 
+      <PhoneAuthModal
+        isOpen={isPhoneAuthOpen}
+        onClose={() => setIsPhoneAuthOpen(false)}
+        user={user}
+        onLoginSuccess={handleLoginSuccess}
+        onLogout={handleLogout}
+      />
+
       <DispatcherDrawer
         isOpen={isDispatcherOpen}
         onClose={() => setIsDispatcherOpen(false)}
@@ -499,6 +697,11 @@ export default function App() {
         bookings={bookingHistory}
         isAutoSyncEnabled={isAutoSyncEnabled}
         onAutoSyncChange={setIsAutoSyncEnabled}
+      />
+
+      <PrivacyPolicyModal
+        isOpen={isPrivacyModalOpen}
+        onClose={() => setIsPrivacyModalOpen(false)}
       />
 
     </div>

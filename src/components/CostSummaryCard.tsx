@@ -54,8 +54,10 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
                 <span className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
                 <span>Đang tính đường đường bộ...</span>
               </span>
+            ) : breakdown.isDaily ? (
+              `${breakdown.dailyDays || 1} ngày (24h/ngày)`
             ) : breakdown.isHourly ? (
-              `${breakdown.hourlyHours}h`
+              `${breakdown.hourlyHours} giờ`
             ) : breakdown.distanceKm > 0 ? (
               `${breakdown.distanceKm} km (~ ${breakdown.estimatedMinutes} ${t.form.estimatedDuration})`
             ) : (

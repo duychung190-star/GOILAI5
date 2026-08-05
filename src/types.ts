@@ -5,10 +5,12 @@ export interface LocationPoint {
 }
 
 export type VehicleTypeOption = 
-  | 'Ô tô 4-7 chỗ'
-  | 'Xe máy'
-  | 'Xe sang / Bán tải'
-  | 'Thuê theo giờ';
+  | 'Ô tô / Xe máy'
+  | 'Xe Sang'
+  | 'Thuê theo giờ (Ô tô / Xe máy)'
+  | 'Thuê theo giờ (Xe Sang)'
+  | 'Thuê theo ngày (Ô tô / Xe máy)'
+  | 'Thuê theo ngày (Xe Sang)';
 
 export interface VatDetails {
   companyName: string;
@@ -28,6 +30,24 @@ export interface PriceBreakdown {
   estimatedMinutes: number;
   isHourly: boolean;
   hourlyHours: number;
+  isDaily?: boolean;
+  dailyDays?: number;
+}
+
+export interface UserProfile {
+  id?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  token?: string;
+  agreedTerms?: boolean;
+  tier: 'MỚI' | 'THÂN THIẾT' | 'VIP' | 'KIM CƯƠNG';
+  tripsCount: number;
+  totalSpent: number;
+  loyaltyPoints: number;
+  loyaltyScorePercent: number; // Tỷ lệ trung thành (VD: 92%)
+  avatarUrl?: string;
+  createdAt: number;
 }
 
 export interface DriverRating {
@@ -35,6 +55,8 @@ export interface DriverRating {
   review?: string;
   tags?: string[];
   driverName?: string;
+  customerName?: string;
+  customerPhone?: string;
   createdAt: number;
 }
 
@@ -59,6 +81,8 @@ export interface BookingRequest {
   vatDetails?: VatDetails;
   breakdown: PriceBreakdown;
   rating?: DriverRating;
+  isNewCustomer?: boolean;
+  totalOrdersCount?: number;
 }
 
 export interface SearchSuggestion {
