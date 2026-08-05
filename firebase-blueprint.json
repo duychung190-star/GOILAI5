@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "users": {
+      "title": "Users",
+      "description": "User profiles and customer loyalty records",
+      "type": "object",
+      "properties": {
+        "phone": { "type": "string" },
+        "name": { "type": "string" },
+        "passwordHash": { "type": "string" },
+        "tier": { "type": "string" },
+        "tripsCount": { "type": "number" },
+        "totalSpent": { "type": "number" },
+        "loyaltyPoints": { "type": "number" },
+        "loyaltyScorePercent": { "type": "number" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["phone", "name", "tripsCount"]
+    },
+    "bookings": {
+      "title": "Bookings",
+      "description": "Customer ride bookings and retention metrics",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "pickupAddress": { "type": "string" },
+        "destinationAddress": { "type": "string" },
+        "totalPrice": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "isNewCustomer": { "type": "boolean" },
+        "totalOrdersCount": { "type": "number" }
+      },
+      "required": ["customerName", "customerPhone", "pickupAddress", "createdAt"]
+    }
+  }
+}

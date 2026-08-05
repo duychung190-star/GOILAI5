@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
+import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking } from './src/lib/firebase-server';
 
 const app = express();
 const PORT = 3000;
@@ -144,6 +145,15 @@ app.post("/api/booking", async (req, res) => {
     // Update user profile in usersStore if existing or logged in
     if (cleanPhone) {
       let user = usersStore.get(cleanPhone);
+      if (!user) {
+        // Try fetching user from Firestore
+        const fsUser = await getFirestoreUser(cleanPhone);
+        if (fsUser) {
+          user = fsUser as any;
+          usersStore.set(cleanPhone, user!);
+        }
+      }
+
       if (user) {
         user.tripsCount = Math.max(user.tripsCount + 1, totalOrdersCount);
         user.totalSpent = (user.totalSpent || 0) + (bookingData.totalPrice || 0);
@@ -152,8 +162,15 @@ app.post("/api/booking", async (req, res) => {
         else if (user.tripsCount >= 2) user.tier = 'THÂN THIẾT';
         user.loyaltyPoints = user.tripsCount * 10;
         user.loyaltyScorePercent = Math.min(99, 85 + user.tripsCount * 3);
+        
+        // Save user update to Firestore
+        await saveFirestoreUser(cleanPhone, user);
       }
     }
+
+    // Save booking to Cloud Firestore
+    bookingData.customerPhoneClean = cleanPhone;
+    await saveFirestoreBooking(bookingData);
 
     // Keep store capped at 100 items
     if (bookingsStore.length > 100) {
@@ -308,7 +325,7 @@ app.post("/api/ratings", (req, res) => {
 // ================= USER AUTHENTICATION & RETENTION SYSTEM =================
 
 // Register Endpoint
-app.post("/api/auth/register", (req, res) => {
+app.post("/api/auth/register", async (req, res) => {
   try {
     const { name, phone, password, confirmPassword, agreedTerms } = req.body;
 
@@ -334,7 +351,14 @@ app.post("/api/auth/register", (req, res) => {
 
     const cleanPhone = phone.trim().replace(/\D/g, '');
 
-    if (usersStore.has(cleanPhone)) {
+    // Check memory store or Firestore for existing user
+    let existingUser = usersStore.get(cleanPhone);
+    if (!existingUser) {
+      const fsUser = await getFirestoreUser(cleanPhone);
+      if (fsUser) existingUser = fsUser as any;
+    }
+
+    if (existingUser) {
       return res.status(400).json({ success: false, message: "Số điện thoại này đã được đăng ký. Vui lòng chuyển sang Đăng nhập" });
     }
 
@@ -366,6 +390,7 @@ app.post("/api/auth/register", (req, res) => {
     };
 
     usersStore.set(cleanPhone, newUser);
+    await saveFirestoreUser(cleanPhone, newUser);
 
     const userToReturn = { ...newUser };
     delete userToReturn.passwordHash;
@@ -382,7 +407,7 @@ app.post("/api/auth/register", (req, res) => {
 });
 
 // Login Endpoint (Phone + Password)
-app.post("/api/auth/login", (req, res) => {
+app.post("/api/auth/login", async (req, res) => {
   try {
     const { phone, password } = req.body;
 
@@ -397,7 +422,15 @@ app.post("/api/auth/login", (req, res) => {
     const cleanPhone = phone.trim().replace(/\D/g, '');
     let user = usersStore.get(cleanPhone);
 
-    // If user does not exist in store, check if they are an existing customer in bookings or create account
+    // If user does not exist in memory, fetch from Firestore
+    if (!user) {
+      const fsUser = await getFirestoreUser(cleanPhone);
+      if (fsUser) {
+        user = fsUser as any;
+        usersStore.set(cleanPhone, user!);
+      }
+    }
+
     if (!user) {
       return res.status(400).json({ success: false, message: "Số điện thoại chưa được đăng ký tài khoản. Vui lòng chọn Đăng ký" });
     }
@@ -428,6 +461,7 @@ app.post("/api/auth/login", (req, res) => {
     user.token = `dgo_token_${cleanPhone}_${Date.now()}`;
 
     usersStore.set(cleanPhone, user);
+    await saveFirestoreUser(cleanPhone, user);
 
     const userToReturn = { ...user };
     delete userToReturn.passwordHash;
@@ -444,7 +478,7 @@ app.post("/api/auth/login", (req, res) => {
 });
 
 // Reset Password Endpoint
-app.post("/api/auth/reset-password", (req, res) => {
+app.post("/api/auth/reset-password", async (req, res) => {
   try {
     const { phone, newPassword } = req.body;
 
@@ -457,7 +491,14 @@ app.post("/api/auth/reset-password", (req, res) => {
     }
 
     const cleanPhone = phone.trim().replace(/\D/g, '');
-    const user = usersStore.get(cleanPhone);
+    let user = usersStore.get(cleanPhone);
+    if (!user) {
+      const fsUser = await getFirestoreUser(cleanPhone);
+      if (fsUser) {
+        user = fsUser as any;
+        usersStore.set(cleanPhone, user!);
+      }
+    }
 
     if (!user) {
       return res.status(404).json({ success: false, message: "Số điện thoại chưa đăng ký tài khoản" });
@@ -465,6 +506,7 @@ app.post("/api/auth/reset-password", (req, res) => {
 
     user.passwordHash = hashPassword(newPassword);
     usersStore.set(cleanPhone, user);
+    await saveFirestoreUser(cleanPhone, user);
 
     res.json({ success: true, message: "Đặt lại mật khẩu thành công! Vui lòng đăng nhập lại" });
   } catch (err: any) {
@@ -473,7 +515,7 @@ app.post("/api/auth/reset-password", (req, res) => {
 });
 
 // Get Current User Session Endpoint (Auto Login Persistence)
-app.get("/api/auth/me", (req, res) => {
+app.get("/api/auth/me", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     const phoneQuery = req.query.phone as string;
@@ -490,7 +532,15 @@ app.get("/api/auth/me", (req, res) => {
       return res.status(401).json({ success: false, message: "Không tìm thấy phiên đăng nhập" });
     }
 
-    const user = usersStore.get(targetPhone);
+    let user = usersStore.get(targetPhone);
+    if (!user) {
+      const fsUser = await getFirestoreUser(targetPhone);
+      if (fsUser) {
+        user = fsUser as any;
+        usersStore.set(targetPhone, user!);
+      }
+    }
+
     if (!user) {
       return res.status(404).json({ success: false, message: "Tài khoản không tồn tại" });
     }
