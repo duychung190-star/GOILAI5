@@ -18,13 +18,13 @@ export class PriceCalculator {
    * Thuật toán Tính giá D.GO 247 Cập Nhật Mới:
    * 1. Lái hộ theo cuốc (Dựa trên số Km lấy từ Goong Map API):
    *    - Nút Ô tô / Xe máy: 350.000đ cho 10km đầu tiên. Từ km thứ 11 trở đi: +15.000đ/km.
-   *    - Nút Xe Sang: 500.000đ cho 10km đầu tiên. Từ km thứ 11 trở đi: +20.000đ/km.
-   * 2. Thuê lái theo giờ (Tách 2 nút con):
-   *    - Nút Ô tô / Xe máy: Combo 3h đầu = 500.000đ. Từ giờ thứ 4 đến 10 = +100.000đ/giờ.
-   *    - Nút Xe Sang: Combo 3h đầu = 600.000đ. Từ giờ thứ 4 đến 10 = +150.000đ/giờ.
+   *    - Nút Xe Sang: 450.000đ cho 10km đầu tiên. Từ km thứ 11 trở đi: +20.000đ/km.
+   * 2. Thuê lái theo giờ (2 nút con Ô tô / Xe máy & Xe Sang):
+   *    - Nút Ô tô / Xe máy: Combo 3h đầu = 450.000đ. Từ giờ thứ 4 đến 10 = +100.000đ/giờ.
+   *    - Nút Xe Sang: Combo 3h đầu = 500.000đ. Từ giờ thứ 4 đến 10 = +150.000đ/giờ.
    * 3. Thuê lái theo ngày (24h):
-   *    - Nút Ô tô / Xe máy: 1.500.000đ / ngày (24h).
-   *    - Nút Xe Sang: 2.000.000đ / ngày (24h).
+   *    - Nút Ô tô / Xe máy: 1.000.000đ / ngày (24h).
+   *    - Nút Xe Sang: 1.500.000đ / ngày (24h).
    * 4. Phụ phí đêm (23:00 - 23:59: +10%, 00:00 - 04:59: +20%).
    * (Lưu ý: Giá trên chưa bao gồm hỗ trợ chi phí ăn ở cho tài xế)
    */
@@ -47,26 +47,26 @@ export class PriceCalculator {
       // Thuê lái theo ngày (24h)
       const days = Math.max(1, dailyDays);
       if (isLuxury) {
-        basePrice = days * 2000000; // 2.000.000đ / ngày với Xe Sang
+        basePrice = days * 1500000; // 1.500.000đ / ngày với Xe Sang
       } else {
-        basePrice = days * 1500000; // 1.500.000đ / ngày với Ô tô / Xe máy
+        basePrice = days * 1000000; // 1.000.000đ / ngày với Ô tô / Xe máy
       }
     } else if (isHourlyMode) {
       // Thuê lái theo giờ (Combo 3h)
       const hours = Math.max(1, hourlyHours);
       if (isLuxury) {
-        // Xe Sang: Combo 3h đầu 600.000đ, từ giờ thứ 4 - 10 là +150.000đ/h
-        if (hours <= 3) {
-          basePrice = 600000;
-        } else {
-          basePrice = 600000 + (hours - 3) * 150000;
-        }
-      } else {
-        // Ô tô / Xe máy: Combo 3h đầu 500.000đ, từ giờ thứ 4 - 10 là +100.000đ/h
+        // Xe Sang: Combo 3h đầu 500.000đ, từ giờ thứ 4 - 10 là +150.000đ/h
         if (hours <= 3) {
           basePrice = 500000;
         } else {
-          basePrice = 500000 + (hours - 3) * 100000;
+          basePrice = 500000 + (hours - 3) * 150000;
+        }
+      } else {
+        // Ô tô / Xe máy: Combo 3h đầu 450.000đ, từ giờ thứ 4 - 10 là +100.000đ/h
+        if (hours <= 3) {
+          basePrice = 450000;
+        } else {
+          basePrice = 450000 + (hours - 3) * 100000;
         }
       }
     } else {
@@ -76,11 +76,11 @@ export class PriceCalculator {
       if (dist === 0) {
         basePrice = 0;
       } else if (isLuxury) {
-        // Xe Sang: 500.000đ cho 10km đầu, từ km thứ 11 +20.000đ/km
+        // Xe Sang: 450.000đ cho 10km đầu, từ km thứ 11 +20.000đ/km
         if (dist <= 10) {
-          basePrice = 500000;
+          basePrice = 450000;
         } else {
-          basePrice = Math.round(500000 + (dist - 10) * 20000);
+          basePrice = Math.round(450000 + (dist - 10) * 20000);
         }
       } else {
         // Ô tô / Xe máy: 350.000đ cho 10km đầu, từ km thứ 11 +15.000đ/km
