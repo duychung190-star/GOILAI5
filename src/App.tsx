@@ -12,6 +12,7 @@ import { InteractiveMap } from './components/InteractiveMap';
 import { BookingModal } from './components/BookingModal';
 import { WhyChooseUs } from './components/WhyChooseUs';
 import { FloatingActions } from './components/FloatingActions';
+import { VisitorCounter } from './components/VisitorCounter';
 import { BookingHistoryModal } from './components/BookingHistoryModal';
 import { DispatcherDrawer } from './components/DispatcherDrawer';
 import { GoogleSheetsModal } from './components/GoogleSheetsModal';
@@ -662,8 +663,9 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Floating Call & Zalo Action Buttons */}
+      {/* Floating Call & Zalo Action Buttons & Visitor Counter */}
       <FloatingActions />
+      <VisitorCounter />
 
       {/* Modals & Drawers */}
       <BookingModal

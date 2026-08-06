@@ -88,11 +88,11 @@ export const translations = {
     // Vehicle types
     vehicle: {
       carAndMotorbike: "Ô tô / Xe máy",
-      luxury: "Xe Sang",
+      luxury: "Dịch vụ Luxury",
       hourlyCarAndMotorbike: "Thuê theo giờ (Ô tô / Xe máy)",
-      hourlyLuxury: "Thuê theo giờ (Xe Sang)",
+      hourlyLuxury: "Thuê theo giờ (Dịch vụ Luxury)",
       dailyCarAndMotorbike: "Thuê theo ngày (Ô tô / Xe máy)",
-      dailyLuxury: "Thuê theo ngày (Xe Sang)"
+      dailyLuxury: "Thuê theo ngày (Dịch vụ Luxury)"
     },
     // Summary Card
     summary: {

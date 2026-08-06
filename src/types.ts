@@ -6,11 +6,11 @@ export interface LocationPoint {
 
 export type VehicleTypeOption = 
   | 'Ô tô / Xe máy'
-  | 'Xe Sang'
+  | 'Dịch vụ Luxury'
   | 'Thuê theo giờ (Ô tô / Xe máy)'
-  | 'Thuê theo giờ (Xe Sang)'
+  | 'Thuê theo giờ (Dịch vụ Luxury)'
   | 'Thuê theo ngày (Ô tô / Xe máy)'
-  | 'Thuê theo ngày (Xe Sang)';
+  | 'Thuê theo ngày (Dịch vụ Luxury)';
 
 export interface VatDetails {
   companyName: string;

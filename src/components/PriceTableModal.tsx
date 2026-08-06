@@ -80,9 +80,9 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
                 </tbody>
               </table>
 
-              {/* Table B: Xe Sang */}
+              {/* Table B: Dịch vụ Luxury */}
               <div className="bg-slate-950 p-3 border-y border-slate-800">
-                <p className="font-extrabold text-xs text-amber-400 uppercase">B. Gói Xe Sang (Luxury)</p>
+                <p className="font-extrabold text-xs text-amber-400 uppercase">B. Gói Dịch vụ Luxury</p>
               </div>
               <table className="w-full text-xs text-left">
                 <thead className="bg-slate-950 text-slate-300 font-bold border-b border-slate-800">
@@ -94,7 +94,7 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
                 <tbody className="divide-y divide-slate-800/60 bg-slate-900/60">
                   <tr className="bg-slate-900/30">
                     <td className="px-4 py-2 font-medium text-slate-200">10 km đầu tiên</td>
-                    <td className="px-4 py-2 font-bold text-amber-300">400.000 VNĐ</td>
+                    <td className="px-4 py-2 font-bold text-amber-300">500.000 VNĐ</td>
                   </tr>
                   <tr className="bg-slate-900/80">
                     <td className="px-4 py-2 font-medium text-slate-200">Từ km thứ 11 trở đi</td>
@@ -110,18 +110,18 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
           <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
             <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wide flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              <span>2. Thuê Tài Xế Theo Giờ (Combo 3h - 10h)</span>
+              <span>2. Thuê Tài Xế Theo Giờ (Combo 3h trở lên)</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
                 <p className="font-bold text-emerald-400">Gói Ô tô / Xe máy</p>
                 <p>• 3 giờ đầu tiên: <strong className="text-amber-300">450.000 VNĐ</strong></p>
-                <p>• Từ giờ thứ 4 đến giờ 10: <strong className="text-amber-300">+100.000 VNĐ / giờ</strong></p>
+                <p>• Từ giờ thứ 4 trở đi: <strong className="text-amber-300">+100.000 VNĐ / giờ</strong></p>
               </div>
               <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-                <p className="font-bold text-amber-400">Gói Xe Sang</p>
+                <p className="font-bold text-amber-400">Gói Dịch vụ Luxury</p>
                 <p>• 3 giờ đầu tiên: <strong className="text-amber-300">500.000 VNĐ</strong></p>
-                <p>• Từ giờ thứ 4 đến giờ 10: <strong className="text-amber-300">+150.000 VNĐ / giờ</strong></p>
+                <p>• Từ giờ thứ 4 trở đi: <strong className="text-amber-300">+150.000 VNĐ / giờ</strong></p>
               </div>
             </div>
           </div>
@@ -135,13 +135,16 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
                 <p className="font-bold text-emerald-400">Gói Ô tô / Xe máy</p>
-                <p>• Mức giá nguyên ngày (24h): <strong className="text-amber-300 text-sm">1.200.000 VNĐ / ngày</strong></p>
+                <p>• Mức giá nguyên ngày (24h): <strong className="text-amber-300 text-sm">1.500.000 VNĐ / ngày</strong></p>
               </div>
               <div className="p-3 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
-                <p className="font-bold text-amber-400">Gói Xe Sang</p>
-                <p>• Mức giá nguyên ngày (24h): <strong className="text-amber-300 text-sm">1.800.000 VNĐ / ngày</strong></p>
+                <p className="font-bold text-amber-400">Gói Dịch vụ Luxury</p>
+                <p>• Mức giá nguyên ngày (24h): <strong className="text-amber-300 text-sm">2.000.000 VNĐ / ngày</strong></p>
               </div>
             </div>
+            <p className="text-[11px] text-amber-400/90 italic font-medium">
+              (Lưu ý: Giá thuê theo ngày trên chưa bao gồm hỗ trợ chi phí ăn ở cho tài xế)
+            </p>
           </div>
 
           {/* Section 4: Night Surcharge Note */}

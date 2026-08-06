@@ -595,23 +595,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
             </button>
 
-            {/* Xe Sang */}
+            {/* Dịch vụ Luxury */}
             <button
               type="button"
-              onClick={() => setVehicleType('Xe Sang')}
+              onClick={() => setVehicleType('Dịch vụ Luxury')}
               className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
-                vehicleType === 'Xe Sang'
+                vehicleType === 'Dịch vụ Luxury'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
               }`}
             >
-              <div className={`p-2 rounded-lg ${vehicleType === 'Xe Sang' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 text-slate-700'}`}>
+              <div className={`p-2 rounded-lg ${vehicleType === 'Dịch vụ Luxury' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 text-slate-700'}`}>
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-extrabold text-xs">Xe Sang (Luxury)</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Xe Sang' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
-                  Lái hộ dòng xe sang tính theo lượt
+                <p className="font-extrabold text-xs">Dịch vụ Luxury</p>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Dịch vụ Luxury' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
+                  Lái hộ dịch vụ Luxury tính theo lượt
                 </p>
               </div>
             </button>
@@ -648,23 +648,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
             </button>
 
-            {/* Thuê theo giờ (Xe Sang) */}
+            {/* Thuê theo giờ (Dịch vụ Luxury) */}
             <button
               type="button"
-              onClick={() => setVehicleType('Thuê theo giờ (Xe Sang)')}
+              onClick={() => setVehicleType('Thuê theo giờ (Dịch vụ Luxury)')}
               className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
-                vehicleType === 'Thuê theo giờ (Xe Sang)'
+                vehicleType === 'Thuê theo giờ (Dịch vụ Luxury)'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
               }`}
             >
-              <div className={`p-2 rounded-lg ${vehicleType === 'Thuê theo giờ (Xe Sang)' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 text-slate-700'}`}>
+              <div className={`p-2 rounded-lg ${vehicleType === 'Thuê theo giờ (Dịch vụ Luxury)' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 text-slate-700'}`}>
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-extrabold text-xs">Theo giờ: Xe Sang</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo giờ (Xe Sang)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
-                  Thuê tài xế lái xe sang theo giờ
+                <p className="font-extrabold text-xs">Theo giờ: Dịch vụ Luxury</p>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo giờ (Dịch vụ Luxury)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
+                  Thuê tài xế lái Dịch vụ Luxury theo giờ
                 </p>
               </div>
             </button>
@@ -701,23 +701,23 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
             </button>
 
-            {/* Thuê theo ngày (Xe Sang) */}
+            {/* Thuê theo ngày (Dịch vụ Luxury) */}
             <button
               type="button"
-              onClick={() => setVehicleType('Thuê theo ngày (Xe Sang)')}
+              onClick={() => setVehicleType('Thuê theo ngày (Dịch vụ Luxury)')}
               className={`p-3.5 rounded-xl border text-left transition-all relative flex items-center gap-3 cursor-pointer ${
-                vehicleType === 'Thuê theo ngày (Xe Sang)'
+                vehicleType === 'Thuê theo ngày (Dịch vụ Luxury)'
                   ? 'bg-amber-500 text-slate-950 border-amber-500 font-bold shadow-md ring-2 ring-amber-400'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50/50'
               }`}
             >
-              <div className={`p-2 rounded-lg ${vehicleType === 'Thuê theo ngày (Xe Sang)' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 text-slate-700'}`}>
+              <div className={`p-2 rounded-lg ${vehicleType === 'Thuê theo ngày (Dịch vụ Luxury)' ? 'bg-slate-950 text-amber-400' : 'bg-slate-200 text-slate-700'}`}>
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-extrabold text-xs">Theo ngày: Xe Sang</p>
-                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo ngày (Xe Sang)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
-                  Thuê tài xế lái xe sang trọn ngày
+                <p className="font-extrabold text-xs">Theo ngày: Dịch vụ Luxury</p>
+                <p className={`text-[11px] mt-0.5 ${vehicleType === 'Thuê theo ngày (Dịch vụ Luxury)' ? 'text-slate-950 font-semibold' : 'text-slate-500'}`}>
+                  Thuê tài xế lái Dịch vụ Luxury trọn ngày
                 </p>
               </div>
             </button>

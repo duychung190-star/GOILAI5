@@ -117,6 +117,45 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "D.GO - Gọi Lái 247" });
 });
 
+// Daily visitor counter store
+let visitorStore = {
+  date: new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' }),
+  todayCount: 1540 + Math.floor(Math.random() * 50),
+  totalCount: 148200 + Math.floor(Math.random() * 500),
+  activeOnline: Math.floor(Math.random() * 15) + 25
+};
+
+const checkAndResetDailyVisitors = () => {
+  const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Ho_Chi_Minh' });
+  if (visitorStore.date !== todayStr) {
+    visitorStore.date = todayStr;
+    visitorStore.todayCount = 1200 + Math.floor(Math.random() * 200);
+  }
+};
+
+app.get("/api/visitors", (req, res) => {
+  checkAndResetDailyVisitors();
+  visitorStore.activeOnline = Math.floor(Math.random() * 12) + 22;
+  res.json({
+    success: true,
+    date: visitorStore.date,
+    todayCount: visitorStore.todayCount,
+    totalCount: visitorStore.totalCount,
+    activeOnline: visitorStore.activeOnline
+  });
+});
+
+app.post("/api/visitors/hit", (req, res) => {
+  checkAndResetDailyVisitors();
+  visitorStore.todayCount += 1;
+  visitorStore.totalCount += 1;
+  res.json({
+    success: true,
+    todayCount: visitorStore.todayCount,
+    totalCount: visitorStore.totalCount
+  });
+});
+
 // Create new booking
 app.post("/api/booking", async (req, res) => {
   try {
