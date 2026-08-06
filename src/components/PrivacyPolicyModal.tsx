@@ -107,7 +107,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({
               <span>4. Quyền Của Khách Hàng</span>
             </h5>
             <p>
-              • Quý khách có quyền yêu cầu chỉnh sửa, xóa lịch sử hoặc thông tin cá nhân bất cứ lúc nào thông qua Tổng đài chăm sóc khách hàng Hotline: <strong className="text-amber-400">0971.999.734</strong>.
+              • Quý khách có quyền yêu cầu chỉnh sửa, xóa lịch sử hoặc thông tin cá nhân bất cứ lúc nào thông qua Tổng đài chăm sóc khách hàng Hotline: <strong className="text-amber-400">0877.683.536</strong>.
             </p>
           </div>
 

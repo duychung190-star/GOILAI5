@@ -168,7 +168,7 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
                   - Bảng giá trên chưa bao gồm phát sinh thời gian chờ (+60.000đ/giờ chờ) và phụ phí khi phát sinh thêm điểm dừng.
                 </p>
                 <p className="font-semibold text-amber-400">
-                  Hotline tư vấn 24/7: <a href="tel:0971999734" className="underline hover:text-amber-300">0971.999.734</a>
+                  Hotline tư vấn 24/7: <a href="tel:0877683536" className="underline hover:text-amber-300">0877.683.536</a>
                 </p>
               </div>
             </div>
@@ -179,11 +179,11 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
         {/* Footer */}
         <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-between items-center shrink-0">
           <a
-            href="tel:0971999734"
+            href="tel:0877683536"
             className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400 text-slate-950 font-bold rounded-xl text-xs hover:bg-amber-300 transition-colors"
           >
             <Phone className="w-4 h-4" />
-            <span>Gọi Hotline 0971.999.734</span>
+            <span>Gọi Hotline 0877.683.536</span>
           </a>
           <button
             onClick={onClose}

@@ -125,11 +125,11 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Zalo Header Button */}
             <a
-              href="https://zalo.me/0971999734"
+              href="https://zalo.me/0877683536"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all shadow-sm active:scale-95 border border-blue-500"
-              title="Zalo 0971999734"
+              title="Zalo 0877683536"
             >
               <MessageCircle className="w-4 h-4 text-white fill-white/20" />
               <span className="hidden sm:inline">{t.header.zalo}</span>
@@ -137,12 +137,12 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Direct Call Hotline Button */}
             <a
-              href="tel:0971999734"
+              href="tel:0877683536"
               className="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-md shadow-amber-400/20 transition-all transform hover:-translate-y-0.5 active:scale-95 border border-amber-300"
               title={t.header.hotlineTooltip}
             >
               <Phone className="w-4 h-4 text-slate-950 fill-slate-950 animate-bounce" />
-              <span className="font-extrabold tracking-wide">0971.999.734</span>
+              <span className="font-extrabold tracking-wide">0877.683.536</span>
             </a>
 
           </div>

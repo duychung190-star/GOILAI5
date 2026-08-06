@@ -69,7 +69,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
     }
 
     if (!validatePhone(phone)) {
-      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0971999734');
+      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0877683536');
       return;
     }
 
@@ -132,7 +132,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
     setSuccessMsg('');
 
     if (!validatePhone(phone)) {
-      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam (VD: 0971999734)');
+      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam (VD: 0877683536)');
       return;
     }
 
@@ -332,7 +332,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Ví dụ: 0971999734"
+                    placeholder="Ví dụ: 0877683536"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
                   />
                 </div>
@@ -438,7 +438,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Ví dụ: 0971999734"
+                    placeholder="Ví dụ: 0877683536"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
                   />
                 </div>
@@ -563,7 +563,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Ví dụ: 0971999734"
+                    placeholder="Ví dụ: 0877683536"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
                   />
                 </div>

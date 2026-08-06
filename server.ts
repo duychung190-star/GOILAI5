@@ -346,7 +346,7 @@ app.post("/api/auth/register", async (req, res) => {
     }
 
     if (!isValidVietnamesePhone(phone)) {
-      return res.status(400).json({ success: false, message: "Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0971999734" });
+      return res.status(400).json({ success: false, message: "Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0877683536" });
     }
 
     if (!password || password.length < 6) {
