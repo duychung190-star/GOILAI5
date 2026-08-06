@@ -132,17 +132,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
           {/* Direct Hotline Banner */}
           <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 p-3 rounded-xl border border-slate-700 text-center space-y-2">
-            <p className="text-xs text-slate-300">0877.683.536</p>
+            <p className="text-xs text-slate-300">0971.999.734</p>
             <div className="flex items-center justify-center gap-3">
               <a
-                href="tel:0877683536"
+                href="tel:0971999734"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400 text-slate-950 font-black rounded-xl text-xs hover:bg-amber-300 transition-all shadow-md"
               >
                 <Phone className="w-4 h-4" />
-                <span>0877.683.536</span>
+                <span>0971.999.734</span>
               </a>
               <a
-                href="https://zalo.me/0877683536"
+                href="https://zalo.me/0971999734"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-xs hover:bg-blue-500 transition-all shadow-md"

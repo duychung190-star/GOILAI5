@@ -183,7 +183,7 @@ export default function App() {
     const targetBooking = booking || (bookingHistory.length > 0 ? bookingHistory[0] : {
       id: `DGO-${Date.now().toString().slice(-6)}`,
       customerName: customerName || 'Khách hàng D.GO',
-      customerPhone: customerPhone || '0877683536',
+      customerPhone: customerPhone || '0971999734',
       pickupAddress: pickup?.address || 'Điểm đón của bạn',
       pickupLat: pickup?.lat || 21.0,
       pickupLng: pickup?.lng || 105.8,
@@ -641,7 +641,7 @@ export default function App() {
           />
           <div className="text-left">
             <h4 className="font-black text-slate-900 text-base tracking-tight">D.GO - DỊCH VỤ LÁI XE HỘ</h4>
-            <p className="text-amber-700 text-xs font-bold">GOILAI247.COM • HOTLINE: 0877.683.536</p>
+            <p className="text-amber-700 text-xs font-bold">GOILAI247.COM • HOTLINE: 0971.999.734</p>
           </div>
         </div>
 

@@ -10,31 +10,31 @@ export const FloatingActions: React.FC = () => {
       
       {/* Floating Zalo Button */}
       <a
-        href="https://zalo.me/0877683536"
+        href="https://zalo.me/0971999734"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Chat Zalo Hotline 0877683536"
+        aria-label="Chat Zalo Hotline 0971999734"
         className="group relative flex items-center justify-center w-13 h-13 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-xl shadow-blue-600/30 transition-all transform hover:scale-110 active:scale-95 border-2 border-white/20"
-        title="Chat Zalo: 0877.683.536"
+        title="Chat Zalo: 0971.999.734"
       >
         <MessageCircle className="w-7 h-7 fill-white/20" />
         <span className="absolute right-full mr-3 bg-slate-900 text-white text-xs font-bold px-2.5 py-1 rounded-lg border border-slate-700 shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          Chat Zalo 0877.683.536
+          Chat Zalo 0971.999.734
         </span>
       </a>
 
       {/* Floating Call Button */}
       <a
-        href="tel:0877683536"
-        aria-label="Call Hotline 0877683536"
+        href="tel:0971999734"
+        aria-label="Call Hotline 0971999734"
         className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-amber-300 text-slate-950 shadow-2xl shadow-amber-500/40 transition-all transform hover:scale-110 active:scale-95 border-2 border-amber-200"
-        title="Hotline: 0877.683.536"
+        title="Hotline: 0971.999.734"
       >
         {/* Pulsing ring */}
         <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping"></span>
         <Phone className="w-7 h-7 fill-slate-950 text-slate-950 stroke-[2.5] relative z-10 animate-bounce" />
         <span className="absolute right-full mr-3 bg-slate-900 text-amber-400 text-xs font-black px-2.5 py-1 rounded-lg border border-amber-500/40 shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          {t.common.callHotline}: 0877.683.536
+          {t.common.callHotline}: 0971.999.734
         </span>
       </a>
 

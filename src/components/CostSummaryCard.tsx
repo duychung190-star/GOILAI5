@@ -124,7 +124,7 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
               {t.summary.waitingFeeNoteBody}
             </p>
             <p className="mt-1 font-semibold text-amber-700">
-              📞 {t.summary.contactHotlineText} <a href="tel:0877683536" className="underline hover:text-amber-800">0877.683.536</a> {t.summary.contactHotlineSub}
+              📞 {t.summary.contactHotlineText} <a href="tel:0971999734" className="underline hover:text-amber-800">0971.999.734</a> {t.summary.contactHotlineSub}
             </p>
           </div>
         </div>
@@ -159,7 +159,7 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           
           {/* Button 2: GỌI TƯ VẤN TRỰC TIẾP */}
           <a
-            href="tel:0877683536"
+            href="tel:0971999734"
             className="w-full py-3 px-3 rounded-xl font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] transition-all border border-slate-300 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm"
           >
             <PhoneCall className="w-4 h-4 text-emerald-600 animate-pulse" />
@@ -168,13 +168,13 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
 
           {/* Button 3: LIÊN HỆ QUA ZALO */}
           <a
-            href="https://zalo.me/0877683536"
+            href="https://zalo.me/0971999734"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full py-3 px-3 rounded-xl font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all border border-blue-500 flex items-center justify-center gap-2 text-xs sm:text-sm shadow-sm"
           >
             <MessageCircle className="w-4 h-4 text-white" />
-            <span>{t.common.chatZalo} 0877.683.536</span>
+            <span>{t.common.chatZalo} 0971.999.734</span>
           </a>
 
         </div>
