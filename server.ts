@@ -1338,6 +1338,12 @@ app.get("/api/route", async (req, res) => {
   }
 });
 
+// Digital Asset Links for Android App Links verification
+app.get("/.well-known/assetlinks.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.sendFile(path.join(process.cwd(), "public", ".well-known", "assetlinks.json"));
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

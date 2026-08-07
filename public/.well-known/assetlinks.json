@@ -1,0 +1,11 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "vn.goilai247.app",
+      "sha256_cert_fingerprints":
+        ["E1:B7:D9:0D:70:A7:0D:DE:DA:90:D3:B6:B8:41:A7:77:8B:5D:4D:9A:EC:93:78:A7:C4:18:41:AD:AB:C1:6A:D1"]
+    }
+  }
+]
