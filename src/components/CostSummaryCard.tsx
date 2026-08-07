@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PriceBreakdown, VehicleTypeOption } from '../types';
 import { PriceCalculator } from '../utils/PriceCalculator';
 import { useLanguage } from '../i18n/LanguageContext';
 import { CheckCircle, PhoneCall, MessageCircle, AlertCircle, Info, Moon, ShieldCheck, ArrowRight } from 'lucide-react';
+import { PrivacyPolicyModal } from './PrivacyPolicyModal';
 
 interface CostSummaryCardProps {
   breakdown: PriceBreakdown;
@@ -11,6 +12,7 @@ interface CostSummaryCardProps {
   isSubmitting: boolean;
   isCalculatingRoute?: boolean;
   onConfirmBooking: () => void;
+  onOpenPrivacyPolicy?: () => void;
 }
 
 export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
@@ -19,9 +21,11 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
   needVat,
   isSubmitting,
   isCalculatingRoute,
-  onConfirmBooking
+  onConfirmBooking,
+  onOpenPrivacyPolicy,
 }) => {
   const { t } = useLanguage();
+  const [showInternalPrivacy, setShowInternalPrivacy] = useState(false);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-lg shadow-slate-200/50 space-y-5 relative overflow-hidden">
@@ -154,6 +158,25 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           )}
         </button>
 
+        {/* Small Privacy Policy Button right below the main booking button */}
+        <div className="flex items-center justify-center pt-0.5 pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              if (onOpenPrivacyPolicy) {
+                onOpenPrivacyPolicy();
+              } else {
+                setShowInternalPrivacy(true);
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-amber-600 transition-colors cursor-pointer py-1 px-2.5 rounded-lg hover:bg-amber-50/80 active:scale-95 border border-transparent hover:border-amber-200"
+            title="Xem Chính sách bảo mật thông tin D.GO GOILAI247"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="underline decoration-slate-300 underline-offset-2 hover:decoration-amber-500 font-medium">Chính sách bảo mật</span>
+          </button>
+        </div>
+
         {/* Secondary Action Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           
@@ -180,6 +203,11 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
         </div>
 
       </div>
+
+      <PrivacyPolicyModal
+        isOpen={showInternalPrivacy}
+        onClose={() => setShowInternalPrivacy(false)}
+      />
 
     </div>
   );

@@ -122,8 +122,12 @@ export const CustomerFeedbackSection: React.FC<CustomerFeedbackSectionProps> = (
   const fetchRatings = async () => {
     try {
       const res = await fetch('/api/ratings');
+      if (!res.ok) {
+        console.warn('Ratings endpoint returned status:', res.status);
+        return;
+      }
       const data = await res.json();
-      if (data.success && Array.isArray(data.ratings) && data.ratings.length > 0) {
+      if (data && data.success && Array.isArray(data.ratings) && data.ratings.length > 0) {
         const ratingMap = new Map<string, FeedbackItem>();
         [...data.ratings, ...INITIAL_DEFAULT_RATINGS].forEach(item => {
           if (item && item.id && !ratingMap.has(item.id)) {

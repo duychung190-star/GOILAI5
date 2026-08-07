@@ -615,6 +615,7 @@ export default function App() {
               isSubmitting={isSubmitting}
               isCalculatingRoute={isCalculatingRoute}
               onConfirmBooking={handleConfirmBooking}
+              onOpenPrivacyPolicy={() => setIsPrivacyModalOpen(true)}
             />
 
           </div>

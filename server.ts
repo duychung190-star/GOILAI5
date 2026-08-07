@@ -308,43 +308,61 @@ const sampleRatings = [
 
 // Get all public driver ratings & reviews
 app.get("/api/ratings", async (req, res) => {
-  const ratingsFromBookings = bookingsStore
-    .filter(b => b.rating)
-    .map(b => ({
-      id: b.id,
-      customerName: b.customerName,
-      companyName: b.companyName,
-      isEnterprise: b.isEnterprise,
-      customerPhone: b.customerPhone ? b.customerPhone.slice(0, 4) + '****' + b.customerPhone.slice(-3) : 'Khách hàng',
-      stars: b.rating!.stars,
-      review: b.rating!.review,
-      tags: b.rating!.tags,
-      driverName: b.rating!.driverName || 'Tài xế D.GO 247',
-      createdAt: b.rating!.createdAt || b.createdAt,
-    }));
+  try {
+    const ratingsFromBookings = (bookingsStore || [])
+      .filter(b => b && b.rating)
+      .map(b => ({
+        id: b.id,
+        customerName: b.customerName,
+        companyName: b.companyName,
+        isEnterprise: b.isEnterprise,
+        customerPhone: b.customerPhone ? b.customerPhone.slice(0, 4) + '****' + b.customerPhone.slice(-3) : 'Khách hàng',
+        stars: b.rating!.stars,
+        review: b.rating!.review,
+        tags: b.rating!.tags,
+        driverName: b.rating!.driverName || 'Tài xế D.GO 247',
+        createdAt: b.rating!.createdAt || b.createdAt,
+      }));
 
-  const firestoreRatings = await getFirestoreRatings();
-
-  // Deduplicate ratings by id
-  const ratingMap = new Map();
-  [...firestoreRatings, ...sampleRatings, ...ratingsFromBookings].forEach(item => {
-    if (item && item.id && !ratingMap.has(item.id)) {
-      ratingMap.set(item.id, item);
+    let firestoreRatings: any[] = [];
+    try {
+      firestoreRatings = await getFirestoreRatings();
+    } catch (e) {
+      console.warn('[Server] Error fetching Firestore ratings, fallback to sample ratings:', e);
     }
-  });
 
-  const allRatings = Array.from(ratingMap.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  const avgStars = (allRatings.reduce((acc, curr) => acc + (curr.stars || 5), 0) / (allRatings.length || 1)).toFixed(1);
+    // Deduplicate ratings by id
+    const ratingMap = new Map();
+    [...(Array.isArray(firestoreRatings) ? firestoreRatings : []), ...sampleRatings, ...ratingsFromBookings].forEach(item => {
+      if (item && item.id && !ratingMap.has(item.id)) {
+        ratingMap.set(item.id, item);
+      }
+    });
 
-  res.json({
-    success: true,
-    ratings: allRatings,
-    stats: {
-      averageStars: Number(avgStars) || 4.9,
-      totalReviews: allRatings.length,
-      satisfactionRate: 98.6 // Tỷ lệ hài lòng %
-    }
-  });
+    const allRatings = Array.from(ratingMap.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    const avgStars = (allRatings.reduce((acc, curr) => acc + (curr.stars || 5), 0) / (allRatings.length || 1)).toFixed(1);
+
+    res.json({
+      success: true,
+      ratings: allRatings,
+      stats: {
+        averageStars: Number(avgStars) || 4.9,
+        totalReviews: allRatings.length,
+        satisfactionRate: 98.6 // Tỷ lệ hài lòng %
+      }
+    });
+  } catch (err: any) {
+    console.error('[Server] Error in GET /api/ratings:', err);
+    res.json({
+      success: true,
+      ratings: sampleRatings,
+      stats: {
+        averageStars: 4.9,
+        totalReviews: sampleRatings.length,
+        satisfactionRate: 98.6
+      }
+    });
+  }
 });
 
 // Post a public direct customer rating & review
@@ -365,11 +383,15 @@ app.post("/api/ratings", async (req, res) => {
     };
 
     sampleRatings.unshift(newRating);
-    await saveFirestoreRating(newRating);
+    try {
+      await saveFirestoreRating(newRating);
+    } catch (e) {
+      console.warn('[Server] Error saving rating to Firestore:', e);
+    }
 
     res.json({ success: true, rating: newRating });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: err?.message || 'Server error' });
   }
 });
 
