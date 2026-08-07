@@ -1,5 +1,20 @@
 import { PriceBreakdown, VehicleTypeOption } from '../types';
 
+export function calculateDriverTripFare(dist: number): number {
+  if (dist <= 0) return 0;
+  if (dist <= 3) {
+    return 238000;
+  } else if (dist <= 10) {
+    return Math.round(238000 + (dist - 3) * 16000);
+  } else if (dist <= 20) {
+    return Math.round(350000 + (dist - 10) * 15000);
+  } else if (dist <= 25) {
+    return Math.round(500000 + (dist - 20) * 13000);
+  } else {
+    return Math.round(565000 + (dist - 25) * 12000);
+  }
+}
+
 export class PriceCalculator {
   /**
    * Tính khoảng cách đường bộ thực tế (Driving Distance) từ Goong Maps API.
@@ -17,8 +32,12 @@ export class PriceCalculator {
   /**
    * Thuật toán Tính giá D.GO 247 Cập Nhật Mới:
    * 1. Lái hộ theo cuốc (Dựa trên số Km lấy từ Goong Map API):
-   *    - Ô tô / Xe máy (Dịch vụ cơ bản): 350.000đ/10km đầu tiên, từ km 11 trở đi +15.000đ/km.
-   *    - Dịch vụ Luxury: 500.000đ/10km đầu tiên, từ km 11 trở đi +20.000đ/km.
+   *    - 3 km đầu tiên: 238.000đ
+   *    - km thứ 4 - 10: +16.000đ/km (km 10: 350.000đ)
+   *    - km thứ 11 - 20: +15.000đ/km (km 20: 500.000đ)
+   *    - km thứ 21 - 25: +13.000đ/km (km 25: 565.000đ)
+   *    - Từ km 26 trở đi: giá km 25 (565.000đ) + 12.000đ/km
+   *    - Dịch vụ Luxury: Tăng tương ứng 35% so với gói tiêu chuẩn.
    * 2. Thuê lái theo giờ (2 nút con Ô tô / Xe máy & Dịch vụ Luxury):
    *    - Ô tô / Xe máy: Combo 3h đầu = 450.000đ, từ giờ thứ 4 trở đi +100.000đ/giờ.
    *    - Dịch vụ Luxury: Combo 3h đầu = 500.000đ, từ giờ thứ 4 trở đi +150.000đ/giờ.
@@ -55,14 +74,12 @@ export class PriceCalculator {
       // Thuê lái theo giờ (Combo 3h đầu)
       const hours = Math.max(1, hourlyHours);
       if (isLuxury) {
-        // Dịch vụ Luxury: Combo 3h đầu 500.000đ, từ giờ thứ 4 trở đi là +150.000đ/h
         if (hours <= 3) {
           basePrice = 500000;
         } else {
           basePrice = 500000 + (hours - 3) * 150000;
         }
       } else {
-        // Ô tô / Xe máy: Combo 3h đầu 450.000đ, từ giờ thứ 4 trở đi là +100.000đ/h
         if (hours <= 3) {
           basePrice = 450000;
         } else {
@@ -75,19 +92,12 @@ export class PriceCalculator {
 
       if (dist === 0) {
         basePrice = 0;
-      } else if (isLuxury) {
-        // Dịch vụ Luxury: 500.000đ cho 10km đầu, từ km thứ 11 +20.000đ/km
-        if (dist <= 10) {
-          basePrice = 500000;
-        } else {
-          basePrice = Math.round(500000 + (dist - 10) * 20000);
-        }
       } else {
-        // Ô tô / Xe máy: 350.000đ cho 10km đầu, từ km thứ 11 +15.000đ/km
-        if (dist <= 10) {
-          basePrice = 350000;
+        const stdFare = calculateDriverTripFare(dist);
+        if (isLuxury) {
+          basePrice = Math.round(stdFare * 1.35);
         } else {
-          basePrice = Math.round(350000 + (dist - 10) * 15000);
+          basePrice = stdFare;
         }
       }
     }

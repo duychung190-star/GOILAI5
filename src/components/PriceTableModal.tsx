@@ -58,27 +58,80 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
             <div className="overflow-hidden rounded-xl border border-slate-800 space-y-3">
               
               {/* Table A: Ô tô / Xe máy */}
-              <div className="bg-slate-950 p-3 rounded-t-xl border-b border-slate-800">
-                <p className="font-extrabold text-xs text-emerald-400 uppercase">A. Gói Ô tô / Xe máy</p>
+              <div className="bg-slate-950 p-3 rounded-t-xl border-b border-slate-800 flex items-center justify-between">
+                <p className="font-extrabold text-xs text-emerald-400 uppercase">A. Gói Lái Hộ Tiêu Chuẩn (Ô tô / Xe máy)</p>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">Cập Nhật Mới</span>
               </div>
               <table className="w-full text-xs text-left">
                 <thead className="bg-slate-950 text-slate-300 font-bold border-b border-slate-800">
                   <tr>
-                    <th className="px-4 py-2">Khoảng Cách</th>
-                    <th className="px-4 py-2">Giá Cước Niêm Yết (VNĐ)</th>
+                    <th className="px-4 py-2">Khoảng Cách (Km)</th>
+                    <th className="px-4 py-2">Công Thức Tăng</th>
+                    <th className="px-4 py-2 text-right">Mốc Giá Niêm Yết</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 bg-slate-900/60">
                   <tr className="bg-slate-900/30">
-                    <td className="px-4 py-2 font-medium text-slate-200">10 km đầu tiên</td>
-                    <td className="px-4 py-2 font-bold text-amber-300">350.000 VNĐ</td>
+                    <td className="px-4 py-2 font-medium text-slate-200">3 km đầu tiên</td>
+                    <td className="px-4 py-2 text-slate-400">Trọn gói mở đơn</td>
+                    <td className="px-4 py-2 font-bold text-amber-300 text-right">238.000 VNĐ</td>
                   </tr>
-                  <tr className="bg-slate-900/80">
-                    <td className="px-4 py-2 font-medium text-slate-200">Từ km thứ 11 trở đi</td>
-                    <td className="px-4 py-2 font-bold text-amber-300">+15.000 VNĐ / km</td>
+                  <tr className="bg-slate-900/60">
+                    <td className="px-4 py-2 font-medium text-slate-200">Km thứ 4 đến Km thứ 10</td>
+                    <td className="px-4 py-2 text-slate-400">+16.000 VNĐ / km</td>
+                    <td className="px-4 py-2 font-bold text-amber-300 text-right">Km 10: 350.000 VNĐ</td>
+                  </tr>
+                  <tr className="bg-slate-900/30">
+                    <td className="px-4 py-2 font-medium text-slate-200">Km thứ 11 đến Km thứ 20</td>
+                    <td className="px-4 py-2 text-slate-400">+15.000 VNĐ / km</td>
+                    <td className="px-4 py-2 font-bold text-amber-300 text-right">Km 20: 500.000 VNĐ</td>
+                  </tr>
+                  <tr className="bg-slate-900/60">
+                    <td className="px-4 py-2 font-medium text-slate-200">Km thứ 21 đến Km thứ 25</td>
+                    <td className="px-4 py-2 text-slate-400">+13.000 VNĐ / km</td>
+                    <td className="px-4 py-2 font-bold text-amber-300 text-right">Km 25: 565.000 VNĐ</td>
+                  </tr>
+                  <tr className="bg-slate-900/90">
+                    <td className="px-4 py-2 font-medium text-amber-400">Từ Km thứ 26 trở đi</td>
+                    <td className="px-4 py-2 text-slate-400">+12.000 VNĐ / km</td>
+                    <td className="px-4 py-2 font-bold text-amber-300 text-right">565.000đ + 12.000đ/km</td>
                   </tr>
                 </tbody>
               </table>
+
+              {/* Collapsible/Detailed milestone table */}
+              <div className="p-3 bg-slate-950/80 border-t border-slate-800 space-y-2">
+                <p className="font-bold text-[11px] text-amber-400 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Bảng kê chi tiết giá từng kilomet (Từ km 1 đến km 25):</span>
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-[11px]">
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">1-3 km: <strong className="text-amber-300">238k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 4: <strong className="text-amber-300">254k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 5: <strong className="text-amber-300">270k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 6: <strong className="text-amber-300">286k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 7: <strong className="text-amber-300">302k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 8: <strong className="text-amber-300">318k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 9: <strong className="text-amber-300">334k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300 font-bold text-amber-400">km 10: <strong>350k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 11: <strong className="text-amber-300">365k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 12: <strong className="text-amber-300">380k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 13: <strong className="text-amber-300">395k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 14: <strong className="text-amber-300">410k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 15: <strong className="text-amber-300">425k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 16: <strong className="text-amber-300">440k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 17: <strong className="text-amber-300">455k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 18: <strong className="text-amber-300">470k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 19: <strong className="text-amber-300">485k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300 font-bold text-amber-400">km 20: <strong>500k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 21: <strong className="text-amber-300">513k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 22: <strong className="text-amber-300">526k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 23: <strong className="text-amber-300">539k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300">km 24: <strong className="text-amber-300">552k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300 font-bold text-amber-400">km 25: <strong>565k</strong></div>
+                  <div className="p-1.5 bg-slate-900 rounded border border-slate-800 text-slate-300 col-span-2">Từ km 26+: <strong className="text-amber-300">+12k/km</strong></div>
+                </div>
+              </div>
 
               {/* Table B: Dịch vụ Luxury */}
               <div className="bg-slate-950 p-3 border-y border-slate-800">

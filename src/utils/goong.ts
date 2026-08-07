@@ -349,11 +349,15 @@ export function decodeGoongPolyline(encoded: string): [number, number][] {
 }
 
 
+import { calculateDriverTripFare } from './PriceCalculator';
+
 /**
  * 4. FARE CALCULATION: D.GO 247 Driver Service Pricing Rule
- * - <= 5km: 250,000 VNĐ
- * - > 5km & <= 10km: 350,000 VNĐ
- * - > 10km: 350,000 + ((distance - 10) * 15,000) VNĐ
+ * - 3km đầu tiên: 238.000 VNĐ
+ * - km thứ 4-10: +16.000 VNĐ/km
+ * - km thứ 11-20: +15.000 VNĐ/km
+ * - km thứ 21-25: +13.000 VNĐ/km
+ * - > 25km: km thứ 25 (565k) + 12.000 VNĐ/km
  * - Night Surcharge: 10% (23:00 - 23:59) or 20% (00:00 - 04:59)
  */
 export function calculateGoongDriverFare(
@@ -369,12 +373,7 @@ export function calculateGoongDriverFare(
     return { basePrice: 0, perKmPrice: 0, totalPrice: 0, nightSurcharge: 0 };
   }
 
-  let basePrice = 0;
-  if (distanceKm <= 10) {
-    basePrice = 350000;
-  } else {
-    basePrice = Math.round(350000 + (distanceKm - 10) * 15000);
-  }
+  const basePrice = calculateDriverTripFare(distanceKm);
 
   let nightPercent = 0;
   if (hour === 23) {
