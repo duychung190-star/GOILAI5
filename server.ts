@@ -37,6 +37,16 @@ const sendTelegramNotification = async (bookingData: any) => {
       ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bookingData.totalPrice || 0)
       : (bookingData.totalPrice || '0 ₫');
 
+    const originalPriceNum = bookingData.breakdown?.originalPrice || bookingData.originalPrice;
+    const formattedOriginalPrice = typeof originalPriceNum === 'number'
+      ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(originalPriceNum)
+      : (originalPriceNum || null);
+
+    const discountAmountNum = bookingData.breakdown?.discountAmount || bookingData.discountAmount;
+    const formattedDiscount = typeof discountAmountNum === 'number'
+      ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountAmountNum)
+      : (discountAmountNum || null);
+
     const name = bookingData.customerName || bookingData.name || 'Khách hàng';
     const phone = bookingData.customerPhone || bookingData.phone || '';
     const pickup = bookingData.pickupAddress || bookingData.pickup || '';
@@ -53,15 +63,27 @@ const sendTelegramNotification = async (bookingData: any) => {
 
     text += `Khách: ${name} - ${phone}\n` +
       `Đón: ${pickup}\n` +
-      `Đến: ${dropoff}\n` +
-      `Tổng tiền: ${formattedPrice}`;
+      `Đến: ${dropoff}\n`;
 
     if (bookingData.vehicleType) {
-      text += `\nLoại xe: ${bookingData.vehicleType}`;
+      text += `Loại xe: ${bookingData.vehicleType}\n`;
     }
     if (bookingData.distanceKm) {
-      text += `\nKhoảng cách: ${bookingData.distanceKm} km`;
+      text += `Khoảng cách: ${bookingData.distanceKm} km\n`;
     }
+
+    text += `------------------\n` +
+      `🎁 Khuyến mãi: Tặng mã giảm 10% (App GOILAI247)\n`;
+
+    if (formattedOriginalPrice) {
+      text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
+    }
+    if (formattedDiscount) {
+      text += `🏷️ Giảm giá (10%): -${formattedDiscount}\n`;
+    }
+
+    text += `💰 Giá sau khi giảm 10% (Khách trả): ${formattedPrice}`;
+
     if (bookingData.noteForDriver) {
       text += `\nGhi chú: ${bookingData.noteForDriver}`;
     }

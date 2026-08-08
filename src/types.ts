@@ -25,7 +25,10 @@ export interface PriceBreakdown {
   nightPercent: number; // 0, 10, or 20
   vatAmount: number;
   totalBeforeVat: number;
-  totalPrice: number;
+  originalPrice: number;    // Giá gốc (chưa giảm)
+  discountPercent: number;  // 10%
+  discountAmount: number;   // Số tiền giảm 10%
+  totalPrice: number;       // Giá khách phải thanh toán (originalPrice - discountAmount)
   distanceKm: number;
   estimatedMinutes: number;
   isHourly: boolean;

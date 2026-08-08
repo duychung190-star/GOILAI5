@@ -120,7 +120,12 @@ export class PriceCalculator {
       vatAmount = Math.round(totalBeforeVat * 0.08);
     }
 
-    const totalPrice = totalBeforeVat + vatAmount;
+    const originalPrice = totalBeforeVat + vatAmount;
+
+    // Chương trình khuyến mãi: Tặng mã giảm giá 10% cho khách gọi lái xe qua app GOILAI247
+    const discountPercent = 10;
+    const discountAmount = Math.round(originalPrice * (discountPercent / 100));
+    const totalPrice = Math.max(0, originalPrice - discountAmount);
 
     // Thời gian di chuyển ước tính
     const estimatedMinutes = isDailyMode
@@ -137,6 +142,9 @@ export class PriceCalculator {
       nightPercent,
       vatAmount,
       totalBeforeVat,
+      originalPrice,
+      discountPercent,
+      discountAmount,
       totalPrice,
       distanceKm: Math.round(distanceKm * 10) / 10,
       estimatedMinutes,

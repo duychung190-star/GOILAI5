@@ -813,10 +813,16 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
 
               <div className="text-left sm:text-right shrink-0">
+                {priceBreakdown.discountAmount > 0 && (
+                  <div className="text-[11px] text-slate-500 flex items-center justify-start sm:justify-end gap-1">
+                    <span className="line-through decoration-slate-400 font-medium">{PriceCalculator.formatCurrency(priceBreakdown.originalPrice)}</span>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.2 rounded border border-emerald-300">-10% App</span>
+                  </div>
+                )}
                 <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
                   {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
                 </span>
-                <p className="text-[10px] text-slate-500">{t.form.noVatNote}</p>
+                <p className="text-[10px] text-emerald-700 font-semibold">Đã áp mã giảm 10% App GOILAI247</p>
               </div>
             </div>
           </div>

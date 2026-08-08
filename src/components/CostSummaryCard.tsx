@@ -101,12 +101,41 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           </div>
         )}
 
-        {/* Total Price Banner */}
-        <div className="pt-3 border-t border-slate-200">
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-300 flex items-center justify-between">
+        {/* Original Price (Giá gốc) */}
+        <div className="flex items-center justify-between pt-2 border-t border-dashed border-slate-200 text-slate-700">
+          <span className="text-slate-600 font-medium text-xs sm:text-sm">Giá gốc cước xe:</span>
+          <span className="font-bold text-slate-800 text-sm line-through decoration-slate-400">
+            {PriceCalculator.formatCurrency(breakdown.originalPrice || breakdown.totalBeforeVat)}
+          </span>
+        </div>
+
+        {/* 10% App Discount Promotion Program */}
+        <div className="flex items-center justify-between text-emerald-900 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
+              APP -10%
+            </span>
+            <div className="text-xs">
+              <p className="font-bold text-emerald-800">Khuyến mãi App GOILAI247:</p>
+              <p className="text-[10px] text-emerald-600">Tặng mã giảm giá 10% khi đặt qua app</p>
+            </div>
+          </div>
+          <span className="font-black text-emerald-700 text-sm sm:text-base shrink-0">
+            -{PriceCalculator.formatCurrency(breakdown.discountAmount)}
+          </span>
+        </div>
+
+        {/* Total Price Banner (Giá sau khi đã áp mã giảm giá) */}
+        <div className="pt-2 border-t border-slate-200">
+          <div className="bg-gradient-to-r from-amber-50 via-amber-100/90 to-amber-50 p-4 rounded-xl border border-amber-300 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-amber-800">{t.summary.totalEst}</p>
-              <p className="text-[11px] text-slate-500">{t.summary.noVatNote}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-black uppercase tracking-wider text-amber-900">GIÁ PHẢI THANH TOÁN</p>
+                <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Đã giảm 10%</span>
+              </div>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Giá gốc {PriceCalculator.formatCurrency(breakdown.originalPrice)} → <strong className="text-emerald-700">Tiết kiệm {PriceCalculator.formatCurrency(breakdown.discountAmount)}</strong>
+              </p>
             </div>
             <div className="text-right">
               <span className="text-2xl sm:text-3xl font-black text-amber-700 tracking-tight">

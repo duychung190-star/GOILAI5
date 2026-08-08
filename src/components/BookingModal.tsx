@@ -122,8 +122,31 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               </div>
             )}
 
+            {booking.breakdown?.originalPrice && booking.breakdown?.discountAmount ? (
+              <div className="p-2.5 bg-slate-900/90 rounded-xl border border-emerald-500/30 text-xs space-y-1.5">
+                <div className="flex justify-between items-center text-slate-300">
+                  <span className="text-slate-400">Giá gốc:</span>
+                  <span className="line-through text-slate-400 font-medium">
+                    {PriceCalculator.formatCurrency(booking.breakdown.originalPrice)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-emerald-400 font-medium">
+                  <span className="flex items-center gap-1">
+                    <span className="bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded text-[10px] font-bold border border-emerald-500/30">MÃ 10%</span>
+                    <span>Khuyến mãi App GOILAI247:</span>
+                  </span>
+                  <span className="font-bold">
+                    -{PriceCalculator.formatCurrency(booking.breakdown.discountAmount)}
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
             <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-sm">
-              <span className="font-extrabold uppercase text-slate-200">{t.summary.totalEst}:</span>
+              <div>
+                <span className="font-extrabold uppercase text-slate-200">GIÁ THANH TOÁN:</span>
+                <p className="text-[10px] text-emerald-400 font-medium">Đã áp mã giảm giá 10%</p>
+              </div>
               <span className="text-xl font-black text-amber-400">
                 {PriceCalculator.formatCurrency(booking.totalPrice)}
               </span>

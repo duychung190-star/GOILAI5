@@ -55,12 +55,10 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
             </div>
           </div>
 
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-amber-300/80 text-amber-900 text-xs font-semibold shadow-sm backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-            <span>{t.hero.badgeTitle}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-            <span className="text-slate-700">{t.hero.badgeEta}</span>
+          {/* Promo Pill Banner */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-600/10 border border-emerald-500/30 text-emerald-900 text-xs font-extrabold shadow-sm backdrop-blur-sm animate-pulse">
+            <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">Ưu đãi HOT</span>
+            <span>Tặng mã giảm giá 10% khi gọi lái xe qua App GOILAI247!</span>
           </div>
 
           {/* Heading */}
