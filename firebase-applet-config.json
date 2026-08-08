@@ -1,12 +1,12 @@
 {
-  "projectId": "reflected-ember-s8gvj",
-  "appId": "1:908590683648:web:127ccf131988c905902ae5",
-  "apiKey": "AIzaSyCtPuwGq0UJCLNziyq_Vr0ZnO-N5MU4cDg",
-  "authDomain": "reflected-ember-s8gvj.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-dgogili247-3259dc65-b227-4ed5-9085-06ff9bab8ca6",
-  "storageBucket": "reflected-ember-s8gvj.firebasestorage.app",
-  "messagingSenderId": "908590683648",
+  "projectId": "goilai247-feb87",
+  "appId": "1:478229985372:web:03a7cf148995c8fc620e99",
+  "apiKey": "AIzaSyCKa6awn_1TKe6odF46z7buRpTiy67skVQ",
+  "authDomain": "goilai247-feb87.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "goilai247-feb87.firebasestorage.app",
+  "messagingSenderId": "478229985372",
   "measurementId": "",
-  "oAuthClientId": "908590683648-797v6ieagmvjeckegnoff123qm5jg04a.apps.googleusercontent.com",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }

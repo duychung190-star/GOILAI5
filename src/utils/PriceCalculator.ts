@@ -55,7 +55,8 @@ export class PriceCalculator {
     dailyDays: number = 1,
     scheduledTimeDate: Date = new Date(),
     needVat: boolean = false,
-    roadDurationMinutes: number | null = null
+    roadDurationMinutes: number | null = null,
+    promoCode: string = 'GOILAI247'
   ): PriceBreakdown {
     let basePrice = 0;
     const isHourlyMode = isHourly || vehicleType.includes('Thuê theo giờ');
@@ -122,9 +123,55 @@ export class PriceCalculator {
 
     const originalPrice = totalBeforeVat + vatAmount;
 
-    // Chương trình khuyến mãi: Tặng mã giảm giá 10% cho khách gọi lái xe qua app GOILAI247
-    const discountPercent = 10;
-    const discountAmount = Math.round(originalPrice * (discountPercent / 100));
+    // Xử lý mã giảm giá / Voucher khuyến mãi
+    const cleanPromo = (promoCode || 'GOILAI247').trim().toUpperCase();
+    let discountPercent = 0;
+    let discountAmount = 0;
+    let discountCodeName = 'Mã App GOILAI247 (-10%)';
+    let promoMessage = '';
+    let promoError = '';
+    let appliedCode = cleanPromo || 'GOILAI247';
+
+    if (!cleanPromo || cleanPromo === 'GOILAI247' || cleanPromo === 'APP10' || cleanPromo === 'DGO10') {
+      discountPercent = 10;
+      discountAmount = Math.round(originalPrice * 0.10);
+      appliedCode = 'GOILAI247';
+      discountCodeName = 'Mã App GOILAI247 (-10%)';
+      promoMessage = 'Đã áp dụng mã giảm 10% App GOILAI247';
+    } else if (cleanPromo === 'VIP20' || cleanPromo === 'VIP') {
+      discountPercent = 20;
+      discountAmount = Math.round(originalPrice * 0.20);
+      appliedCode = 'VIP20';
+      discountCodeName = 'Mã Khách VIP (-20%)';
+      promoMessage = 'Đã áp dụng mã Khách VIP (-20%)';
+    } else if (cleanPromo === 'TRIAN15' || cleanPromo === 'BANMOI' || cleanPromo === 'CHAO2026') {
+      discountPercent = 15;
+      discountAmount = Math.round(originalPrice * 0.15);
+      appliedCode = cleanPromo;
+      discountCodeName = `Mã Tri Ân ${cleanPromo} (-15%)`;
+      promoMessage = `Đã áp dụng mã tri ân ${cleanPromo} (-15%)`;
+    } else if (cleanPromo === 'DGO50K' || cleanPromo === '50K' || cleanPromo === 'GIAM50K') {
+      discountAmount = Math.min(originalPrice, 50000);
+      discountPercent = originalPrice > 0 ? Math.round((discountAmount / originalPrice) * 100) : 0;
+      appliedCode = 'DGO50K';
+      discountCodeName = 'Voucher D.GO (-50.000 VNĐ)';
+      promoMessage = 'Đã áp dụng Voucher D.GO (-50.000 VNĐ)';
+    } else if (cleanPromo.startsWith('GIAM') && !isNaN(Number(cleanPromo.replace('GIAM', '')))) {
+      const pct = Math.min(80, Math.max(1, Number(cleanPromo.replace('GIAM', ''))));
+      discountPercent = pct;
+      discountAmount = Math.round(originalPrice * (pct / 100));
+      appliedCode = cleanPromo;
+      discountCodeName = `Mã Ưu Đãi ${cleanPromo} (-${pct}%)`;
+      promoMessage = `Đã áp dụng mã giảm ${pct}%`;
+    } else {
+      // Mã nhập không khớp danh sách -> tự động dùng mã mặc định GOILAI247 và báo lỗi
+      discountPercent = 10;
+      discountAmount = Math.round(originalPrice * 0.10);
+      appliedCode = 'GOILAI247';
+      discountCodeName = 'Mã App GOILAI247 (-10%)';
+      promoError = `Mã "${cleanPromo}" không hợp lệ. Đã tự động áp dụng mã mặc định GOILAI247 (-10%)`;
+    }
+
     const totalPrice = Math.max(0, originalPrice - discountAmount);
 
     // Thời gian di chuyển ước tính
@@ -146,6 +193,10 @@ export class PriceCalculator {
       discountPercent,
       discountAmount,
       totalPrice,
+      promoCode: appliedCode,
+      discountCodeName,
+      promoMessage,
+      promoError,
       distanceKm: Math.round(distanceKm * 10) / 10,
       estimatedMinutes,
       isHourly: isHourlyMode,

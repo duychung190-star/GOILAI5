@@ -26,9 +26,13 @@ export interface PriceBreakdown {
   vatAmount: number;
   totalBeforeVat: number;
   originalPrice: number;    // Giá gốc (chưa giảm)
-  discountPercent: number;  // 10%
-  discountAmount: number;   // Số tiền giảm 10%
+  discountPercent: number;  // Tỷ lệ % giảm (ví dụ: 10, 20)
+  discountAmount: number;   // Số tiền giảm
   totalPrice: number;       // Giá khách phải thanh toán (originalPrice - discountAmount)
+  promoCode?: string;       // Mã giảm giá áp dụng (e.g., GOILAI247, VIP20, DGO50K)
+  discountCodeName?: string;// Tên hiển thị của voucher
+  promoMessage?: string;    // Thông báo thành công khi áp mã
+  promoError?: string;      // Thông báo lỗi khi mã không hợp lệ
   distanceKm: number;
   estimatedMinutes: number;
   isHourly: boolean;

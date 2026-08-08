@@ -109,15 +109,15 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           </span>
         </div>
 
-        {/* 10% App Discount Promotion Program */}
+        {/* Applied Voucher / Discount Promotion Banner */}
         <div className="flex items-center justify-between text-emerald-900 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 shadow-sm">
           <div className="flex items-center gap-2">
             <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
-              APP -10%
+              {breakdown.promoCode || 'GOILAI247'}
             </span>
             <div className="text-xs">
-              <p className="font-bold text-emerald-800">Khuyến mãi App GOILAI247:</p>
-              <p className="text-[10px] text-emerald-600">Tặng mã giảm giá 10% khi đặt qua app</p>
+              <p className="font-bold text-emerald-800">{breakdown.discountCodeName || 'Khuyến mãi App GOILAI247'}:</p>
+              <p className="text-[10px] text-emerald-600">Đã áp dụng mã voucher giảm giá</p>
             </div>
           </div>
           <span className="font-black text-emerald-700 text-sm sm:text-base shrink-0">
@@ -131,7 +131,9 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <p className="text-xs font-black uppercase tracking-wider text-amber-900">GIÁ PHẢI THANH TOÁN</p>
-                <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Đã giảm 10%</span>
+                <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  Mã: {breakdown.promoCode || 'GOILAI247'}
+                </span>
               </div>
               <p className="text-[11px] text-slate-600 mt-0.5">
                 Giá gốc {PriceCalculator.formatCurrency(breakdown.originalPrice)} → <strong className="text-emerald-700">Tiết kiệm {PriceCalculator.formatCurrency(breakdown.discountAmount)}</strong>

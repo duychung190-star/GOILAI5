@@ -7,6 +7,8 @@ export const sendTelegramNotification = async (bookingData: {
   originalPrice?: number | string;
   discountAmount?: number | string;
   discountPercent?: number;
+  promoCode?: string;
+  discountCodeName?: string;
   vehicleType?: string;
   distanceKm?: number;
   noteForDriver?: string;
@@ -30,6 +32,9 @@ export const sendTelegramNotification = async (bookingData: {
     ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountVal)
     : discountVal;
 
+  const promoCode = bookingData.promoCode || 'GOILAI247';
+  const discountName = bookingData.discountCodeName || 'Mã App GOILAI247 (-10%)';
+
   let text = `🚗 CÓ ĐƠN ĐẶT XE MỚI!\n`;
 
   if (bookingData.isNewCustomer) {
@@ -50,16 +55,16 @@ export const sendTelegramNotification = async (bookingData: {
   }
 
   text += `------------------\n` +
-    `🎁 Khuyến mãi: Tặng mã giảm 10% (App GOILAI247)\n`;
+    `🎁 Voucher áp dụng: ${promoCode} (${discountName})\n`;
 
   if (formattedOriginalPrice) {
     text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
   }
   if (formattedDiscount) {
-    text += `🏷️ Giảm giá (10%): -${formattedDiscount}\n`;
+    text += `🏷️ Số tiền giảm: -${formattedDiscount}\n`;
   }
 
-  text += `💰 Giá sau khi giảm 10% (Khách trả): ${formattedPrice}`;
+  text += `💰 Giá sau khi giảm (Khách trả): ${formattedPrice}`;
 
   if (bookingData.noteForDriver) {
     text += `\nGhi chú: ${bookingData.noteForDriver}`;

@@ -3,7 +3,7 @@ import { LocationPoint, VehicleTypeOption, VatDetails, SearchSuggestion, PriceBr
 import { PriceCalculator } from '../utils/PriceCalculator';
 import { autoCompleteGoong, getPlaceDetailGoong, reverseGeocodeGoong } from '../utils/goong';
 import { useLanguage } from '../i18n/LanguageContext';
-import { MapPin, Navigation, Car, Bike, ShieldCheck, Clock, FileText, User, Phone, Edit3, Sparkles, Check, AlertCircle, Calculator, Route } from 'lucide-react';
+import { MapPin, Navigation, Car, Bike, ShieldCheck, Clock, FileText, User, Phone, Edit3, Sparkles, Check, AlertCircle, Calculator, Route, Ticket, Tag, Percent } from 'lucide-react';
 
 interface BookingFormProps {
   customerName: string;
@@ -30,6 +30,8 @@ interface BookingFormProps {
   setVatDetails: React.Dispatch<React.SetStateAction<VatDetails>>;
   priceBreakdown?: PriceBreakdown;
   isCalculatingRoute?: boolean;
+  promoCode?: string;
+  setPromoCode?: (code: string) => void;
   onFormValidationFail: (msg: string) => void;
   onOpenPhoneAuth?: () => void;
 }
@@ -59,12 +61,30 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   setVatDetails,
   priceBreakdown,
   isCalculatingRoute,
+  promoCode = 'GOILAI247',
+  setPromoCode,
   onFormValidationFail,
   onOpenPhoneAuth
 }) => {
   const { t } = useLanguage();
   const [pickupInput, setPickupInput] = useState(pickup?.address || '');
   const [destInput, setDestInput] = useState(destination?.address || '');
+  
+  const [couponInput, setCouponInput] = useState(promoCode || 'GOILAI247');
+
+  useEffect(() => {
+    if (promoCode && promoCode !== couponInput) {
+      setCouponInput(promoCode);
+    }
+  }, [promoCode]);
+
+  const handleApplyCoupon = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const codeToApply = couponInput.trim().toUpperCase() || 'GOILAI247';
+    if (setPromoCode) {
+      setPromoCode(codeToApply);
+    }
+  };
   
   const [pickupSuggestions, setPickupSuggestions] = useState<SearchSuggestion[]>([]);
   const [destSuggestions, setDestSuggestions] = useState<SearchSuggestion[]>([]);
@@ -783,6 +803,89 @@ export const BookingForm: React.FC<BookingFormProps> = ({
 
       </div>
 
+        {/* Coupon / Voucher Discount Code Input Section */}
+        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <Ticket className="w-4 h-4 text-amber-600" />
+              <span>MÃ GIẢM GIÁ / VOUCHER KHUYẾN MÃI</span>
+            </label>
+            {priceBreakdown?.promoCode && (
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                Đang dùng: {priceBreakdown.promoCode}
+              </span>
+            )}
+          </div>
+
+          <form onSubmit={handleApplyCoupon} className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                placeholder="Nhập mã voucher (VD: VIP20, DGO50K, TRIAN15)..."
+                className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 uppercase placeholder:normal-case placeholder:font-normal placeholder:text-slate-400"
+              />
+              <Tag className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleApplyCoupon()}
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-lg transition-colors shadow-xs shrink-0 cursor-pointer"
+            >
+              Áp Dụng
+            </button>
+          </form>
+
+          {/* Quick Voucher Suggestion Pills */}
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Mã hot chọn nhanh:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { code: 'GOILAI247', label: 'GOILAI247 (-10%)' },
+                { code: 'VIP20', label: 'VIP20 (-20%)' },
+                { code: 'TRIAN15', label: 'TRIAN15 (-15%)' },
+                { code: 'DGO50K', label: 'DGO50K (-50k)' }
+              ].map((v) => (
+                <button
+                  key={v.code}
+                  type="button"
+                  onClick={() => {
+                    setCouponInput(v.code);
+                    if (setPromoCode) setPromoCode(v.code);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all flex items-center gap-1 cursor-pointer ${
+                    (priceBreakdown?.promoCode === v.code || couponInput === v.code)
+                      ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-xs ring-1 ring-amber-400'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-amber-400 hover:bg-amber-50'
+                  }`}
+                >
+                  <Percent className="w-3 h-3 text-amber-700 shrink-0" />
+                  <span>{v.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Voucher Result Alert */}
+          {priceBreakdown?.promoError ? (
+            <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-lg text-xs text-amber-900 font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>{priceBreakdown.promoError}</span>
+            </div>
+          ) : priceBreakdown?.promoMessage ? (
+            <div className="p-2.5 bg-emerald-50 border border-emerald-300 rounded-lg text-xs text-emerald-900 font-bold flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{priceBreakdown.promoMessage} ({priceBreakdown.discountCodeName})</span>
+              </div>
+              <span className="text-emerald-700 font-extrabold text-xs shrink-0">
+                Tiết kiệm {PriceCalculator.formatCurrency(priceBreakdown.discountAmount)}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
         {/* Live Distance & Estimated Total Price Banner (Google Maps Distance Matrix / Directions API) */}
         {priceBreakdown && (
           <div className="bg-amber-50/90 border border-amber-300 p-4 rounded-xl shadow-sm transition-all animate-fadeIn">
@@ -816,13 +919,17 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 {priceBreakdown.discountAmount > 0 && (
                   <div className="text-[11px] text-slate-500 flex items-center justify-start sm:justify-end gap-1">
                     <span className="line-through decoration-slate-400 font-medium">{PriceCalculator.formatCurrency(priceBreakdown.originalPrice)}</span>
-                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.2 rounded border border-emerald-300">-10% App</span>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.2 rounded border border-emerald-300">
+                      Mã {priceBreakdown.promoCode || 'GOILAI247'}
+                    </span>
                   </div>
                 )}
                 <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
                   {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
                 </span>
-                <p className="text-[10px] text-emerald-700 font-semibold">Đã áp mã giảm 10% App GOILAI247</p>
+                <p className="text-[10px] text-emerald-700 font-semibold">
+                  Đã áp dụng mã {priceBreakdown.promoCode || 'GOILAI247'} (Giảm {PriceCalculator.formatCurrency(priceBreakdown.discountAmount)})
+                </p>
               </div>
             </div>
           </div>

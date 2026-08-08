@@ -54,6 +54,7 @@ export default function App() {
   const [vehicleType, setVehicleType] = useState<VehicleTypeOption>('Ô tô / Xe máy');
   const [hourlyHours, setHourlyHours] = useState(3);
   const [dailyDays, setDailyDays] = useState(1);
+  const [promoCode, setPromoCode] = useState('GOILAI247');
   const [noteForDriver, setNoteForDriver] = useState('');
   const [scheduledTime, setScheduledTime] = useState<Date>(new Date());
   
@@ -341,9 +342,10 @@ export default function App() {
       dailyDays,
       scheduledTime,
       needVat,
-      roadDurationMinutes
+      roadDurationMinutes,
+      promoCode
     );
-  }, [calculatedDistanceKm, vehicleType, hourlyHours, dailyDays, scheduledTime, needVat, roadDurationMinutes]);
+  }, [calculatedDistanceKm, vehicleType, hourlyHours, dailyDays, scheduledTime, needVat, roadDurationMinutes, promoCode]);
 
   // Handle Map Location Selection via map click using Goong Reverse Geocoding
   const handleSelectMapLocation = async (lat: number, lng: number, target: 'pickup' | 'destination') => {
@@ -458,6 +460,8 @@ export default function App() {
         originalPrice: newBooking.breakdown.originalPrice,
         discountAmount: newBooking.breakdown.discountAmount,
         discountPercent: newBooking.breakdown.discountPercent,
+        promoCode: newBooking.breakdown.promoCode,
+        discountCodeName: newBooking.breakdown.discountCodeName,
         totalPrice: newBooking.totalPrice,
         vehicleType: newBooking.vehicleType,
         distanceKm: newBooking.distanceKm,
@@ -538,6 +542,8 @@ export default function App() {
               setVatDetails={setVatDetails}
               priceBreakdown={priceBreakdown}
               isCalculatingRoute={isCalculatingRoute}
+              promoCode={promoCode}
+              setPromoCode={setPromoCode}
               onFormValidationFail={(msg) => setValidationError(msg)}
               onOpenPhoneAuth={() => setIsPhoneAuthOpen(true)}
             />

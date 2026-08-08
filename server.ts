@@ -72,17 +72,20 @@ const sendTelegramNotification = async (bookingData: any) => {
       text += `Khoảng cách: ${bookingData.distanceKm} km\n`;
     }
 
+    const promoCode = bookingData.breakdown?.promoCode || bookingData.promoCode || 'GOILAI247';
+    const discountName = bookingData.breakdown?.discountCodeName || bookingData.discountCodeName || 'Mã App GOILAI247 (-10%)';
+
     text += `------------------\n` +
-      `🎁 Khuyến mãi: Tặng mã giảm 10% (App GOILAI247)\n`;
+      `🎁 Voucher áp dụng: ${promoCode} (${discountName})\n`;
 
     if (formattedOriginalPrice) {
       text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
     }
     if (formattedDiscount) {
-      text += `🏷️ Giảm giá (10%): -${formattedDiscount}\n`;
+      text += `🏷️ Số tiền giảm: -${formattedDiscount}\n`;
     }
 
-    text += `💰 Giá sau khi giảm 10% (Khách trả): ${formattedPrice}`;
+    text += `💰 Giá thanh toán (Khách trả): ${formattedPrice}`;
 
     if (bookingData.noteForDriver) {
       text += `\nGhi chú: ${bookingData.noteForDriver}`;
