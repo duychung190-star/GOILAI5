@@ -101,42 +101,51 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           </div>
         )}
 
-        {/* Original Price (Giá gốc) */}
-        <div className="flex items-center justify-between pt-2 border-t border-dashed border-slate-200 text-slate-700">
-          <span className="text-slate-600 font-medium text-xs sm:text-sm">Giá gốc cước xe:</span>
-          <span className="font-bold text-slate-800 text-sm line-through decoration-slate-400">
-            {PriceCalculator.formatCurrency(breakdown.originalPrice || breakdown.totalBeforeVat)}
-          </span>
-        </div>
-
-        {/* Applied Voucher / Discount Promotion Banner */}
-        <div className="flex items-center justify-between text-emerald-900 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
-              {breakdown.promoCode || 'GOILAI247'}
-            </span>
-            <div className="text-xs">
-              <p className="font-bold text-emerald-800">{breakdown.discountCodeName || 'Khuyến mãi App GOILAI247'}:</p>
-              <p className="text-[10px] text-emerald-600">Đã áp dụng mã voucher giảm giá</p>
+        {/* Original Price & Discount Section (Shown if discount applied) */}
+        {breakdown.discountAmount > 0 ? (
+          <>
+            <div className="flex items-center justify-between pt-2 border-t border-dashed border-slate-200 text-slate-700">
+              <span className="text-slate-600 font-medium text-xs sm:text-sm">Giá gốc cước xe:</span>
+              <span className="font-bold text-slate-800 text-sm line-through decoration-slate-400">
+                {PriceCalculator.formatCurrency(breakdown.originalPrice || breakdown.totalBeforeVat)}
+              </span>
             </div>
-          </div>
-          <span className="font-black text-emerald-700 text-sm sm:text-base shrink-0">
-            -{PriceCalculator.formatCurrency(breakdown.discountAmount)}
-          </span>
-        </div>
 
-        {/* Total Price Banner (Giá sau khi đã áp mã giảm giá) */}
+            <div className="flex items-center justify-between text-emerald-900 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0">
+                  {breakdown.promoCode}
+                </span>
+                <div className="text-xs">
+                  <p className="font-bold text-emerald-800">{breakdown.discountCodeName || 'Mã ưu đãi'}:</p>
+                  <p className="text-[10px] text-emerald-600">Đã áp dụng mã voucher giảm giá</p>
+                </div>
+              </div>
+              <span className="font-black text-emerald-700 text-sm sm:text-base shrink-0">
+                -{PriceCalculator.formatCurrency(breakdown.discountAmount)}
+              </span>
+            </div>
+          </>
+        ) : null}
+
+        {/* Total Price Banner */}
         <div className="pt-2 border-t border-slate-200">
           <div className="bg-gradient-to-r from-amber-50 via-amber-100/90 to-amber-50 p-4 rounded-xl border border-amber-300 shadow-sm flex items-center justify-between">
             <div>
               <div className="flex items-center gap-1.5">
                 <p className="text-xs font-black uppercase tracking-wider text-amber-900">GIÁ PHẢI THANH TOÁN</p>
-                <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  Mã: {breakdown.promoCode || 'GOILAI247'}
-                </span>
+                {breakdown.discountAmount > 0 && (
+                  <span className="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    Mã: {breakdown.promoCode}
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-slate-600 mt-0.5">
-                Giá gốc {PriceCalculator.formatCurrency(breakdown.originalPrice)} → <strong className="text-emerald-700">Tiết kiệm {PriceCalculator.formatCurrency(breakdown.discountAmount)}</strong>
+                {breakdown.discountAmount > 0 ? (
+                  <>Giá gốc {PriceCalculator.formatCurrency(breakdown.originalPrice)} → <strong className="text-emerald-700">Tiết kiệm {PriceCalculator.formatCurrency(breakdown.discountAmount)}</strong></>
+                ) : (
+                  <span>Giá cước niêm yết chính xác</span>
+                )}
               </p>
             </div>
             <div className="text-right">

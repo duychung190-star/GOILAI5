@@ -147,9 +147,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-sm">
               <div>
                 <span className="font-extrabold uppercase text-slate-200">GIÁ THANH TOÁN:</span>
-                <p className="text-[10px] text-emerald-400 font-medium">
-                  Mã voucher: {booking.breakdown?.promoCode || 'GOILAI247'} (Đã giảm {PriceCalculator.formatCurrency(booking.breakdown?.discountAmount || 0)})
-                </p>
+                {booking.breakdown?.discountAmount && booking.breakdown.discountAmount > 0 ? (
+                  <p className="text-[10px] text-emerald-400 font-medium">
+                    Mã voucher: {booking.breakdown.promoCode} (Đã giảm {PriceCalculator.formatCurrency(booking.breakdown.discountAmount)})
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-slate-400 font-medium">
+                    Giá cước niêm yết chính xác
+                  </p>
+                )}
               </div>
               <span className="text-xl font-black text-amber-400">
                 {PriceCalculator.formatCurrency(booking.totalPrice)}

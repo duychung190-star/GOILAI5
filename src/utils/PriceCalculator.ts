@@ -124,38 +124,56 @@ export class PriceCalculator {
     const originalPrice = totalBeforeVat + vatAmount;
 
     // Xử lý mã giảm giá / Voucher khuyến mãi
-    const cleanPromo = (promoCode || 'GOILAI247').trim().toUpperCase();
+    const cleanPromo = (promoCode || '').trim().toUpperCase();
     let discountPercent = 0;
     let discountAmount = 0;
-    let discountCodeName = 'Mã App GOILAI247 (-10%)';
+    let discountCodeName = '';
     let promoMessage = '';
     let promoError = '';
-    let appliedCode = cleanPromo || 'GOILAI247';
+    let appliedCode = cleanPromo;
 
-    if (!cleanPromo || cleanPromo === 'GOILAI247' || cleanPromo === 'APP10' || cleanPromo === 'DGO10') {
+    if (!cleanPromo) {
+      discountPercent = 0;
+      discountAmount = 0;
+      appliedCode = '';
+      discountCodeName = '';
+      promoMessage = '';
+    } else if (cleanPromo === 'GOILAI10' || cleanPromo === 'GOILAI247' || cleanPromo === 'APP10' || cleanPromo === 'DGO10') {
       discountPercent = 10;
       discountAmount = Math.round(originalPrice * 0.10);
-      appliedCode = 'GOILAI247';
-      discountCodeName = 'Mã App GOILAI247 (-10%)';
-      promoMessage = 'Đã áp dụng mã giảm 10% App GOILAI247';
-    } else if (cleanPromo === 'VIP20' || cleanPromo === 'VIP') {
-      discountPercent = 20;
-      discountAmount = Math.round(originalPrice * 0.20);
-      appliedCode = 'VIP20';
-      discountCodeName = 'Mã Khách VIP (-20%)';
-      promoMessage = 'Đã áp dụng mã Khách VIP (-20%)';
-    } else if (cleanPromo === 'TRIAN15' || cleanPromo === 'BANMOI' || cleanPromo === 'CHAO2026') {
+      appliedCode = 'GOILAI10';
+      discountCodeName = 'Mã GOILAI10 (-10%)';
+      promoMessage = 'Đã áp dụng mã giảm 10% cho chuyến đi';
+    } else if (cleanPromo === 'GOILAI15' || cleanPromo === 'TRIAN15' || cleanPromo === 'BANMOI' || cleanPromo === 'CHAO2026') {
       discountPercent = 15;
       discountAmount = Math.round(originalPrice * 0.15);
-      appliedCode = cleanPromo;
-      discountCodeName = `Mã Tri Ân ${cleanPromo} (-15%)`;
-      promoMessage = `Đã áp dụng mã tri ân ${cleanPromo} (-15%)`;
+      appliedCode = cleanPromo === 'TRIAN15' ? 'TRIAN15' : 'GOILAI15';
+      discountCodeName = `Mã Khuyến Mãi ${appliedCode} (-15%)`;
+      promoMessage = `Đã áp dụng mã giảm 15% (${appliedCode})`;
+    } else if (cleanPromo === 'DGOVIP20' || cleanPromo === 'VIP20' || cleanPromo === 'GOILAI20' || cleanPromo === 'VIP') {
+      discountPercent = 20;
+      discountAmount = Math.round(originalPrice * 0.20);
+      appliedCode = cleanPromo === 'DGOVIP20' ? 'DGOVIP20' : 'VIP20';
+      discountCodeName = `Mã VIP ${appliedCode} (-20%)`;
+      promoMessage = `Đã áp dụng mã giảm 20% (${appliedCode})`;
+    } else if (cleanPromo === 'VIP15') {
+      discountPercent = 15;
+      discountAmount = Math.round(originalPrice * 0.15);
+      appliedCode = 'VIP15';
+      discountCodeName = 'Mã Khách VIP15 (-15%)';
+      promoMessage = 'Đã áp dụng mã Khách VIP (-15%)';
+    } else if (cleanPromo === 'TRIAN10') {
+      discountPercent = 10;
+      discountAmount = Math.round(originalPrice * 0.10);
+      appliedCode = 'TRIAN10';
+      discountCodeName = 'Mã Tri Ân TRIAN10 (-10%)';
+      promoMessage = 'Đã áp dụng mã Tri Ân (-10%)';
     } else if (cleanPromo === 'DGO50K' || cleanPromo === '50K' || cleanPromo === 'GIAM50K') {
       discountAmount = Math.min(originalPrice, 50000);
       discountPercent = originalPrice > 0 ? Math.round((discountAmount / originalPrice) * 100) : 0;
       appliedCode = 'DGO50K';
-      discountCodeName = 'Voucher D.GO (-50.000 VNĐ)';
-      promoMessage = 'Đã áp dụng Voucher D.GO (-50.000 VNĐ)';
+      discountCodeName = 'Voucher DGO50K (-50.000 VNĐ)';
+      promoMessage = 'Đã áp dụng Voucher DGO50K (-50.000 VNĐ)';
     } else if (cleanPromo.startsWith('GIAM') && !isNaN(Number(cleanPromo.replace('GIAM', '')))) {
       const pct = Math.min(80, Math.max(1, Number(cleanPromo.replace('GIAM', ''))));
       discountPercent = pct;
@@ -164,12 +182,11 @@ export class PriceCalculator {
       discountCodeName = `Mã Ưu Đãi ${cleanPromo} (-${pct}%)`;
       promoMessage = `Đã áp dụng mã giảm ${pct}%`;
     } else {
-      // Mã nhập không khớp danh sách -> tự động dùng mã mặc định GOILAI247 và báo lỗi
-      discountPercent = 10;
-      discountAmount = Math.round(originalPrice * 0.10);
-      appliedCode = 'GOILAI247';
-      discountCodeName = 'Mã App GOILAI247 (-10%)';
-      promoError = `Mã "${cleanPromo}" không hợp lệ. Đã tự động áp dụng mã mặc định GOILAI247 (-10%)`;
+      discountPercent = 0;
+      discountAmount = 0;
+      appliedCode = cleanPromo;
+      discountCodeName = '';
+      promoError = `Mã "${cleanPromo}" không hợp lệ hoặc đã hết hạn`;
     }
 
     const totalPrice = Math.max(0, originalPrice - discountAmount);

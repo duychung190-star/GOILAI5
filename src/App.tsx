@@ -54,7 +54,7 @@ export default function App() {
   const [vehicleType, setVehicleType] = useState<VehicleTypeOption>('Ô tô / Xe máy');
   const [hourlyHours, setHourlyHours] = useState(3);
   const [dailyDays, setDailyDays] = useState(1);
-  const [promoCode, setPromoCode] = useState('GOILAI247');
+  const [promoCode, setPromoCode] = useState('');
   const [noteForDriver, setNoteForDriver] = useState('');
   const [scheduledTime, setScheduledTime] = useState<Date>(new Date());
   
