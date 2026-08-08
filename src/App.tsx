@@ -24,6 +24,7 @@ import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
 import { syncUserFromFirestore } from './services/userService';
+import { ensureFirebaseAuth } from './lib/firebase';
 import { PriceCalculator } from './utils/PriceCalculator';
 import { getDirectionsGoong, reverseGeocodeGoong } from './utils/goong';
 import { sendTelegramNotification } from './utils/telegram';
@@ -84,8 +85,10 @@ export default function App() {
     }
   });
 
-  // Auto-restore persistent login session from server on load
+  // Auto-restore persistent login session from server on load & initialize Firebase Auth
   useEffect(() => {
+    ensureFirebaseAuth().catch(err => console.warn('Firebase Auth setup:', err));
+
     const token = localStorage.getItem('dgo_token');
     const savedUserStr = localStorage.getItem('dgo_user');
     

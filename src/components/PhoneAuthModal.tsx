@@ -243,10 +243,10 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
               <h3 className="text-sm font-bold text-white flex items-center gap-1.5">
                 <span>D.GO Customer Account</span>
                 <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-extrabold border border-amber-500/30">
-                  247 AUTH
+                  FIREBASE & FIRESTORE
                 </span>
               </h3>
-              <p className="text-[11px] text-slate-400">Đăng Nhập / Đăng Ký SĐT • Tự động Tích Điểm VIP</p>
+              <p className="text-[11px] text-slate-400">Đăng Nhập SĐT • Lưu Số Lần Đặt Xe & Tích Điểm VIP trên Firestore</p>
             </div>
           </div>
           <button
