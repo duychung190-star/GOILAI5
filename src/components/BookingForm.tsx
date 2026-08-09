@@ -61,7 +61,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   setVatDetails,
   priceBreakdown,
   isCalculatingRoute,
-  promoCode = '',
+  promoCode = 'GOILAI10',
   setPromoCode,
   onFormValidationFail,
   onOpenPhoneAuth
@@ -70,11 +70,11 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   const [pickupInput, setPickupInput] = useState(pickup?.address || '');
   const [destInput, setDestInput] = useState(destination?.address || '');
   
-  const [couponInput, setCouponInput] = useState(promoCode || '');
+  const [couponInput, setCouponInput] = useState(promoCode || 'GOILAI10');
 
   useEffect(() => {
     if (promoCode !== couponInput) {
-      setCouponInput(promoCode || '');
+      setCouponInput(promoCode || 'GOILAI10');
     }
   }, [promoCode]);
 

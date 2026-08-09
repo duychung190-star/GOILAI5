@@ -38,7 +38,11 @@ export async function saveUserProfileToFirestore(userProfile: UserProfile): Prom
 
     await withTimeout(setDoc(userDocRef, dataToSave, { merge: true }));
   } catch (err: any) {
-    console.log('[Firestore Service] Unreachable or offline when saving profile:', err?.message || err);
+    if (err?.message?.includes('PERMISSION_DENIED') || err?.code === 'permission-denied') {
+      console.log('[Firestore Service] Permission denied or API disabled, using local state.');
+    } else {
+      console.log('[Firestore Service] Unreachable or offline when saving profile:', err?.message || err);
+    }
   }
 }
 
@@ -66,7 +70,11 @@ export async function getUserProfileFromFirestore(phone: string): Promise<UserPr
       } as UserProfile;
     }
   } catch (err: any) {
-    console.log('[Firestore Service] Unreachable or offline when loading profile:', err?.message || err);
+    if (err?.message?.includes('PERMISSION_DENIED') || err?.code === 'permission-denied') {
+      console.log('[Firestore Service] Permission denied or API disabled when loading profile.');
+    } else {
+      console.log('[Firestore Service] Unreachable or offline when loading profile:', err?.message || err);
+    }
   }
   return null;
 }
@@ -93,7 +101,11 @@ export async function getUserBookingHistoryFromFirestore(phone: string): Promise
     // Sắp xếp theo thời gian mới nhất
     return bookings.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   } catch (err: any) {
-    console.log('[Firestore Service] Unreachable or offline when loading booking history:', err?.message || err);
+    if (err?.message?.includes('PERMISSION_DENIED') || err?.code === 'permission-denied') {
+      console.log('[Firestore Service] Permission denied or API disabled when loading booking history.');
+    } else {
+      console.log('[Firestore Service] Unreachable or offline when loading booking history:', err?.message || err);
+    }
     return [];
   }
 }
