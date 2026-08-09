@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
-import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking, saveFirestoreRating, getFirestoreRatings } from './src/lib/firebase-server';
+import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking, saveFirestoreRating, getFirestoreRatings, incrementFirestoreUserOrderCount } from './src/lib/firebase-server';
 
 const app = express();
 const PORT = 3000;
@@ -47,49 +47,49 @@ const sendTelegramNotification = async (bookingData: any) => {
       ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountAmountNum)
       : (discountAmountNum || null);
 
-    const name = bookingData.customerName || bookingData.name || 'Khách hàng';
-    const phone = bookingData.customerPhone || bookingData.phone || '';
-    const pickup = bookingData.pickupAddress || bookingData.pickup || '';
-    const dropoff = bookingData.destinationAddress || bookingData.dropoff || '';
+    const name = bookingData.customerName || bookingData.fullName || bookingData.name || 'Khách hàng';
+    const phone = bookingData.customerPhone || bookingData.phoneNumber || bookingData.phone || '';
+    const pickup = bookingData.pickupLocation || bookingData.pickupAddress || '';
+    const dropoff = bookingData.dropoffLocation || bookingData.destinationAddress || '';
+    const orderIndex = bookingData.orderIndex || bookingData.totalOrdersCount || 1;
+    const distanceKm = bookingData.distanceKm || 0;
+    const durationMinutes = bookingData.durationMinutes || bookingData.breakdown?.estimatedMinutes || Math.round(distanceKm * 2.2 + 5);
+    const vehicleType = bookingData.vehicleType || 'Ô tô / Xe máy';
+    const noteForDriver = bookingData.noteForDriver || bookingData.note || 'Không có ghi chú';
 
-    let text = `🚗 CÓ ĐƠN ĐẶT XE MỚI!\n`;
-
-    // Retention Tracking Badge for Telegram & Dispatcher Team
-    if (bookingData.isNewCustomer) {
-      text += `👉 🌱 KHÁCH HÀNG MỚI ĐẶT LẦN ĐẦU\n`;
-    } else if (bookingData.totalOrdersCount) {
-      text += `👉 🔥 KHÁCH HÀNG CŨ QUAY LẠI (Cuốc thứ ${bookingData.totalOrdersCount})\n`;
-    }
-
-    text += `Khách: ${name} - ${phone}\n` +
-      `Đón: ${pickup}\n` +
-      `Đến: ${dropoff}\n`;
-
-    if (bookingData.vehicleType) {
-      text += `Loại xe: ${bookingData.vehicleType}\n`;
-    }
-    if (bookingData.distanceKm) {
-      text += `Khoảng cách: ${bookingData.distanceKm} km\n`;
+    let text = '';
+    if (orderIndex === 1) {
+      text = `🆕 CÓ ĐƠN ĐẶT XE MỚI (KHÁCH HÀNG MỚI)\n` +
+        `- Khách hàng: ${name} - ${phone}\n` +
+        `- Lộ trình: ${pickup} ➔ ${dropoff}\n` +
+        `- Quãng đường: ${distanceKm} km | Thời gian: ${durationMinutes} phút\n` +
+        `- Loại xe: ${vehicleType}\n` +
+        `- Ghi chú cho tài xế: ${noteForDriver}\n` +
+        `- Tổng tiền: ${formattedPrice}`;
+    } else {
+      text = `🔥 CÓ ĐƠN ĐẶT XE MỚI (KHÁCH CŨ QUAY LẠI - LẦN THỨ ${orderIndex})\n` +
+        `- Khách hàng: ${name} - ${phone}\n` +
+        `- Lộ trình: ${pickup} ➔ ${dropoff}\n` +
+        `- Quãng đường: ${distanceKm} km | Thời gian: ${durationMinutes} phút\n` +
+        `- Loại xe: ${vehicleType}\n` +
+        `- Ghi chú cho tài xế: ${noteForDriver}\n` +
+        `- Tổng tiền: ${formattedPrice}\n` +
+        `- Tần suất: Khách đã đặt ${orderIndex} chuyến trên D.GO!`;
     }
 
     const promoCode = bookingData.breakdown?.promoCode || bookingData.promoCode;
     const discountName = bookingData.breakdown?.discountCodeName || bookingData.discountCodeName;
 
-    text += `------------------\n`;
     if (promoCode && discountAmountNum > 0) {
-      text += `🎁 Voucher áp dụng: ${promoCode}${discountName ? ` (${discountName})` : ''}\n`;
+      text += `\n------------------\n` +
+        `🎁 Voucher áp dụng: ${promoCode}${discountName ? ` (${discountName})` : ''}\n`;
       if (formattedOriginalPrice) {
         text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
       }
       if (formattedDiscount) {
         text += `🏷️ Số tiền giảm: -${formattedDiscount}\n`;
       }
-    }
-
-    text += `💰 Giá thanh toán (Khách trả): ${formattedPrice}`;
-
-    if (bookingData.noteForDriver) {
-      text += `\nGhi chú: ${bookingData.noteForDriver}`;
+      text += `💰 Giá thanh toán (Khách trả): ${formattedPrice}`;
     }
 
     // Determine target chat ID options
@@ -190,59 +190,51 @@ app.post("/api/booking", async (req, res) => {
     bookingData.createdAt = Date.now();
     bookingData.status = bookingData.status || "PENDING";
 
-    // 1. Calculate Retention Metrics for Telegram & Dispatcher tracking
-    const phoneRaw = bookingData.customerPhone || '';
+    const phoneRaw = bookingData.customerPhone || bookingData.phoneNumber || '';
     const cleanPhone = phoneRaw.replace(/\D/g, '');
+    const name = bookingData.customerName || bookingData.fullName || 'Khách hàng';
 
-    const priorBookings = bookingsStore.filter(b => {
-      const bPhone = (b.customerPhone || '').replace(/\D/g, '');
-      return bPhone && cleanPhone && bPhone === cleanPhone;
-    });
+    // 1. Calculate Retention Metrics and increment totalOrdersCount in Firestore users collection
+    let orderIndex = 1;
+    if (cleanPhone) {
+      orderIndex = await incrementFirestoreUserOrderCount(cleanPhone, name);
+    }
 
-    const totalOrdersCount = priorBookings.length + 1;
-    const isNewCustomer = priorBookings.length === 0;
+    bookingData.orderIndex = orderIndex;
+    bookingData.totalOrdersCount = orderIndex;
+    bookingData.isNewCustomer = orderIndex === 1;
+    bookingData.customerPhoneClean = cleanPhone;
+    bookingData.phoneNumber = cleanPhone || bookingData.customerPhone;
+    bookingData.pickupLocation = bookingData.pickupLocation || bookingData.pickupAddress;
+    bookingData.dropoffLocation = bookingData.dropoffLocation || bookingData.destinationAddress;
 
-    bookingData.totalOrdersCount = totalOrdersCount;
-    bookingData.isNewCustomer = isNewCustomer;
+    // 2. Save booking to Cloud Firestore `bookings` collection
+    await saveFirestoreBooking(bookingData);
 
+    // Save to local memory store for dispatcher view
     bookingsStore.unshift(bookingData);
 
-    // Update user profile in usersStore if existing or logged in
+    // Update user in memory store if present
     if (cleanPhone) {
       let user = usersStore.get(cleanPhone);
-      if (!user) {
-        // Try fetching user from Firestore
-        const fsUser = await getFirestoreUser(cleanPhone);
-        if (fsUser) {
-          user = fsUser as any;
-          usersStore.set(cleanPhone, user!);
-        }
-      }
-
       if (user) {
-        user.tripsCount = Math.max(user.tripsCount + 1, totalOrdersCount);
+        user.tripsCount = Math.max(user.tripsCount + 1, orderIndex);
         user.totalSpent = (user.totalSpent || 0) + (bookingData.totalPrice || 0);
         if (user.tripsCount >= 10) user.tier = 'KIM CƯƠNG';
         else if (user.tripsCount >= 5) user.tier = 'VIP';
         else if (user.tripsCount >= 2) user.tier = 'THÂN THIẾT';
         user.loyaltyPoints = user.tripsCount * 10;
         user.loyaltyScorePercent = Math.min(99, 85 + user.tripsCount * 3);
-        
-        // Save user update to Firestore
         await saveFirestoreUser(cleanPhone, user);
       }
     }
-
-    // Save booking to Cloud Firestore
-    bookingData.customerPhoneClean = cleanPhone;
-    await saveFirestoreBooking(bookingData);
 
     // Keep store capped at 100 items
     if (bookingsStore.length > 100) {
       bookingsStore.pop();
     }
 
-    // Trigger Telegram notification
+    // 3. Trigger Telegram notification
     const telegramResult = await sendTelegramNotification(bookingData);
 
     res.json({
@@ -251,6 +243,7 @@ app.post("/api/booking", async (req, res) => {
       telegram: telegramResult
     });
   } catch (err: any) {
+    console.error('Error in /api/booking:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

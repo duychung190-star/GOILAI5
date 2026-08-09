@@ -1,33 +1,150 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { initializeFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs } from 'firebase/firestore';
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from 'firebase/auth';
+import {
+  initializeFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  increment,
+  serverTimestamp,
+  collection,
+  onSnapshot
+} from 'firebase/firestore';
 import firebaseConfigData from '../../firebase-applet-config.json';
 
+// Helper to resolve Firebase environment variables on Vercel/Node/Vite or fallback to config JSON
+const getEnvVar = (envKey: string, fallback: string = '') => {
+  const metaEnv = typeof import.meta !== 'undefined' ? (import.meta as any).env || {} : {};
+  const processEnv = typeof process !== 'undefined' ? process.env || {} : {};
+
+  return (
+    processEnv[envKey] ||
+    metaEnv[envKey] ||
+    metaEnv[`VITE_${envKey}`] ||
+    processEnv[`VITE_${envKey}`] ||
+    fallback
+  );
+};
+
 const firebaseConfig = {
-  apiKey: firebaseConfigData.apiKey,
-  authDomain: firebaseConfigData.authDomain,
-  projectId: firebaseConfigData.projectId,
-  storageBucket: firebaseConfigData.storageBucket,
-  messagingSenderId: firebaseConfigData.messagingSenderId,
-  appId: firebaseConfigData.appId,
+  apiKey: getEnvVar('REACT_APP_FIREBASE_API_KEY', firebaseConfigData.apiKey),
+  authDomain: getEnvVar('REACT_APP_FIREBASE_AUTH_DOMAIN', firebaseConfigData.authDomain),
+  projectId: getEnvVar('REACT_APP_FIREBASE_PROJECT_ID', firebaseConfigData.projectId),
+  storageBucket: getEnvVar('REACT_APP_FIREBASE_STORAGE_BUCKET', firebaseConfigData.storageBucket),
+  messagingSenderId: getEnvVar('REACT_APP_FIREBASE_MESSAGING_SENDER_ID', firebaseConfigData.messagingSenderId),
+  appId: getEnvVar('REACT_APP_FIREBASE_APP_ID', firebaseConfigData.appId),
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
-export const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-}, firebaseConfigData.firestoreDatabaseId || '(default)');
+export const db = initializeFirestore(
+  app,
+  { experimentalForceLongPolling: true },
+  firebaseConfigData.firestoreDatabaseId || '(default)'
+);
 
-// Ensure Firebase Auth session exists
-export async function ensureFirebaseAuth(): Promise<FirebaseUser | null> {
-  try {
-    if (auth.currentUser) return auth.currentUser;
-    const userCred = await signInAnonymously(auth);
-    return userCred.user;
-  } catch (err) {
-    console.warn('[Firebase Auth] Anonymous sign-in notice:', err);
-    return null;
+export const ensureFirebaseAuth = async () => {
+  if (auth.currentUser) return auth.currentUser;
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
+};
+
+/**
+ * Converts Vietnamese phone number to fake email identifier for Firebase Auth: {sdt}@dgo247.com
+ */
+export function phoneToAuthEmail(phone: string): string {
+  const cleanPhone = phone.replace(/\D/g, '');
+  return `${cleanPhone}@dgo247.com`;
+}
+
+/**
+ * Register a new customer with Firebase Auth and initialize document in Cloud Firestore
+ */
+export async function registerCustomerWithFirebase(fullName: string, phoneNumber: string, password: string) {
+  const cleanPhone = phoneNumber.replace(/\D/g, '');
+  const email = phoneToAuthEmail(cleanPhone);
+
+  // 1. Create user on Firebase Authentication
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+  // 2. Create document in Cloud Firestore `users/{phoneNumber}`
+  const userRef = doc(db, 'users', cleanPhone);
+  const userData = {
+    fullName: fullName.trim(),
+    name: fullName.trim(),
+    phoneNumber: cleanPhone,
+    phone: cleanPhone,
+    totalOrdersCount: 0,
+    tripsCount: 0,
+    createdAt: serverTimestamp(),
+    updatedAt: Date.now()
+  };
+
+  await setDoc(userRef, userData, { merge: true });
+
+  return {
+    firebaseUser: userCredential.user,
+    profile: {
+      ...userData,
+      createdAt: Date.now()
+    }
+  };
+}
+
+/**
+ * Login customer with Firebase Auth and load user document from Cloud Firestore
+ */
+export async function loginCustomerWithFirebase(phoneNumber: string, password: string) {
+  const cleanPhone = phoneNumber.replace(/\D/g, '');
+  const email = phoneToAuthEmail(cleanPhone);
+
+  // 1. Authenticate with Firebase Auth
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+  // 2. Read document from Firestore `users/{phoneNumber}`
+  const userRef = doc(db, 'users', cleanPhone);
+  const snap = await getDoc(userRef);
+
+  let profileData: any = {
+    fullName: '',
+    name: '',
+    phoneNumber: cleanPhone,
+    phone: cleanPhone,
+    totalOrdersCount: 0,
+    tripsCount: 0,
+    createdAt: Date.now()
+  };
+
+  if (snap.exists()) {
+    profileData = snap.data();
+  } else {
+    // If user exists in Auth but not Firestore document, create it
+    await setDoc(userRef, profileData, { merge: true });
   }
+
+  return {
+    firebaseUser: userCredential.user,
+    profile: profileData
+  };
+}
+
+/**
+ * Logout customer from Firebase Auth
+ */
+export async function logoutCustomerFromFirebase() {
+  await signOut(auth);
 }
 
 // Fetch user profile from Cloud Firestore by phone number
@@ -77,4 +194,5 @@ export function subscribeToUserTripCount(phone: string, callback: (data: any) =>
 }
 
 export default app;
+
 

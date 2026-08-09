@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserProfile } from '../types';
 import { Phone, User, ShieldCheck, X, Award, Sparkles, CheckCircle2, ArrowRight, LogOut, Lock, KeyRound, PhoneCall, HelpCircle, AlertCircle } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
+import { registerCustomerWithFirebase, loginCustomerWithFirebase } from '../lib/firebase';
 
 interface PhoneAuthModalProps {
   isOpen: boolean;
@@ -91,6 +92,13 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Direct Firebase Auth + Firestore integration
+      try {
+        await registerCustomerWithFirebase(name, phone, password);
+      } catch (fbErr: any) {
+        console.log('[Firebase Auth Register] Note:', fbErr?.message || fbErr);
+      }
+
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,8 +117,8 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
         if (data.token) {
           localStorage.setItem('dgo_token', data.token);
         }
-        localStorage.setItem('dgo_customer_name', data.user.name);
-        localStorage.setItem('dgo_customer_phone', data.user.phone);
+        localStorage.setItem('dgo_customer_name', data.user.name || name);
+        localStorage.setItem('dgo_customer_phone', data.user.phone || phone);
         
         onLoginSuccess(data.user);
         setSuccessMsg(data.message || 'Đăng ký tài khoản thành công!');
@@ -144,6 +152,13 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
     setIsSubmitting(true);
 
     try {
+      // Direct Firebase Auth + Firestore login integration
+      try {
+        await loginCustomerWithFirebase(phone, password);
+      } catch (fbErr: any) {
+        console.log('[Firebase Auth Login] Note:', fbErr?.message || fbErr);
+      }
+
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,8 +171,8 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
         if (data.token) {
           localStorage.setItem('dgo_token', data.token);
         }
-        localStorage.setItem('dgo_customer_name', data.user.name);
-        localStorage.setItem('dgo_customer_phone', data.user.phone);
+        localStorage.setItem('dgo_customer_name', data.user.name || name);
+        localStorage.setItem('dgo_customer_phone', data.user.phone || phone);
 
         onLoginSuccess(data.user);
         setSuccessMsg('Đăng nhập thành công!');

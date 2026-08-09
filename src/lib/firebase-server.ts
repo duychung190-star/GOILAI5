@@ -72,10 +72,78 @@ export async function saveFirestoreUser(phone: string, userData: any) {
   }
 }
 
+export async function incrementFirestoreUserOrderCount(phone: string, name?: string): Promise<number> {
+  try {
+    const cleanPhone = phone.replace(/\D/g, '');
+    if (!cleanPhone) return 1;
+
+    const userRef = doc(db, 'users', cleanPhone);
+    const snap = await withTimeout(getDoc(userRef));
+
+    let currentCount = 0;
+    if (snap.exists()) {
+      const data = snap.data();
+      currentCount = data.totalOrdersCount ?? data.tripsCount ?? 0;
+    }
+
+    const newCount = currentCount + 1;
+
+    const updateData: any = {
+      phoneNumber: cleanPhone,
+      phone: cleanPhone,
+      totalOrdersCount: newCount,
+      tripsCount: newCount,
+      updatedAt: Date.now()
+    };
+
+    if (name) {
+      updateData.fullName = name.trim();
+      updateData.name = name.trim();
+    }
+
+    if (!snap.exists()) {
+      updateData.createdAt = Date.now();
+    }
+
+    await withTimeout(setDoc(userRef, updateData, { merge: true }));
+    return newCount;
+  } catch (err: any) {
+    if (isExpectedFirestoreError(err)) {
+      console.log(`[Firestore Server] Offline/Permission check incrementing order count for ${phone}.`);
+    } else {
+      console.warn('[Firestore Server] Error incrementing order count:', err?.message || err);
+    }
+    return 1;
+  }
+}
+
 export async function saveFirestoreBooking(bookingData: any) {
   try {
     const bookingRef = doc(db, 'bookings', bookingData.id);
-    await withTimeout(setDoc(bookingRef, { ...bookingData, updatedAt: Date.now() }));
+    const cleanPhone = (bookingData.phoneNumber || bookingData.customerPhone || '').replace(/\D/g, '');
+    
+    const docData = {
+      bookingId: bookingData.id,
+      id: bookingData.id,
+      phoneNumber: cleanPhone || bookingData.customerPhone,
+      customerPhone: bookingData.customerPhone,
+      customerName: bookingData.customerName || bookingData.fullName || 'Khách hàng',
+      pickupLocation: bookingData.pickupLocation || bookingData.pickupAddress,
+      pickupAddress: bookingData.pickupAddress,
+      dropoffLocation: bookingData.dropoffLocation || bookingData.destinationAddress,
+      destinationAddress: bookingData.destinationAddress,
+      distanceKm: bookingData.distanceKm || 0,
+      totalPrice: bookingData.totalPrice || 0,
+      orderIndex: bookingData.orderIndex || bookingData.totalOrdersCount || 1,
+      totalOrdersCount: bookingData.orderIndex || bookingData.totalOrdersCount || 1,
+      status: bookingData.status || 'PENDING',
+      vehicleType: bookingData.vehicleType,
+      noteForDriver: bookingData.noteForDriver || '',
+      createdAt: bookingData.createdAt || Date.now(),
+      updatedAt: Date.now()
+    };
+
+    await withTimeout(setDoc(bookingRef, docData, { merge: true }));
   } catch (err: any) {
     if (isExpectedFirestoreError(err)) {
       console.log(`[Firestore Server] Offline/Permission check saving booking ${bookingData.id}.`);

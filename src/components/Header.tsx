@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Clock, FileText, History, MessageCircle, FileSpreadsheet, UserCheck, Shield, Award } from 'lucide-react';
+import { Phone, Clock, FileText, History, MessageCircle, FileSpreadsheet, UserCheck, Shield, Award, LogOut } from 'lucide-react';
 import { Logo } from './Logo';
 import { LanguageSelector } from './LanguageSelector';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -11,6 +11,7 @@ interface HeaderProps {
   onOpenDispatcher: () => void;
   onOpenGoogleSheets?: () => void;
   onOpenPhoneAuth?: () => void;
+  onLogout?: () => void;
   user?: UserProfile | null;
   activeBookingsCount: number;
 }
@@ -21,10 +22,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenDispatcher,
   onOpenGoogleSheets,
   onOpenPhoneAuth,
+  onLogout,
   user,
   activeBookingsCount
 }) => {
   const { t } = useLanguage();
+
+  const tripCount = (user as any)?.totalOrdersCount ?? user?.tripsCount ?? 0;
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
@@ -39,39 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Action Links, Language Selector & Hotline */}
           <div className="flex items-center space-x-1.5 sm:space-x-2.5">
-            
-            {/* Phone Login / Customer Loyalty Badge */}
-            {onOpenPhoneAuth && (
-              <button
-                onClick={onOpenPhoneAuth}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-bold rounded-lg transition-all border shadow-sm ${
-                  user
-                    ? 'bg-amber-500/10 text-amber-900 border-amber-300 hover:bg-amber-500/20'
-                    : 'bg-slate-900 text-amber-300 border-slate-800 hover:bg-slate-800'
-                }`}
-                title={user ? "Xem thông tin Tài khoản & Điểm thưởng" : "Đăng nhập SĐT nhận Voucher 10%"}
-              >
-                {user ? (
-                  <>
-                    <Award className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span className="hidden sm:inline font-extrabold max-w-[100px] truncate">Tài khoản: {user.name}</span>
-                    <span className="sm:hidden font-extrabold">Tài khoản</span>
-                    <span className="bg-amber-400 text-slate-950 px-1.5 py-0.5 text-[10px] rounded font-black">
-                      {user.tier}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <UserCheck className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span className="hidden sm:inline">Đăng Nhập / Đăng Ký</span>
-                    <span className="sm:hidden">Tài khoản</span>
-                    <span className="hidden xl:inline text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-extrabold border border-emerald-500/30">
-                      Voucher 10%
-                    </span>
-                  </>
-                )}
-              </button>
-            )}
+            {/* Phone Login / Customer Loyalty Badge hidden per user request */}
 
             {/* Language Selector Dropdown */}
             <LanguageSelector />

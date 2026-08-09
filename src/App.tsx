@@ -21,6 +21,7 @@ import { DriverRatingModal } from './components/DriverRatingModal';
 import { PhoneAuthModal } from './components/PhoneAuthModal';
 import { CustomerFeedbackSection } from './components/CustomerFeedbackSection';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
+import { UnauthenticatedBookingPromptModal } from './components/UnauthenticatedBookingPromptModal';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
 import { syncUserFromFirestore } from './services/userService';
@@ -173,6 +174,7 @@ export default function App() {
   };
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isUnauthPromptOpen, setIsUnauthPromptOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDispatcherOpen, setIsDispatcherOpen] = useState(false);
   const [isGoogleSheetsOpen, setIsGoogleSheetsOpen] = useState(false);
@@ -397,18 +399,22 @@ export default function App() {
       }
     }
 
+    await executeBookingSubmission();
+  };
+
+  const executeBookingSubmission = async () => {
     setIsSubmitting(true);
 
     const newBooking: BookingRequest = {
       id: `DGO-${Math.floor(100000 + Math.random() * 900000)}`,
       customerName: customerName.trim(),
       customerPhone: customerPhone.trim(),
-      pickupAddress: pickup.address,
-      pickupLat: pickup.lat,
-      pickupLng: pickup.lng,
-      destinationAddress: destination.address,
-      destinationLat: destination.lat,
-      destinationLng: destination.lng,
+      pickupAddress: pickup!.address,
+      pickupLat: pickup!.lat,
+      pickupLng: pickup!.lng,
+      destinationAddress: destination!.address,
+      destinationLat: destination!.lat,
+      destinationLng: destination!.lng,
       distanceKm: calculatedDistanceKm,
       totalPrice: priceBreakdown.totalPrice,
       vehicleType,
@@ -435,6 +441,30 @@ export default function App() {
 
       // Save to local history
       setBookingHistory(prev => [newBooking, ...prev]);
+
+      // Save top 5 recent booking locations to LocalStorage
+      try {
+        const savedRecentRaw = localStorage.getItem('dgo_recent_locations');
+        const currentRecent: Array<any> = savedRecentRaw ? JSON.parse(savedRecentRaw) : [];
+        const newItems = [
+          { id: 'rec-' + Date.now(), address: newBooking.pickupAddress, lat: newBooking.pickupLat, lng: newBooking.pickupLng, timeLabel: 'Vừa đặt chuyến' },
+          { id: 'rec-' + (Date.now() + 1), address: newBooking.destinationAddress, lat: newBooking.destinationLat, lng: newBooking.destinationLng, timeLabel: 'Vừa đặt chuyến' }
+        ];
+        const combined = [...newItems, ...currentRecent];
+        const uniqueMap = new Map<string, any>();
+        combined.forEach(item => {
+          if (item && item.address && typeof item.address === 'string' && item.address.trim().length > 2) {
+            const key = item.address.toLowerCase().trim();
+            if (!uniqueMap.has(key)) {
+              uniqueMap.set(key, item);
+            }
+          }
+        });
+        const top5Recent = Array.from(uniqueMap.values()).slice(0, 5);
+        localStorage.setItem('dgo_recent_locations', JSON.stringify(top5Recent));
+      } catch (errRecent) {
+        console.error("Failed saving recent locations to localStorage:", errRecent);
+      }
 
       // Auto-sync to Google Sheets if connected
       if (isAutoSyncEnabled) {
@@ -484,6 +514,7 @@ export default function App() {
         onOpenDispatcher={() => setIsDispatcherOpen(true)}
         onOpenGoogleSheets={() => setIsGoogleSheetsOpen(true)}
         onOpenPhoneAuth={() => setIsPhoneAuthOpen(true)}
+        onLogout={handleLogout}
         user={user}
         activeBookingsCount={bookingHistory.filter(b => b.status === 'PENDING' || b.status === 'CONFIRMED').length}
       />
