@@ -687,6 +687,9 @@ export default function App() {
           <div className="text-left">
             <h4 className="font-black text-slate-900 text-base tracking-tight">D.GO - DỊCH VỤ LÁI XE HỘ</h4>
             <p className="text-amber-700 text-xs font-bold">GOILAI247.COM • HOTLINE: 0971.999.734</p>
+            <p className="text-slate-600 text-xs font-medium mt-0.5 flex items-center gap-1">
+              <span>Địa chỉ: 139 Nguyễn Văn Cừ, Long Biên, Hà Nội</span>
+            </p>
           </div>
         </div>
 
