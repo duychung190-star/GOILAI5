@@ -255,6 +255,70 @@ export function subscribeToUserTripCount(phone: string, callback: (data: any) =>
   }
 }
 
+/**
+ * Listen to real-time status updates for a ride document in Firestore `rides/{bookingId}`
+ * Automatically triggered when Admin presses Telegram action button
+ */
+export function listenToRideStatus(bookingId: string) {
+  if (!bookingId) return () => {};
+  const rideRef = doc(db, "rides", bookingId);
+  
+  try {
+    const unsub = onSnapshot(rideRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const status = data.status;
+        const driverName = data.driverName || data.driverAssigned || "Admin"; 
+        const pickupAddress = data.pickupAddress || "Điểm đón của bạn";
+
+        // 1. CẬP NHẬT TRẠNG THÁI TRÊN MÀN HÌNH CHÍNH CỦA WEBAPP
+        const statusElement = document.getElementById("rideStatusText");
+        if (statusElement) {
+          statusElement.innerText = "Trạng thái cuốc xe: " + status;
+          if (status === "Đã hủy cuốc" || status === "CANCELLED") statusElement.style.color = "red";
+          if (status === "Tài xế đang đến" || status === "DRIVER_EN_ROUTE" || status === "ACCEPTED" || status === "CONFIRMED") statusElement.style.color = "green";
+        }
+
+        // 2. BẬT POPUP THÔNG BÁO CHO KHÁCH
+        if (status === "Tài xế đang đến" || status === "ACCEPTED" || status === "CONFIRMED" || status === "DRIVER_EN_ROUTE") {
+          // Đổ dữ liệu vào Popup
+          const popCustomer = document.getElementById("popCustomerName");
+          if (popCustomer) popCustomer.innerText = "Quý khách";
+          
+          const popDriver = document.getElementById("popDriverName");
+          if (popDriver) popDriver.innerText = driverName;
+          
+          const popPickup = document.getElementById("popPickup");
+          if (popPickup) popPickup.innerText = pickupAddress;
+          
+          const popBooking = document.getElementById("popBookingId");
+          if (popBooking) popBooking.innerText = bookingId;
+          
+          // Hiển thị Popup
+          const modal = document.getElementById("successModal");
+          if (modal) modal.classList.remove("hidden");
+        }
+
+        // 3. THÔNG BÁO HỦY CUỐC
+        if (status === "Đã hủy cuốc" || status === "CANCELLED") {
+          alert("Rất tiếc, cuốc xe " + bookingId + " đã bị hủy. Vui lòng liên hệ Hotline: 0971.999.734 để được hỗ trợ.");
+        }
+      }
+    }, (err) => {
+      console.log('[Firestore] listenToRideStatus notice:', err?.message || err);
+    });
+
+    return unsub;
+  } catch (e) {
+    console.log('[Firestore] listenToRideStatus init error:', e);
+    return () => {};
+  }
+}
+
+if (typeof window !== 'undefined') {
+  (window as any).listenToRideStatus = listenToRideStatus;
+}
+
 export default app;
 
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Clock, FileText, History, MessageCircle, FileSpreadsheet, UserCheck, Shield, Award, LogOut } from 'lucide-react';
+import { Phone, Clock, FileText, History, MessageCircle, UserCheck, Shield, Award, LogOut } from 'lucide-react';
 import { Logo } from './Logo';
 import { LanguageSelector } from './LanguageSelector';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -47,18 +47,6 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Language Selector Dropdown */}
             <LanguageSelector />
-
-            {/* Google Sheets Button */}
-            {onOpenGoogleSheets && (
-              <button
-                onClick={onOpenGoogleSheets}
-                className="inline-flex items-center gap-1.5 px-2.5 py-2 text-xs font-semibold text-emerald-800 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200 shadow-sm"
-                title="Google Sheets"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                <span className="hidden lg:inline">{t.header.sheets}</span>
-              </button>
-            )}
 
             {/* Price Table Button */}
             {onOpenPriceTable && (

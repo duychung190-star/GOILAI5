@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BookingRequest } from '../types';
-import { db } from '../lib/firebase';
+import { db, listenToRideStatus } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Phone, Clock, Car, CheckCircle2, UserCheck, AlertCircle, Navigation, RefreshCw } from 'lucide-react';
 
@@ -126,8 +126,8 @@ export const ActiveBookingTracker: React.FC<ActiveBookingTrackerProps> = ({
       const bookingRef = doc(db, 'bookings', booking.id);
       unsubscribeFirestoreBooking = onSnapshot(bookingRef, handleDocSnap, handleListenerError);
 
-      const rideRef = doc(db, 'rides', booking.id);
-      unsubscribeFirestoreRide = onSnapshot(rideRef, handleDocSnap, handleListenerError);
+      // Invoke listenToRideStatus (handles Telegram admin updates & popup trigger)
+      unsubscribeFirestoreRide = listenToRideStatus(booking.id);
     } catch (e) {
       console.log('[Firestore] Could not attach snapshot listener:', e);
     }
@@ -295,6 +295,10 @@ export const ActiveBookingTracker: React.FC<ActiveBookingTrackerProps> = ({
 
       {/* Driver & System Status Box */}
       <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+        <p id="rideStatusText" className="text-xs font-bold text-amber-300 transition-colors">
+          Trạng thái cuốc xe: {currentStatus}
+        </p>
+
         <p className="text-xs text-slate-300 leading-relaxed font-medium">
           {currentConfig.description}
         </p>
