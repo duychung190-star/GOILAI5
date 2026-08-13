@@ -37,9 +37,25 @@ export const ActiveBookingTracker: React.FC<ActiveBookingTrackerProps> = ({
     if (upperStatus === 'ACCEPTED' || upperStatus === 'CONFIRMED') {
       title = '✅ Tài xế đã nhận cuốc!';
       body = `Đơn hàng ${booking?.id} đã được ${driver ? `Tài xế/Admin ${driver}` : 'hệ thống'} nhận phục vụ.`;
+      if (window.showSuccessModal) {
+        window.showSuccessModal({
+          customerName: booking?.customerName || 'Quý khách',
+          driverName: driver || booking?.driverAssigned || 'Tài xế D.GO',
+          pickup: booking?.pickupAddress || 'Điểm đón của bạn',
+          bookingId: booking?.id || '...'
+        });
+      }
     } else if (upperStatus === 'DRIVER_EN_ROUTE' || upperStatus === 'DRIVER_ARRIVED') {
       title = '🚘 Tài xế đang đến/đã đến điểm đón!';
       body = `${driver ? `Tài xế ${driver}` : 'Tài xế'} đang di chuyển hoặc đã đến điểm đón ${booking?.pickupAddress || ''}.`;
+      if (window.showSuccessModal) {
+        window.showSuccessModal({
+          customerName: booking?.customerName || 'Quý khách',
+          driverName: driver || booking?.driverAssigned || 'Tài xế D.GO',
+          pickup: booking?.pickupAddress || 'Điểm đón của bạn',
+          bookingId: booking?.id || '...'
+        });
+      }
     } else if (upperStatus === 'COMPLETED') {
       title = '🏁 Chuyến đi hoàn thành!';
       body = `Chuyến đi ${booking?.id} đã hoàn thành an toàn. Cảm ơn quý khách!`;

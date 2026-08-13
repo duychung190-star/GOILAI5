@@ -23,6 +23,7 @@ import { CustomerFeedbackSection } from './components/CustomerFeedbackSection';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { UnauthenticatedBookingPromptModal } from './components/UnauthenticatedBookingPromptModal';
 import { ActiveBookingTracker } from './components/ActiveBookingTracker';
+import { SuccessModal } from './components/SuccessModal';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
 import { syncUserFromFirestore } from './services/userService';
@@ -780,6 +781,9 @@ export default function App() {
         isOpen={isPrivacyModalOpen}
         onClose={() => setIsPrivacyModalOpen(false)}
       />
+
+      {/* Driver Accepted Success Confirmation Modal */}
+      <SuccessModal />
 
     </div>
   );
