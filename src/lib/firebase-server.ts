@@ -117,6 +117,26 @@ export async function incrementFirestoreUserOrderCount(phone: string, name?: str
   }
 }
 
+export async function updateFirestoreBookingStatus(bookingId: string, status: string, driverAssigned?: string) {
+  try {
+    const bookingRef = doc(db, 'bookings', bookingId);
+    const updateData: any = {
+      status,
+      updatedAt: Date.now()
+    };
+    if (driverAssigned) {
+      updateData.driverAssigned = driverAssigned;
+    }
+    await withTimeout(setDoc(bookingRef, updateData, { merge: true }));
+  } catch (err: any) {
+    if (isExpectedFirestoreError(err)) {
+      console.log(`[Firestore Server] Offline/Permission check updating status for ${bookingId}.`);
+    } else {
+      console.warn('[Firestore Server] Error updating booking status:', err?.message || err);
+    }
+  }
+}
+
 export async function saveFirestoreBooking(bookingData: any) {
   try {
     const bookingRef = doc(db, 'bookings', bookingData.id);

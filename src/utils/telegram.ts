@@ -70,6 +70,16 @@ export const sendTelegramNotification = async (bookingData: {
     text += `\nGhi chú: ${bookingData.noteForDriver}`;
   }
 
+  const bookingId = (bookingData as any).id || (bookingData as any).bookingId || `DGO-${Date.now().toString().slice(-6)}`;
+
+  const replyMarkup = {
+    inline_keyboard: [
+      [{ text: "✅ Đã nhận cuốc", callback_data: `nhan_cuoc_${bookingId}` }],
+      [{ text: "🚘 Tài xế đang đến", callback_data: `tai_xe_dang_den_${bookingId}` }],
+      [{ text: "❌ Hủy cuốc", callback_data: `huy_cuoc_${bookingId}` }]
+    ]
+  };
+
   const isNumeric = /^-?\d+$/.test(rawChatId);
   const startsWithAt = rawChatId.startsWith('@');
 
@@ -88,7 +98,7 @@ export const sendTelegramNotification = async (bookingData: {
       const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: cid, text: text }),
+        body: JSON.stringify({ chat_id: cid, text: text, reply_markup: replyMarkup }),
       });
       const data = await response.json();
       console.log(`Telegram notification attempt (${cid}) result:`, data);

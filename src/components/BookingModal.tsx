@@ -4,6 +4,7 @@ import { PriceCalculator } from '../utils/PriceCalculator';
 import { CheckCircle2, Phone, X, ShieldCheck, Send, MessageCircle, Star } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
 import { useLanguage } from '../i18n/LanguageContext';
+import { ActiveBookingTracker } from './ActiveBookingTracker';
 
 interface BookingModalProps {
   booking: BookingRequest | null;
@@ -11,6 +12,7 @@ interface BookingModalProps {
   onClose: () => void;
   telegramStatus?: any;
   onRateDriver?: (booking: BookingRequest) => void;
+  onBookingUpdated?: (updated: BookingRequest) => void;
 }
 
 export const BookingModal: React.FC<BookingModalProps> = ({
@@ -19,6 +21,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   onClose,
   telegramStatus,
   onRateDriver,
+  onBookingUpdated
 }) => {
   const { t } = useLanguage();
 
@@ -56,6 +59,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         {/* Modal Body */}
         <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
           
+          {/* Live Order Status Tracker */}
+          <ActiveBookingTracker
+            booking={booking}
+            onStatusChange={(updated) => {
+              if (onBookingUpdated) onBookingUpdated(updated);
+            }}
+          />
+
           {/* Dispatch Notice */}
           <div className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-xl text-xs text-emerald-300 space-y-1">
             <div className="flex items-center gap-2 font-bold">

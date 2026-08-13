@@ -22,6 +22,7 @@ import { PhoneAuthModal } from './components/PhoneAuthModal';
 import { CustomerFeedbackSection } from './components/CustomerFeedbackSection';
 import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { UnauthenticatedBookingPromptModal } from './components/UnauthenticatedBookingPromptModal';
+import { ActiveBookingTracker } from './components/ActiveBookingTracker';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
 import { syncUserFromFirestore } from './services/userService';
@@ -522,6 +523,18 @@ export default function App() {
       {/* Main Form & Interactive Stage */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
+        {/* Live Active Booking Status Tracker (if user has active booking) */}
+        {submittedBooking && (
+          <ActiveBookingTracker
+            booking={submittedBooking}
+            onStatusChange={(updated) => {
+              setSubmittedBooking(updated);
+              setBookingHistory(prev => prev.map(b => b.id === updated.id ? updated : b));
+            }}
+            onClose={() => setSubmittedBooking(null)}
+          />
+        )}
+
         {/* Hero Banner Showcase (Logo & Service Introduction placed at top) */}
         <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-sm">
           <HeroBanner />
@@ -721,6 +734,10 @@ export default function App() {
         onClose={() => setIsBookingModalOpen(false)}
         telegramStatus={telegramStatus}
         onRateDriver={handleOpenRating}
+        onBookingUpdated={(updated) => {
+          setSubmittedBooking(updated);
+          setBookingHistory(prev => prev.map(b => b.id === updated.id ? updated : b));
+        }}
       />
 
       <BookingHistoryModal

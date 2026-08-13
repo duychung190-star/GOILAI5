@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
-import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking, saveFirestoreRating, getFirestoreRatings, incrementFirestoreUserOrderCount } from './src/lib/firebase-server';
+import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking, updateFirestoreBookingStatus, saveFirestoreRating, getFirestoreRatings, incrementFirestoreUserOrderCount } from './src/lib/firebase-server';
 
 const app = express();
 const PORT = 3000;
@@ -97,9 +97,9 @@ const sendTelegramNotification = async (bookingData: any) => {
     // Inline Keyboard Action Buttons for Telegram Dispatcher / Driver
     const replyMarkup = {
       inline_keyboard: [
-        [{ text: "✅ Đã nhận cuốc", callback_data: `nhan_${bookingId}` }],
-        [{ text: "🚘 Tài xế đang đến", callback_data: `xacnhan_${bookingId}` }],
-        [{ text: "❌ Hủy cuốc", callback_data: `huy_${bookingId}` }]
+        [{ text: "✅ Đã nhận cuốc", callback_data: `nhan_cuoc_${bookingId}` }],
+        [{ text: "🚘 Tài xế đang đến", callback_data: `tai_xe_dang_den_${bookingId}` }],
+        [{ text: "❌ Hủy cuốc", callback_data: `huy_cuoc_${bookingId}` }]
       ]
     };
 
@@ -281,34 +281,95 @@ app.post("/api/telegram-webhook", async (req, res) => {
       const callbackQuery = update.callback_query;
       const callbackId = callbackQuery.id;
       const data = callbackQuery.data; // e.g. "nhan_DGO-123456", "xacnhan_DGO-123456", "huy_DGO-123456"
-      const fromUser = callbackQuery.from?.first_name || callbackQuery.from?.username || 'Tài xế';
+      const fromUser = callbackQuery.from?.first_name || callbackQuery.from?.username || 'Admin/Tài xế';
 
       let responseText = "Đã ghi nhận thao tác!";
       let newStatus = "";
 
       if (data) {
-        if (data.startsWith("nhan_")) {
-          const bookingId = data.replace("nhan_", "");
+        let extractedBookingId = "";
+        
+        if (data.startsWith("nhan_cuoc_")) {
+          extractedBookingId = data.replace("nhan_cuoc_", "");
           newStatus = "ACCEPTED";
-          responseText = `✅ ${fromUser} đã nhận cuốc ${bookingId}!`;
-        } else if (data.startsWith("xacnhan_")) {
-          const bookingId = data.replace("xacnhan_", "");
+          responseText = `✅ ${fromUser} đã nhận cuốc xe!`;
+        } else if (data.startsWith("tai_xe_dang_den_")) {
+          extractedBookingId = data.replace("tai_xe_dang_den_", "");
           newStatus = "DRIVER_EN_ROUTE";
-          responseText = `🚘 ${fromUser} đang di chuyển đến đón khách đơn ${bookingId}!`;
-        } else if (data.startsWith("huy_")) {
-          const bookingId = data.replace("huy_", "");
+          responseText = `🚘 ${fromUser} đang di chuyển đến đón khách!`;
+        } else if (data.startsWith("huy_cuoc_")) {
+          extractedBookingId = data.replace("huy_cuoc_", "");
           newStatus = "CANCELLED";
-          responseText = `❌ ${fromUser} đã hủy cuốc ${bookingId}!`;
+          responseText = `❌ ${fromUser} đã hủy cuốc xe!`;
+        } else if (data.startsWith("nhan_")) {
+          extractedBookingId = data.replace("nhan_", "");
+          newStatus = "ACCEPTED";
+          responseText = `✅ ${fromUser} đã nhận cuốc xe!`;
+        } else if (data.startsWith("xacnhan_")) {
+          extractedBookingId = data.replace("xacnhan_", "");
+          newStatus = "DRIVER_EN_ROUTE";
+          responseText = `🚘 ${fromUser} đang di chuyển đến đón khách!`;
+        } else if (data.startsWith("huy_")) {
+          extractedBookingId = data.replace("huy_", "");
+          newStatus = "CANCELLED";
+          responseText = `❌ ${fromUser} đã hủy cuốc xe!`;
         }
 
-        // Update status in local store if found
-        if (newStatus && data) {
-          const parts = data.split("_");
-          const targetId = parts[1];
-          const matchedBooking = bookingsStore.find(b => b.id === targetId || b.id === `DGO-${targetId}`);
+        if (newStatus && extractedBookingId) {
+          const targetId = extractedBookingId.startsWith('DGO-') ? extractedBookingId : `DGO-${extractedBookingId}`;
+          responseText = responseText.replace("cuốc xe", targetId).replace("khách", `đơn ${targetId}`);
+
+          let matchedBooking = bookingsStore.find(b => b.id === extractedBookingId || b.id === targetId);
           if (matchedBooking) {
             matchedBooking.status = newStatus;
             matchedBooking.driverAssigned = fromUser;
+            matchedBooking.updatedAt = Date.now();
+          } else {
+            matchedBooking = {
+              id: targetId,
+              status: newStatus,
+              driverAssigned: fromUser,
+              updatedAt: Date.now()
+            };
+            bookingsStore.unshift(matchedBooking);
+          }
+
+          // Sync with Firestore for real-time customer app updates
+          await updateFirestoreBookingStatus(targetId, newStatus, fromUser);
+
+          // Edit Telegram Message to reflect live status
+          if (callbackQuery.message) {
+            const originalText = callbackQuery.message.text || '';
+            const statusLabelMap: Record<string, string> = {
+              ACCEPTED: '✅ ĐÃ NHẬN CUỐC',
+              DRIVER_EN_ROUTE: '🚘 TÀI XẾ ĐANG ĐẾN ĐÓN KHÁCH',
+              CANCELLED: '❌ ĐÃ HỦY CUỐC XE'
+            };
+            const statusLabel = statusLabelMap[newStatus] || newStatus;
+            const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            
+            const cleanedText = originalText.split('\n\n📌 TRẠNG THÁI CUỐC XE')[0];
+            const updatedText = `${cleanedText}\n\n📌 TRẠNG THÁI CUỐC XE: ${statusLabel}\n👤 Người xử lý: ${fromUser}\n⏰ Cập nhật: ${timeStr}`;
+
+            const updatedKeyboard = {
+              inline_keyboard: [
+                [{ text: `📌 ${statusLabel}`, callback_data: `info_${targetId}` }],
+                [{ text: "✅ Đã nhận cuốc", callback_data: `nhan_cuoc_${targetId}` }],
+                [{ text: "🚘 Tài xế đang đến", callback_data: `tai_xe_dang_den_${targetId}` }],
+                [{ text: "❌ Hủy cuốc", callback_data: `huy_cuoc_${targetId}` }]
+              ]
+            };
+
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/editMessageText`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                chat_id: callbackQuery.message.chat.id,
+                message_id: callbackQuery.message.message_id,
+                text: updatedText,
+                reply_markup: updatedKeyboard
+              })
+            }).catch(err => console.warn('Notice editing Telegram message text:', err));
           }
         }
       }
@@ -330,6 +391,23 @@ app.post("/api/telegram-webhook", async (req, res) => {
     console.error("Error handling Telegram webhook:", err);
     res.status(500).json({ ok: false, error: err.message });
   }
+});
+
+// Get single booking status endpoint
+app.get("/api/booking/:id/status", (req, res) => {
+  const { id } = req.params;
+  const targetId = id.startsWith('DGO-') ? id : `DGO-${id}`;
+  const booking = bookingsStore.find(b => b.id === id || b.id === targetId);
+  if (booking) {
+    return res.json({
+      success: true,
+      id: booking.id,
+      status: booking.status,
+      driverAssigned: booking.driverAssigned || null,
+      updatedAt: booking.updatedAt || Date.now()
+    });
+  }
+  res.json({ success: true, id: targetId, status: 'PENDING', driverAssigned: null });
 });
 
 // User Profiles & Loyalty Store
@@ -786,16 +864,18 @@ app.post("/api/auth/phone-login", (req, res) => {
 });
 
 // Update booking status
-app.patch("/api/booking/:id/status", (req, res) => {
+app.patch("/api/booking/:id/status", async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
-  const booking = bookingsStore.find(b => b.id === id);
+  const { status, driverAssigned } = req.body;
+  const targetId = id.startsWith('DGO-') ? id : `DGO-${id}`;
+  let booking = bookingsStore.find(b => b.id === id || b.id === targetId);
   if (booking) {
     booking.status = status;
-    res.json({ success: true, booking });
-  } else {
-    res.status(404).json({ success: false, message: "Booking not found" });
+    if (driverAssigned) booking.driverAssigned = driverAssigned;
+    booking.updatedAt = Date.now();
   }
+  await updateFirestoreBookingStatus(targetId, status, driverAssigned);
+  res.json({ success: true, booking: booking || { id: targetId, status, driverAssigned } });
 });
 
 // Submit driver rating & review for a booking

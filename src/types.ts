@@ -82,7 +82,8 @@ export interface BookingRequest {
   vehicleType: VehicleTypeOption;
   noteForDriver: string;
   scheduledTime: number; // Timestamp or scheduled pickup date ms
-  status: 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  status: 'PENDING' | 'ACCEPTED' | 'DRIVER_EN_ROUTE' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  driverAssigned?: string;
   createdAt: number;
   needVat: boolean;
   vatDetails?: VatDetails;
