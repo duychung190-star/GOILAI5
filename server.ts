@@ -92,6 +92,17 @@ const sendTelegramNotification = async (bookingData: any) => {
       text += `💰 Giá thanh toán (Khách trả): ${formattedPrice}`;
     }
 
+    const bookingId = bookingData.id || bookingData.bookingId || `DGO-${Date.now().toString().slice(-6)}`;
+
+    // Inline Keyboard Action Buttons for Telegram Dispatcher / Driver
+    const replyMarkup = {
+      inline_keyboard: [
+        [{ text: "✅ Đã nhận cuốc", callback_data: `nhan_${bookingId}` }],
+        [{ text: "🚘 Tài xế đang đến", callback_data: `xacnhan_${bookingId}` }],
+        [{ text: "❌ Hủy cuốc", callback_data: `huy_${bookingId}` }]
+      ]
+    };
+
     // Determine target chat ID options
     let targetChatId = TELEGRAM_CHAT_ID;
     const isNumeric = /^-?\d+$/.test(targetChatId);
@@ -115,7 +126,8 @@ const sendTelegramNotification = async (bookingData: any) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             chat_id: cid,
-            text: text
+            text: text,
+            reply_markup: replyMarkup
           }),
         });
 
@@ -245,6 +257,65 @@ app.post("/api/booking", async (req, res) => {
   } catch (err: any) {
     console.error('Error in /api/booking:', err);
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Telegram Webhook for handling Inline Keyboard Button clicks (nhan_*, xacnhan_*, huy_*)
+app.post("/api/telegram-webhook", async (req, res) => {
+  try {
+    const update = req.body;
+    if (update && update.callback_query) {
+      const callbackQuery = update.callback_query;
+      const callbackId = callbackQuery.id;
+      const data = callbackQuery.data; // e.g. "nhan_DGO-123456", "xacnhan_DGO-123456", "huy_DGO-123456"
+      const fromUser = callbackQuery.from?.first_name || callbackQuery.from?.username || 'Tài xế';
+
+      let responseText = "Đã ghi nhận thao tác!";
+      let newStatus = "";
+
+      if (data) {
+        if (data.startsWith("nhan_")) {
+          const bookingId = data.replace("nhan_", "");
+          newStatus = "ACCEPTED";
+          responseText = `✅ ${fromUser} đã nhận cuốc ${bookingId}!`;
+        } else if (data.startsWith("xacnhan_")) {
+          const bookingId = data.replace("xacnhan_", "");
+          newStatus = "DRIVER_EN_ROUTE";
+          responseText = `🚘 ${fromUser} đang di chuyển đến đón khách đơn ${bookingId}!`;
+        } else if (data.startsWith("huy_")) {
+          const bookingId = data.replace("huy_", "");
+          newStatus = "CANCELLED";
+          responseText = `❌ ${fromUser} đã hủy cuốc ${bookingId}!`;
+        }
+
+        // Update status in local store if found
+        if (newStatus && data) {
+          const parts = data.split("_");
+          const targetId = parts[1];
+          const matchedBooking = bookingsStore.find(b => b.id === targetId || b.id === `DGO-${targetId}`);
+          if (matchedBooking) {
+            matchedBooking.status = newStatus;
+            matchedBooking.driverAssigned = fromUser;
+          }
+        }
+      }
+
+      // Answer Telegram Callback Query to remove button loading indicator
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          callback_query_id: callbackId,
+          text: responseText,
+          show_alert: true
+        })
+      });
+    }
+
+    res.json({ ok: true });
+  } catch (err: any) {
+    console.error("Error handling Telegram webhook:", err);
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
