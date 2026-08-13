@@ -123,7 +123,8 @@ export const CustomerFeedbackSection: React.FC<CustomerFeedbackSectionProps> = (
     try {
       const res = await fetch('/api/ratings');
       if (!res.ok) {
-        console.warn('Ratings endpoint returned status:', res.status);
+        console.warn('Ratings endpoint status:', res.status);
+        setRatings(INITIAL_DEFAULT_RATINGS);
         return;
       }
       const data = await res.json();
@@ -143,9 +144,12 @@ export const CustomerFeedbackSection: React.FC<CustomerFeedbackSectionProps> = (
             satisfactionRate: data.stats.satisfactionRate || 98.6
           });
         }
+      } else {
+        setRatings(INITIAL_DEFAULT_RATINGS);
       }
-    } catch (err) {
-      console.error('Error fetching ratings:', err);
+    } catch (err: any) {
+      console.warn('[Feedback] Using default ratings fallback:', err?.message || err);
+      setRatings(INITIAL_DEFAULT_RATINGS);
     } finally {
       setIsLoading(false);
     }

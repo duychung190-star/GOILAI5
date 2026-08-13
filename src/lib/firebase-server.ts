@@ -33,6 +33,8 @@ function isExpectedFirestoreError(err: any): boolean {
     msg.includes('PERMISSION_DENIED') ||
     msg.includes('Cloud Firestore API') ||
     msg.includes('timed out') ||
+    msg.includes('Failed to fetch') ||
+    msg.includes('fetch') ||
     code === 'unavailable' ||
     code === 'permission-denied'
   );
