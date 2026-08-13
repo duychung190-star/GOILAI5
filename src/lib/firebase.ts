@@ -69,6 +69,53 @@ export function phoneToAuthEmail(phone: string): string {
   return `${cleanPhone}@dgo247.com`;
 }
 
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  };
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
 /**
  * Register a new customer with Firebase Auth and initialize document in Cloud Firestore
  */
@@ -92,7 +139,11 @@ export async function registerCustomerWithFirebase(fullName: string, phoneNumber
     updatedAt: Date.now()
   };
 
-  await setDoc(userRef, userData, { merge: true });
+  try {
+    await setDoc(userRef, userData, { merge: true });
+  } catch (err) {
+    console.warn('[Firestore] Notice writing user document after registration:', err);
+  }
 
   return {
     firebaseUser: userCredential.user,
@@ -115,8 +166,7 @@ export async function loginCustomerWithFirebase(phoneNumber: string, password: s
 
   // 2. Read document from Firestore `users/{phoneNumber}`
   const userRef = doc(db, 'users', cleanPhone);
-  const snap = await getDoc(userRef);
-
+  
   let profileData: any = {
     fullName: '',
     name: '',
@@ -127,11 +177,15 @@ export async function loginCustomerWithFirebase(phoneNumber: string, password: s
     createdAt: Date.now()
   };
 
-  if (snap.exists()) {
-    profileData = snap.data();
-  } else {
-    // If user exists in Auth but not Firestore document, create it
-    await setDoc(userRef, profileData, { merge: true });
+  try {
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      profileData = snap.data();
+    } else {
+      await setDoc(userRef, profileData, { merge: true });
+    }
+  } catch (err) {
+    console.warn('[Firestore] Notice reading/creating user document on login:', err);
   }
 
   return {
@@ -173,20 +227,25 @@ export function subscribeToUserTripCount(phone: string, callback: (data: any) =>
   if (!cleanPhone) return () => {};
   const userRef = doc(db, 'users', cleanPhone);
   
+  let unsub: (() => void) | null = null;
   try {
-    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+    unsub = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         callback(docSnap.data());
       }
     }, (err: any) => {
       if (err?.message?.includes('PERMISSION_DENIED') || err?.code === 'permission-denied') {
         console.log('[Firestore] Realtime subscription disabled (Permission Denied). Unsubscribing.');
-        if (typeof unsubscribe === 'function') unsubscribe();
+        if (typeof unsub === 'function') {
+          unsub();
+        }
       } else {
         console.warn('[Firestore] Notice in user trip count subscription:', err?.message || err);
       }
     });
-    return unsubscribe;
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
   } catch (err) {
     console.log('[Firestore] Unable to subscribe to trip count:', err);
     return () => {};
