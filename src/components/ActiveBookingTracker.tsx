@@ -68,32 +68,41 @@ export const ActiveBookingTracker: React.FC<ActiveBookingTrackerProps> = ({
     setCurrentStatus(booking.status || 'PENDING');
     setDriverName(booking.driverAssigned || '');
 
-    // 1. Setup Firestore real-time listener on document `bookings/{bookingId}`
-    let unsubscribeFirestore: (() => void) | null = null;
-    try {
-      const bookingRef = doc(db, 'bookings', booking.id);
-      unsubscribeFirestore = onSnapshot(bookingRef, (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          if (data.status) {
-            if (data.status !== currentStatus) {
-              triggerNotification(data.status, data.driverAssigned);
-            }
-            setCurrentStatus(data.status);
-            if (data.driverAssigned) setDriverName(data.driverAssigned);
-            setLastUpdated(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-            
-            if (onStatusChange) {
-              onStatusChange({
-                ...booking,
-                status: data.status,
-                driverAssigned: data.driverAssigned || booking.driverAssigned
-              });
-            }
+    // 1. Setup Firestore real-time listener on document `bookings/{bookingId}` and `rides/{bookingId}`
+    let unsubscribeFirestoreBooking: (() => void) | null = null;
+    let unsubscribeFirestoreRide: (() => void) | null = null;
+
+    const handleDocSnap = (snap: any) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.status) {
+          if (data.status !== currentStatus) {
+            triggerNotification(data.status, data.driverAssigned);
+          }
+          setCurrentStatus(data.status);
+          if (data.driverAssigned) setDriverName(data.driverAssigned);
+          setLastUpdated(new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+          
+          if (onStatusChange) {
+            onStatusChange({
+              ...booking,
+              status: data.status,
+              driverAssigned: data.driverAssigned || booking.driverAssigned
+            });
           }
         }
-      }, (err) => {
-        console.warn('[Firestore] Realtime listener notice:', err?.message || err);
+      }
+    };
+
+    try {
+      const bookingRef = doc(db, 'bookings', booking.id);
+      unsubscribeFirestoreBooking = onSnapshot(bookingRef, handleDocSnap, (err) => {
+        console.warn('[Firestore] Booking listener notice:', err?.message || err);
+      });
+
+      const rideRef = doc(db, 'rides', booking.id);
+      unsubscribeFirestoreRide = onSnapshot(rideRef, handleDocSnap, (err) => {
+        console.warn('[Firestore] Ride listener notice:', err?.message || err);
       });
     } catch (e) {
       console.warn('[Firestore] Error attaching snapshot listener:', e);
@@ -134,7 +143,8 @@ export const ActiveBookingTracker: React.FC<ActiveBookingTrackerProps> = ({
     }, 3000);
 
     return () => {
-      if (unsubscribeFirestore) unsubscribeFirestore();
+      if (unsubscribeFirestoreBooking) unsubscribeFirestoreBooking();
+      if (unsubscribeFirestoreRide) unsubscribeFirestoreRide();
       clearInterval(intervalId);
     };
   }, [booking?.id, currentStatus]);

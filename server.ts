@@ -3,6 +3,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
 import { saveFirestoreUser, getFirestoreUser, saveFirestoreBooking, updateFirestoreBookingStatus, saveFirestoreRating, getFirestoreRatings, incrementFirestoreUserOrderCount } from './src/lib/firebase-server';
+import { sendZaloCustomerNotification } from './src/utils/zalo';
 
 const app = express();
 const PORT = 3000;
@@ -337,6 +338,29 @@ app.post("/api/telegram-webhook", async (req, res) => {
           // Sync with Firestore for real-time customer app updates
           await updateFirestoreBookingStatus(targetId, newStatus, fromUser);
 
+          // Automatic Zalo Notification when driver selects "Tài xế đang đến"
+          let zaloResultMsg = "";
+          if (newStatus === "DRIVER_EN_ROUTE") {
+            const customerPhone = matchedBooking.customerPhone || matchedBooking.phoneNumber || matchedBooking.phone || "";
+            const customerName = matchedBooking.customerName || matchedBooking.fullName || "Khách hàng";
+            const pickupAddress = matchedBooking.pickupAddress || matchedBooking.pickupLocation || "Điểm đón của quý khách";
+
+            const zaloRes = await sendZaloCustomerNotification({
+              bookingId: targetId,
+              customerName,
+              customerPhone,
+              pickupAddress,
+              driverName: fromUser
+            });
+
+            if (zaloRes.success) {
+              matchedBooking.zaloNotified = true;
+              matchedBooking.zaloNotifiedAt = Date.now();
+              zaloResultMsg = `📱 (Đã tự động gửi Zalo tới SĐT ${customerPhone})`;
+              responseText += `\n📱 Đã gửi Zalo tới khách hàng (${customerPhone})!`;
+            }
+          }
+
           // Edit Telegram Message to reflect live status
           if (callbackQuery.message) {
             const originalText = callbackQuery.message.text || '';
@@ -349,7 +373,7 @@ app.post("/api/telegram-webhook", async (req, res) => {
             const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
             
             const cleanedText = originalText.split('\n\n📌 TRẠNG THÁI CUỐC XE')[0];
-            const updatedText = `${cleanedText}\n\n📌 TRẠNG THÁI CUỐC XE: ${statusLabel}\n👤 Người xử lý: ${fromUser}\n⏰ Cập nhật: ${timeStr}`;
+            const updatedText = `${cleanedText}\n\n📌 TRẠNG THÁI CUỐC XE: ${statusLabel}\n👤 Người xử lý: ${fromUser}\n⏰ Cập nhật: ${timeStr}${zaloResultMsg ? `\n${zaloResultMsg}` : ''}`;
 
             const updatedKeyboard = {
               inline_keyboard: [
@@ -390,6 +414,29 @@ app.post("/api/telegram-webhook", async (req, res) => {
   } catch (err: any) {
     console.error("Error handling Telegram webhook:", err);
     res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Zalo Notification Endpoint for manual or integration calls
+app.post("/api/zalo/send-notification", async (req, res) => {
+  try {
+    const { bookingId, customerName, customerPhone, pickupAddress, driverName } = req.body;
+    if (!bookingId || !customerPhone) {
+      return res.status(400).json({ success: false, error: "Missing bookingId or customerPhone" });
+    }
+
+    const zaloResult = await sendZaloCustomerNotification({
+      bookingId,
+      customerName: customerName || "Khách hàng",
+      customerPhone,
+      pickupAddress: pickupAddress || "Điểm đón",
+      driverName: driverName || "Tài xế D.GO 247"
+    });
+
+    res.json({ success: true, zaloResult });
+  } catch (err: any) {
+    console.error("Error sending Zalo notification:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

@@ -120,6 +120,7 @@ export async function incrementFirestoreUserOrderCount(phone: string, name?: str
 export async function updateFirestoreBookingStatus(bookingId: string, status: string, driverAssigned?: string) {
   try {
     const bookingRef = doc(db, 'bookings', bookingId);
+    const rideRef = doc(db, 'rides', bookingId);
     const updateData: any = {
       status,
       updatedAt: Date.now()
@@ -127,7 +128,10 @@ export async function updateFirestoreBookingStatus(bookingId: string, status: st
     if (driverAssigned) {
       updateData.driverAssigned = driverAssigned;
     }
-    await withTimeout(setDoc(bookingRef, updateData, { merge: true }));
+    await Promise.all([
+      withTimeout(setDoc(bookingRef, updateData, { merge: true })),
+      withTimeout(setDoc(rideRef, { ...updateData, rideId: bookingId, bookingId }, { merge: true }))
+    ]);
   } catch (err: any) {
     if (isExpectedFirestoreError(err)) {
       console.log(`[Firestore Server] Offline/Permission check updating status for ${bookingId}.`);
@@ -140,6 +144,7 @@ export async function updateFirestoreBookingStatus(bookingId: string, status: st
 export async function saveFirestoreBooking(bookingData: any) {
   try {
     const bookingRef = doc(db, 'bookings', bookingData.id);
+    const rideRef = doc(db, 'rides', bookingData.id);
     const cleanPhone = (bookingData.phoneNumber || bookingData.customerPhone || '').replace(/\D/g, '');
     
     const docData = {
@@ -163,7 +168,10 @@ export async function saveFirestoreBooking(bookingData: any) {
       updatedAt: Date.now()
     };
 
-    await withTimeout(setDoc(bookingRef, docData, { merge: true }));
+    await Promise.all([
+      withTimeout(setDoc(bookingRef, docData, { merge: true })),
+      withTimeout(setDoc(rideRef, docData, { merge: true }))
+    ]);
   } catch (err: any) {
     if (isExpectedFirestoreError(err)) {
       console.log(`[Firestore Server] Offline/Permission check saving booking ${bookingData.id}.`);
