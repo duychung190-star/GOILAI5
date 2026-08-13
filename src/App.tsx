@@ -24,6 +24,7 @@ import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { UnauthenticatedBookingPromptModal } from './components/UnauthenticatedBookingPromptModal';
 import { ActiveBookingTracker } from './components/ActiveBookingTracker';
 import { SuccessModal } from './components/SuccessModal';
+import appBgImg from './assets/images/dgo_app_background_1786608739136.jpg';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
 import { syncUserFromFirestore } from './services/userService';
@@ -508,7 +509,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans selection:bg-amber-400 selection:text-slate-950 relative overflow-x-hidden">
+      
+      {/* Ambient App Background Image Overlay */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.12]">
+        <img
+          src={appBgImg}
+          alt="D.GO 247 App Background"
+          referrerPolicy="no-referrer"
+          className="w-full h-full object-cover object-center filter saturate-150 contrast-125"
+        />
+      </div>
       
       {/* Header Bar */}
       <Header

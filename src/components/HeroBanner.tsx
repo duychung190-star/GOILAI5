@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Clock, Award, Sparkles, CheckCircle2 } from 'lucide-react';
 import dgoLogoImg from '../assets/images/dgo_app_logo_1785380889422.jpg';
-import headerBgImg from '../assets/images/dgo_driver_hero_bg_1785738381902.jpg';
+import headerBgImg from '../assets/images/dgo_app_background_1786608739136.jpg';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface HeroBannerProps {
@@ -18,12 +18,12 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ onOpenPriceTable }) => {
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src={headerBgImg}
-          alt="D.GO Gọi Lái Xe 247 Bac Ninh Background"
+          alt="D.GO Lái Xe Hộ Background"
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover object-center opacity-85 brightness-105 contrast-105 scale-105 transition-all duration-700"
+          className="w-full h-full object-cover object-center opacity-90 brightness-100 contrast-105 scale-100 transition-all duration-700"
         />
-        {/* Soft Daytime Gradient Overlay for Maximum Legibility & Bright Vibrant Look */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-slate-100/95" />
+        {/* Soft Gradient Overlay for Maximum Legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/75 via-white/50 to-slate-100/90" />
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-white/30 to-white/70" />
       </div>
 
