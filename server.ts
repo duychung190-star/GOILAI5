@@ -260,6 +260,19 @@ app.post("/api/booking", async (req, res) => {
   }
 });
 
+// Get all bookings (for Dispatcher & Admin view)
+app.get("/api/bookings", async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      bookings: bookingsStore
+    });
+  } catch (err: any) {
+    console.error("Error in GET /api/bookings:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Telegram Webhook for handling Inline Keyboard Button clicks (nhan_*, xacnhan_*, huy_*)
 app.post("/api/telegram-webhook", async (req, res) => {
   try {

@@ -17,8 +17,15 @@ export const DispatcherDrawer: React.FC<DispatcherDrawerProps> = ({ isOpen, onCl
     setLoading(true);
     try {
       const res = await fetch('/api/bookings');
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Received non-JSON response from server');
+      }
       const data = await res.json();
-      if (data.success) {
+      if (data && data.success) {
         setBookings(data.bookings || []);
       }
     } catch (err) {
@@ -41,8 +48,15 @@ export const DispatcherDrawer: React.FC<DispatcherDrawerProps> = ({ isOpen, onCl
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Received non-JSON response from server');
+      }
       const data = await res.json();
-      if (data.success) {
+      if (data && data.success) {
         fetchBookings();
       }
     } catch (err) {
