@@ -198,7 +198,7 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
                   Realtime
                 </span>
               </h3>
-              <p className="text-xs text-slate-400">Tự động xuất & đồng bộ dữ liệu đơn xe D.GO 247</p>
+              <p className="text-xs text-slate-400">Tự động xuất & đồng bộ dữ liệu đơn xe D.GO 247 tới Google Sheets (thuelai247@gmail.com)</p>
             </div>
           </div>
           <button
@@ -245,7 +245,7 @@ export const GoogleSheetsModal: React.FC<GoogleSheetsModalProps> = ({
             {!currentUser ? (
               <div className="space-y-3 pt-1">
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Đăng nhập với Google để cho phép D.GO 247 ghi trực tiếp đơn xe vào tài khoản Google Sheets của bạn.
+                  Đăng nhập tài khoản Google (<strong className="text-emerald-400 font-semibold">thuelai247@gmail.com</strong>) để cho phép D.GO 247 tự động ghi & đồng bộ trực tiếp đơn xe vào Trang Tính Google Sheets.
                 </p>
 
                 {/* Google Standard Sign-in Button */}

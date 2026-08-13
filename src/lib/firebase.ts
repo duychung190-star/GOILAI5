@@ -16,8 +16,11 @@ import {
   increment,
   serverTimestamp,
   collection,
-  onSnapshot
+  onSnapshot,
+  setLogLevel
 } from 'firebase/firestore';
+
+setLogLevel('silent');
 import firebaseConfigData from '../../firebase-applet-config.json';
 
 // Helper to resolve Firebase environment variables on Vercel/Node/Vite or fallback to config JSON
@@ -229,22 +232,22 @@ export function subscribeToUserTripCount(phone: string, callback: (data: any) =>
   
   let unsub: (() => void) | null = null;
   try {
+    const handleErr = (err: any) => {
+      console.log('[Firestore] Trip count realtime notice (unsubscribing):', err?.message || err);
+      if (typeof unsub === 'function') {
+        try { unsub(); } catch (_) {}
+      }
+    };
+
     unsub = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         callback(docSnap.data());
       }
-    }, (err: any) => {
-      if (err?.message?.includes('PERMISSION_DENIED') || err?.code === 'permission-denied') {
-        console.log('[Firestore] Realtime subscription disabled (Permission Denied). Unsubscribing.');
-        if (typeof unsub === 'function') {
-          unsub();
-        }
-      } else {
-        console.warn('[Firestore] Notice in user trip count subscription:', err?.message || err);
-      }
-    });
+    }, handleErr);
     return () => {
-      if (typeof unsub === 'function') unsub();
+      if (typeof unsub === 'function') {
+        try { unsub(); } catch (_) {}
+      }
     };
   } catch (err) {
     console.log('[Firestore] Unable to subscribe to trip count:', err);

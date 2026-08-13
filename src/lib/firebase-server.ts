@@ -1,5 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { initializeFirestore, doc, setDoc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { initializeFirestore, doc, setDoc, getDoc, collection, getDocs, query, where, setLogLevel } from 'firebase/firestore';
+
+setLogLevel('silent');
 import firebaseConfigData from '../../firebase-applet-config.json';
 
 const firebaseConfig = {

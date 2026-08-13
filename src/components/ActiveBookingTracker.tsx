@@ -95,17 +95,25 @@ export const ActiveBookingTracker: React.FC<ActiveBookingTrackerProps> = ({
     };
 
     try {
+      const handleListenerError = (err: any) => {
+        console.log('[Firestore] Realtime stream notice (using API polling fallback):', err?.message || err);
+        if (unsubscribeFirestoreBooking) {
+          try { unsubscribeFirestoreBooking(); } catch (_) {}
+          unsubscribeFirestoreBooking = null;
+        }
+        if (unsubscribeFirestoreRide) {
+          try { unsubscribeFirestoreRide(); } catch (_) {}
+          unsubscribeFirestoreRide = null;
+        }
+      };
+
       const bookingRef = doc(db, 'bookings', booking.id);
-      unsubscribeFirestoreBooking = onSnapshot(bookingRef, handleDocSnap, (err) => {
-        console.warn('[Firestore] Booking listener notice:', err?.message || err);
-      });
+      unsubscribeFirestoreBooking = onSnapshot(bookingRef, handleDocSnap, handleListenerError);
 
       const rideRef = doc(db, 'rides', booking.id);
-      unsubscribeFirestoreRide = onSnapshot(rideRef, handleDocSnap, (err) => {
-        console.warn('[Firestore] Ride listener notice:', err?.message || err);
-      });
+      unsubscribeFirestoreRide = onSnapshot(rideRef, handleDocSnap, handleListenerError);
     } catch (e) {
-      console.warn('[Firestore] Error attaching snapshot listener:', e);
+      console.log('[Firestore] Could not attach snapshot listener:', e);
     }
 
     // 2. Setup Polling Interval fallback every 3 seconds to ensure web & mobile app syncs seamlessly
