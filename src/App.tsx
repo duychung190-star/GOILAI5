@@ -24,6 +24,7 @@ import { PrivacyPolicyModal } from './components/PrivacyPolicyModal';
 import { UnauthenticatedBookingPromptModal } from './components/UnauthenticatedBookingPromptModal';
 import { ActiveBookingTracker } from './components/ActiveBookingTracker';
 import { SuccessModal } from './components/SuccessModal';
+import { PriceTableModal } from './components/PriceTableModal';
 import appBgImg from './assets/images/dgo_app_background_1786608739136.jpg';
 
 import { LocationPoint, VehicleTypeOption, VatDetails, BookingRequest, DriverRating, UserProfile } from './types';
@@ -182,6 +183,8 @@ export default function App() {
   const [isDispatcherOpen, setIsDispatcherOpen] = useState(false);
   const [isGoogleSheetsOpen, setIsGoogleSheetsOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isPriceTableOpen, setIsPriceTableOpen] = useState(false);
+  const [isAsPerPriceTable, setIsAsPerPriceTable] = useState(false);
   const [isAutoSyncEnabled, setIsAutoSyncEnabled] = useState(true);
   const [mapTargetMode, setMapTargetMode] = useState<'pickup' | 'destination'>('destination');
 
@@ -193,7 +196,7 @@ export default function App() {
     const targetBooking = booking || (bookingHistory.length > 0 ? bookingHistory[0] : {
       id: `DGO-${Date.now().toString().slice(-6)}`,
       customerName: customerName || 'Khách hàng D.GO',
-      customerPhone: customerPhone || '0971999734',
+      customerPhone: customerPhone || '0877683536',
       pickupAddress: pickup?.address || 'Điểm đón của bạn',
       pickupLat: pickup?.lat || 21.0,
       pickupLng: pickup?.lng || 105.8,
@@ -338,6 +341,9 @@ export default function App() {
     return 0;
   }, [roadDistanceKm]);
 
+  // Determine if trip is as per price table (destination empty or user explicitly requested)
+  const isEffectiveAsPerPriceTable = isAsPerPriceTable || (!destination?.address || !destination.address.trim());
+
   const priceBreakdown = useMemo(() => {
     return PriceCalculator.calculatePrice(
       calculatedDistanceKm,
@@ -348,9 +354,10 @@ export default function App() {
       scheduledTime,
       needVat,
       roadDurationMinutes,
-      promoCode
+      promoCode,
+      isEffectiveAsPerPriceTable
     );
-  }, [calculatedDistanceKm, vehicleType, hourlyHours, dailyDays, scheduledTime, needVat, roadDurationMinutes, promoCode]);
+  }, [calculatedDistanceKm, vehicleType, hourlyHours, dailyDays, scheduledTime, needVat, roadDurationMinutes, promoCode, isEffectiveAsPerPriceTable]);
 
   // Handle Map Location Selection via map click using Goong Reverse Geocoding
   const handleSelectMapLocation = async (lat: number, lng: number, target: 'pickup' | 'destination') => {
@@ -390,8 +397,8 @@ export default function App() {
       return;
     }
 
-    if (!destination?.address) {
-      setValidationError('Vui lòng chọn hoặc nhập điểm đến.');
+    if (!isEffectiveAsPerPriceTable && (!destination?.address || !destination.address.trim())) {
+      setValidationError('Vui lòng chọn hoặc nhập điểm đến (hoặc để trống để ĐI THEO BẢNG GIÁ).');
       return;
     }
 
@@ -408,6 +415,10 @@ export default function App() {
   const executeBookingSubmission = async () => {
     setIsSubmitting(true);
 
+    const destAddr = (destination?.address && destination.address.trim())
+      ? destination.address
+      : 'ĐI THEO BẢNG GIÁ (Nhiều điểm dừng / Chưa có điểm đến cụ thể)';
+
     const newBooking: BookingRequest = {
       id: `DGO-${Math.floor(100000 + Math.random() * 900000)}`,
       customerName: customerName.trim(),
@@ -415,11 +426,11 @@ export default function App() {
       pickupAddress: pickup!.address,
       pickupLat: pickup!.lat,
       pickupLng: pickup!.lng,
-      destinationAddress: destination!.address,
-      destinationLat: destination!.lat,
-      destinationLng: destination!.lng,
+      destinationAddress: destAddr,
+      destinationLat: destination?.lat || pickup!.lat,
+      destinationLng: destination?.lng || pickup!.lng,
       distanceKm: calculatedDistanceKm,
-      totalPrice: priceBreakdown.totalPrice,
+      totalPrice: isEffectiveAsPerPriceTable ? 0 : priceBreakdown.totalPrice,
       vehicleType,
       noteForDriver,
       scheduledTime: scheduledTime.getTime(),
@@ -427,7 +438,8 @@ export default function App() {
       createdAt: Date.now(),
       needVat,
       vatDetails: needVat ? vatDetails : undefined,
-      breakdown: priceBreakdown
+      breakdown: priceBreakdown,
+      isAsPerPriceTable: isEffectiveAsPerPriceTable
     };
 
     try {
@@ -523,6 +535,7 @@ export default function App() {
       
       {/* Header Bar */}
       <Header
+        onOpenPriceTable={() => setIsPriceTableOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenDispatcher={() => setIsDispatcherOpen(true)}
         onOpenGoogleSheets={() => setIsGoogleSheetsOpen(true)}
@@ -549,7 +562,7 @@ export default function App() {
 
         {/* Hero Banner Showcase (Logo & Service Introduction placed at top) */}
         <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-sm">
-          <HeroBanner />
+          <HeroBanner onOpenPriceTable={() => setIsPriceTableOpen(true)} />
         </div>
 
         {/* Error Notification Alert (if any) */}
@@ -602,6 +615,9 @@ export default function App() {
               setPromoCode={setPromoCode}
               onFormValidationFail={(msg) => setValidationError(msg)}
               onOpenPhoneAuth={() => setIsPhoneAuthOpen(true)}
+              isAsPerPriceTable={isEffectiveAsPerPriceTable}
+              setIsAsPerPriceTable={setIsAsPerPriceTable}
+              onOpenPriceTable={() => setIsPriceTableOpen(true)}
             />
           </div>
 
@@ -684,6 +700,8 @@ export default function App() {
               isCalculatingRoute={isCalculatingRoute}
               onConfirmBooking={handleConfirmBooking}
               onOpenPrivacyPolicy={() => setIsPrivacyModalOpen(true)}
+              onOpenPriceTable={() => setIsPriceTableOpen(true)}
+              isAsPerPriceTable={isEffectiveAsPerPriceTable}
             />
 
           </div>
@@ -711,7 +729,7 @@ export default function App() {
           />
           <div className="text-left">
             <h4 className="font-black text-slate-900 text-base tracking-tight">D.GO - DỊCH VỤ LÁI XE HỘ</h4>
-            <p className="text-amber-700 text-xs font-bold">GOILAI247.COM • HOTLINE: 0971.999.734</p>
+            <p className="text-amber-700 text-xs font-bold">GOILAI247.COM • HOTLINE: 0877.683.536</p>
             <p className="text-slate-600 text-xs font-medium mt-0.5 flex items-center gap-1">
               <span>Địa chỉ: 139 Nguyễn Văn Cừ, Long Biên, Hà Nội</span>
             </p>
@@ -791,6 +809,11 @@ export default function App() {
       <PrivacyPolicyModal
         isOpen={isPrivacyModalOpen}
         onClose={() => setIsPrivacyModalOpen(false)}
+      />
+
+      <PriceTableModal
+        isOpen={isPriceTableOpen}
+        onClose={() => setIsPriceTableOpen(false)}
       />
 
       {/* Driver Accepted Success Confirmation Modal */}

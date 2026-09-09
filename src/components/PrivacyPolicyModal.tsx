@@ -141,7 +141,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({
             </p>
             <ul className="space-y-1.5 text-slate-300 list-disc pl-4 pt-1">
               <li>
-                Gọi điện trực tiếp đến Đường dây nóng hỗ trợ của chúng tôi: <a href="tel:0971999734" className="text-amber-400 font-bold underline">0971.999.734</a>.
+                Gọi điện trực tiếp đến Đường dây nóng hỗ trợ của chúng tôi: <a href="tel:0877683536" className="text-amber-400 font-bold underline">0877.683.536</a>.
               </li>
               <li>
                 Từ chối quyền truy cập vị trí của ứng dụng trong phần cài đặt thiết bị.
@@ -170,7 +170,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({
               <p className="flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Đường dây nóng:</span>
-                <a href="tel:0971999734" className="text-amber-400 font-bold hover:underline">0971.999.734</a>
+                <a href="tel:0877683536" className="text-amber-400 font-bold hover:underline">0877.683.536</a>
               </p>
               <p className="flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5 text-purple-400" />

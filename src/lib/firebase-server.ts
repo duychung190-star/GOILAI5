@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
-}, firebaseConfigData.firestoreDatabaseId || '(default)');
+}, (firebaseConfigData as any).firestoreDatabaseId || '(default)');
 
 function withTimeout<T>(promise: Promise<T>, ms = 3000): Promise<T> {
   return Promise.race([

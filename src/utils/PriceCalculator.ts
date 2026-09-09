@@ -1,25 +1,65 @@
 import { PriceBreakdown, VehicleTypeOption } from '../types';
 
+/**
+ * Tính giá cước theo lượt (Km) - Xe máy / Ô tô tiêu chuẩn:
+ * - 10 km đầu tiên: 350.000 VNĐ
+ * - Từ km thứ 11 trở đi: +15.000 VNĐ / km
+ */
 export function calculateDriverTripFare(dist: number): number {
   if (dist <= 0) return 0;
-  if (dist <= 3) {
-    return 238000;
-  } else if (dist <= 10) {
-    return Math.round(238000 + (dist - 3) * 16000);
-  } else if (dist <= 20) {
-    return Math.round(350000 + (dist - 10) * 15000);
-  } else if (dist <= 25) {
-    return Math.round(500000 + (dist - 20) * 13000);
-  } else {
-    return Math.round(565000 + (dist - 25) * 12000);
+  if (dist <= 10) {
+    return 350000;
   }
+  return Math.round(350000 + (dist - 10) * 15000);
+}
+
+/**
+ * Tính giá cước theo lượt (Km) - Dịch vụ Xe sang (Luxury):
+ * - 10 km đầu tiên: 450.000 VNĐ
+ * - Từ km thứ 11 trở đi: +20.000 VNĐ / km
+ */
+export function calculateLuxuryTripFare(dist: number): number {
+  if (dist <= 0) return 0;
+  if (dist <= 10) {
+    return 450000;
+  }
+  return Math.round(450000 + (dist - 10) * 20000);
+}
+
+/**
+ * Tính giá thuê lái theo giờ:
+ * - Xe máy / Ô tô: 500.000 VNĐ / 3h đầu, +150.000 VNĐ / h tiếp theo.
+ *   Khóa block 10 tiếng tính lại từ đầu (1 block 10h = 500k + 7 * 150k = 1.550.000đ).
+ * - Dịch vụ Xe sang: Tính cộng thêm 20% so với giá thường.
+ */
+export function calculateHourlyFare(hours: number, isLuxury: boolean = false): number {
+  const h = Math.max(1, hours);
+  const fullBlocks = Math.floor(h / 10);
+  const remainder = h % 10;
+  const block10Price = 500000 + 7 * 150000; // 1.550.000 VNĐ cho 1 block 10 tiếng
+  
+  let remainderPrice = 0;
+  if (remainder > 0) {
+    if (remainder <= 3) {
+      remainderPrice = 500000;
+    } else {
+      remainderPrice = 500000 + (remainder - 3) * 150000;
+    }
+  }
+
+  const standardTotal = fullBlocks * block10Price + remainderPrice;
+  if (isLuxury) {
+    return Math.round(standardTotal * 1.20);
+  }
+  return standardTotal;
 }
 
 export class PriceCalculator {
   /**
-   * Tính khoảng cách đường bộ thực tế (Driving Distance) từ Goong Maps API.
-   * Tuyệt đối không tính khoảng cách đường chim bay.
+   * Phí chờ: 40.000đ / 30 phút
    */
+  static WAITING_FEE_PER_30_MIN = 40000;
+
   static calculateDistance(
     lat1: number,
     lng1: number,
@@ -31,21 +71,18 @@ export class PriceCalculator {
 
   /**
    * Thuật toán Tính giá D.GO 247 Cập Nhật Mới:
-   * 1. Lái hộ theo cuốc (Dựa trên số Km lấy từ Goong Map API):
-   *    - 3 km đầu tiên: 238.000đ
-   *    - km thứ 4 - 10: +16.000đ/km (km 10: 350.000đ)
-   *    - km thứ 11 - 20: +15.000đ/km (km 20: 500.000đ)
-   *    - km thứ 21 - 25: +13.000đ/km (km 25: 565.000đ)
-   *    - Từ km 26 trở đi: giá km 25 (565.000đ) + 12.000đ/km
-   *    - Dịch vụ Luxury: Tăng tương ứng 35% so với gói tiêu chuẩn.
-   * 2. Thuê lái theo giờ (2 nút con Ô tô / Xe máy & Dịch vụ Luxury):
-   *    - Ô tô / Xe máy: Combo 3h đầu = 450.000đ, từ giờ thứ 4 trở đi +100.000đ/giờ.
-   *    - Dịch vụ Luxury: Combo 3h đầu = 500.000đ, từ giờ thứ 4 trở đi +150.000đ/giờ.
-   * 3. Thuê lái theo ngày (24h):
-   *    - Ô tô / Xe máy: 1.500.000đ / ngày (24h).
-   *    - Dịch vụ Luxury: 2.000.000đ / ngày (24h).
-   * 4. Phụ phí đêm (23:00 - 23:59: +10%, 00:00 - 04:59: +20%).
-   * (Lưu ý: Giá trên chưa bao gồm hỗ trợ chi phí ăn ở cho tài xế)
+   * 1. Lái hộ theo cuốc (Km thực tế):
+   *    - Xe máy / Ô tô: 350.000đ / 10km đầu, từ km 11 trở đi +15.000đ/km.
+   *    - Xe sang (Luxury): 450.000đ / 10km đầu, từ km 11 trở đi +20.000đ/km.
+   * 2. Phí chờ phát sinh: 40.000đ / 30 phút.
+   * 3. Thuê lái theo giờ:
+   *    - Xe máy / Ô tô: 500.000đ / 3h đầu, +150.000đ/h tiếp theo, khóa block 10 tiếng tính lại từ đầu.
+   *    - Dịch vụ xe sang: tính cộng thêm 20% giá thường.
+   * 4. Thuê lái theo ngày 24h:
+   *    - Xe máy / Ô tô: 1.500.000đ / ngày (24h).
+   *    - Dịch vụ xe sang: 2.000.000đ / ngày (24h).
+   * 5. Khách đi theo bảng giá (nhiều điểm / chưa có điểm đến cụ thể):
+   *    - Không hiển thị số tiền, chỉ hiển thị mã voucher giảm 10% sau chuyến đi (DGO10).
    */
   static calculatePrice(
     distanceKm: number,
@@ -56,8 +93,34 @@ export class PriceCalculator {
     scheduledTimeDate: Date = new Date(),
     needVat: boolean = false,
     roadDurationMinutes: number | null = null,
-    promoCode: string = 'GOILAI247'
+    promoCode: string = 'GOILAI10',
+    isAsPerPriceTable: boolean = false
   ): PriceBreakdown {
+    // Trường hợp khách chọn dịch vụ đi theo bảng giá (hoặc chưa có điểm đến cụ thể / đi nhiều điểm)
+    if (isAsPerPriceTable) {
+      return {
+        basePrice: 0,
+        nightSurcharge: 0,
+        nightPercent: 0,
+        vatAmount: 0,
+        totalBeforeVat: 0,
+        originalPrice: 0,
+        discountPercent: 10,
+        discountAmount: 0,
+        totalPrice: 0,
+        promoCode: 'DGO10',
+        discountCodeName: 'Voucher giảm 10% sau chuyến đi (DGO10)',
+        promoMessage: 'Áp dụng mã DGO10 để được giảm 10% tổng cước thực tế sau khi hoàn thành chuyến đi',
+        distanceKm: 0,
+        estimatedMinutes: 0,
+        isHourly: false,
+        hourlyHours: 0,
+        isDaily: false,
+        dailyDays: 0,
+        isAsPerPriceTable: true
+      };
+    }
+
     let basePrice = 0;
     const isHourlyMode = isHourly || vehicleType.includes('Thuê theo giờ');
     const isDailyMode = vehicleType.includes('Thuê theo ngày');
@@ -72,33 +135,19 @@ export class PriceCalculator {
         basePrice = days * 1500000; // 1.500.000đ / ngày với Ô tô / Xe máy
       }
     } else if (isHourlyMode) {
-      // Thuê lái theo giờ (Combo 3h đầu)
+      // Thuê lái theo giờ (500k/3h đầu, +150k/h tiếp theo, block 10h lặp lại, xe sang +20%)
       const hours = Math.max(1, hourlyHours);
-      if (isLuxury) {
-        if (hours <= 3) {
-          basePrice = 500000;
-        } else {
-          basePrice = 500000 + (hours - 3) * 150000;
-        }
-      } else {
-        if (hours <= 3) {
-          basePrice = 450000;
-        } else {
-          basePrice = 450000 + (hours - 3) * 100000;
-        }
-      }
+      basePrice = calculateHourlyFare(hours, isLuxury);
     } else {
       // Lái hộ theo cuốc (Km thực tế từ Goong Map API)
       const dist = Math.max(0, distanceKm);
-
       if (dist === 0) {
         basePrice = 0;
       } else {
-        const stdFare = calculateDriverTripFare(dist);
         if (isLuxury) {
-          basePrice = Math.round(stdFare * 1.35);
+          basePrice = calculateLuxuryTripFare(dist);
         } else {
-          basePrice = stdFare;
+          basePrice = calculateDriverTripFare(dist);
         }
       }
     }
@@ -141,8 +190,8 @@ export class PriceCalculator {
     } else if (cleanPromo === 'GOILAI10' || cleanPromo === 'GOILAI247' || cleanPromo === 'APP10' || cleanPromo === 'DGO10') {
       discountPercent = 10;
       discountAmount = Math.round(originalPrice * 0.10);
-      appliedCode = 'GOILAI10';
-      discountCodeName = 'Mã GOILAI10 (-10%)';
+      appliedCode = cleanPromo === 'DGO10' ? 'DGO10' : 'GOILAI10';
+      discountCodeName = `Mã ${appliedCode} (-10%)`;
       promoMessage = 'Đã áp dụng mã giảm 10% cho chuyến đi';
     } else if (cleanPromo === 'GOILAI15' || cleanPromo === 'TRIAN15' || cleanPromo === 'BANMOI' || cleanPromo === 'CHAO2026') {
       discountPercent = 15;
@@ -219,7 +268,8 @@ export class PriceCalculator {
       isHourly: isHourlyMode,
       hourlyHours,
       isDaily: isDailyMode,
-      dailyDays
+      dailyDays,
+      isAsPerPriceTable: false
     };
   }
 

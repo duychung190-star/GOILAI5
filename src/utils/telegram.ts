@@ -14,9 +14,12 @@ export const sendTelegramNotification = async (bookingData: {
   noteForDriver?: string;
   isNewCustomer?: boolean;
   totalOrdersCount?: number;
+  isAsPerPriceTable?: boolean;
 }) => {
   const token = "8182785112:AAEO1WlI59qkaCDR1OuO00z2No6cTwk4acE".trim();
   const rawChatId = "-1003936078147".trim();
+
+  const isPriceTable = Boolean(bookingData.isAsPerPriceTable || (typeof bookingData.totalPrice === 'number' && bookingData.totalPrice === 0));
 
   const formattedPrice = typeof bookingData.totalPrice === 'number'
     ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(bookingData.totalPrice)
@@ -32,8 +35,8 @@ export const sendTelegramNotification = async (bookingData: {
     ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(discountVal)
     : discountVal;
 
-  const promoCode = bookingData.promoCode || 'GOILAI247';
-  const discountName = bookingData.discountCodeName || 'Mã App GOILAI247 (-10%)';
+  const promoCode = isPriceTable ? 'DGO10' : (bookingData.promoCode || 'GOILAI247');
+  const discountName = isPriceTable ? 'Voucher giảm 10% sau chuyến đi' : (bookingData.discountCodeName || 'Mã App GOILAI247 (-10%)');
 
   let text = `🚗 CÓ ĐƠN ĐẶT XE MỚI!\n`;
 
@@ -50,21 +53,28 @@ export const sendTelegramNotification = async (bookingData: {
   if (bookingData.vehicleType) {
     text += `Loại xe: ${bookingData.vehicleType}\n`;
   }
-  if (bookingData.distanceKm) {
+  if (bookingData.distanceKm && !isPriceTable) {
     text += `Khoảng cách: ${bookingData.distanceKm} km\n`;
   }
 
-  text += `------------------\n` +
-    `🎁 Voucher áp dụng: ${promoCode} (${discountName})\n`;
+  text += `------------------\n`;
 
-  if (formattedOriginalPrice) {
-    text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
-  }
-  if (formattedDiscount) {
-    text += `🏷️ Số tiền giảm: -${formattedDiscount}\n`;
-  }
+  if (isPriceTable) {
+    text += `📋 HÌNH THỨC: ĐI THEO BẢNG GIÁ NIÊM YẾT\n` +
+      `🎁 Mã Voucher: DGO10 (Giảm 10% sau chuyến đi)\n` +
+      `💰 Giá cước: Tính theo BẢNG GIÁ khi kết thúc hành trình`;
+  } else {
+    text += `🎁 Voucher áp dụng: ${promoCode} (${discountName})\n`;
 
-  text += `💰 Giá sau khi giảm (Khách trả): ${formattedPrice}`;
+    if (formattedOriginalPrice) {
+      text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
+    }
+    if (formattedDiscount) {
+      text += `🏷️ Số tiền giảm: -${formattedDiscount}\n`;
+    }
+
+    text += `💰 Giá sau khi giảm (Khách trả): ${formattedPrice}`;
+  }
 
   if (bookingData.noteForDriver) {
     text += `\nGhi chú: ${bookingData.noteForDriver}`;

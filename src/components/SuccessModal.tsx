@@ -164,8 +164,8 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
               <span className="mr-2">📞</span>{' '}
               <span>
                 <strong>Hotline hỗ trợ:</strong>{' '}
-                <a href="tel:0971999734" className="text-blue-600 font-bold">
-                  0971.999.734
+                <a href="tel:0877683536" className="text-blue-600 font-bold">
+                  0877.683.536
                 </a>
               </span>
             </p>

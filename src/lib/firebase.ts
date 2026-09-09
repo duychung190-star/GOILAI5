@@ -51,7 +51,7 @@ export const auth = getAuth(app);
 export const db = initializeFirestore(
   app,
   { experimentalForceLongPolling: true },
-  firebaseConfigData.firestoreDatabaseId || '(default)'
+  (firebaseConfigData as any).firestoreDatabaseId || '(default)'
 );
 
 export const ensureFirebaseAuth = async () => {
@@ -301,7 +301,7 @@ export function listenToRideStatus(bookingId: string) {
 
         // 3. THÔNG BÁO HỦY CUỐC
         if (status === "Đã hủy cuốc" || status === "CANCELLED") {
-          alert("Rất tiếc, cuốc xe " + bookingId + " đã bị hủy. Vui lòng liên hệ Hotline: 0971.999.734 để được hỗ trợ.");
+          alert("Rất tiếc, cuốc xe " + bookingId + " đã bị hủy. Vui lòng liên hệ Hotline: 0877.683.536 để được hỗ trợ.");
         }
       }
     }, (err) => {

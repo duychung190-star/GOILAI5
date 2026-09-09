@@ -58,39 +58,59 @@ const sendTelegramNotification = async (bookingData: any) => {
     const vehicleType = bookingData.vehicleType || 'Ô tô / Xe máy';
     const noteForDriver = bookingData.noteForDriver || bookingData.note || 'Không có ghi chú';
 
+    const isPriceTable = Boolean(
+      bookingData.isAsPerPriceTable || 
+      bookingData.breakdown?.isAsPerPriceTable || 
+      !dropoff || 
+      dropoff.includes('Đi theo bảng giá') ||
+      (typeof bookingData.totalPrice === 'number' && bookingData.totalPrice === 0)
+    );
+
     let text = '';
-    if (orderIndex === 1) {
-      text = `🆕 CÓ ĐƠN ĐẶT XE MỚI (KHÁCH HÀNG MỚI)\n` +
+    const headerPrefix = orderIndex === 1 
+      ? `🆕 CÓ ĐƠN ĐẶT XE MỚI (KHÁCH HÀNG MỚI)\n` 
+      : `🔥 CÓ ĐƠN ĐẶT XE MỚI (KHÁCH CŨ QUAY LẠI - LẦN THỨ ${orderIndex})\n`;
+
+    if (isPriceTable) {
+      text = headerPrefix +
+        `- Khách hàng: ${name} - ${phone}\n` +
+        `- Điểm đón: ${pickup}\n` +
+        `- Điểm đến: Đi nhiều điểm / Chưa có điểm đến cụ thể (Theo bảng giá)\n` +
+        `- Loại xe: ${vehicleType}\n` +
+        `- Ghi chú cho tài xế: ${noteForDriver}\n` +
+        `------------------\n` +
+        `📋 HÌNH THỨC TÍNH GIÁ: ĐI THEO BẢNG GIÁ NIÊM YẾT\n` +
+        `🎁 Mã Voucher: DGO10 (Giảm 10% sau chuyến đi)\n` +
+        `💰 Cước phí: Tính theo BẢNG GIÁ khi kết thúc chuyến đi`;
+      if (orderIndex > 1) {
+        text += `\n- Tần suất: Khách đã đặt ${orderIndex} chuyến trên D.GO!`;
+      }
+    } else {
+      text = headerPrefix +
         `- Khách hàng: ${name} - ${phone}\n` +
         `- Lộ trình: ${pickup} ➔ ${dropoff}\n` +
         `- Quãng đường: ${distanceKm} km | Thời gian: ${durationMinutes} phút\n` +
         `- Loại xe: ${vehicleType}\n` +
         `- Ghi chú cho tài xế: ${noteForDriver}\n` +
         `- Tổng tiền: ${formattedPrice}`;
-    } else {
-      text = `🔥 CÓ ĐƠN ĐẶT XE MỚI (KHÁCH CŨ QUAY LẠI - LẦN THỨ ${orderIndex})\n` +
-        `- Khách hàng: ${name} - ${phone}\n` +
-        `- Lộ trình: ${pickup} ➔ ${dropoff}\n` +
-        `- Quãng đường: ${distanceKm} km | Thời gian: ${durationMinutes} phút\n` +
-        `- Loại xe: ${vehicleType}\n` +
-        `- Ghi chú cho tài xế: ${noteForDriver}\n` +
-        `- Tổng tiền: ${formattedPrice}\n` +
-        `- Tần suất: Khách đã đặt ${orderIndex} chuyến trên D.GO!`;
-    }
-
-    const promoCode = bookingData.breakdown?.promoCode || bookingData.promoCode;
-    const discountName = bookingData.breakdown?.discountCodeName || bookingData.discountCodeName;
-
-    if (promoCode && discountAmountNum > 0) {
-      text += `\n------------------\n` +
-        `🎁 Voucher áp dụng: ${promoCode}${discountName ? ` (${discountName})` : ''}\n`;
-      if (formattedOriginalPrice) {
-        text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
+      if (orderIndex > 1) {
+        text += `\n- Tần suất: Khách đã đặt ${orderIndex} chuyến trên D.GO!`;
       }
-      if (formattedDiscount) {
-        text += `🏷️ Số tiền giảm: -${formattedDiscount}\n`;
+
+      const promoCode = bookingData.breakdown?.promoCode || bookingData.promoCode;
+      const discountName = bookingData.breakdown?.discountCodeName || bookingData.discountCodeName;
+
+      if (promoCode && discountAmountNum > 0) {
+        text += `\n------------------\n` +
+          `🎁 Voucher áp dụng: ${promoCode}${discountName ? ` (${discountName})` : ''}\n`;
+        if (formattedOriginalPrice) {
+          text += `💵 Giá gốc: ${formattedOriginalPrice}\n`;
+        }
+        if (formattedDiscount) {
+          text += `🏷️ Số tiền giảm: -${formattedDiscount}\n`;
+        }
+        text += `💰 Giá thanh toán (Khách trả): ${formattedPrice}`;
       }
-      text += `💰 Giá thanh toán (Khách trả): ${formattedPrice}`;
     }
 
     const bookingId = bookingData.id || bookingData.bookingId || `DGO-${Date.now().toString().slice(-6)}`;
@@ -635,7 +655,7 @@ app.post("/api/auth/register", async (req, res) => {
     }
 
     if (!isValidVietnamesePhone(phone)) {
-      return res.status(400).json({ success: false, message: "Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0971999734" });
+      return res.status(400).json({ success: false, message: "Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0877683536" });
     }
 
     if (!password || password.length < 6) {

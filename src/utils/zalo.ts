@@ -69,7 +69,7 @@ export async function sendZaloCustomerNotification(data: ZaloNotificationData): 
   const cleanPhone = customerPhone.replace(/\D/g, '');
   const formattedPhone = cleanPhone.startsWith('0') ? '84' + cleanPhone.slice(1) : cleanPhone;
 
-  const zaloMessage = `🚗 [D.GO 247] XÁC NHẬN CHUYẾN ĐI\n\nXin chào ${customerName},\nTài xế ${driverName} đã nhận đơn và ĐANG TRÊN ĐƯỜNG DI CHUYỂN ĐẾN ĐÓN BẠN!\n\n📍 Điểm đón: ${pickupAddress}\n🏷 Mã cuốc: ${bookingId}\n📞 Hotline / Zalo hỗ trợ 24/7: 0971.999.734\n\nCảm ơn quý khách đã chọn D.GO 247!`;
+  const zaloMessage = `🚗 [D.GO 247] XÁC NHẬN CHUYẾN ĐI\n\nXin chào ${customerName},\nTài xế ${driverName} đã nhận đơn và ĐANG TRÊN ĐƯỜNG DI CHUYỂN ĐẾN ĐÓN BẠN!\n\n📍 Điểm đón: ${pickupAddress}\n🏷 Mã cuốc: ${bookingId}\n📞 Hotline / Zalo hỗ trợ 24/7: 0877.683.536\n\nCảm ơn quý khách đã chọn D.GO 247!`;
 
   const zaloOaToken = process.env.ZALO_OA_ACCESS_TOKEN || process.env.VITE_ZALO_OA_TOKEN || '';
   const zaloWebhookUrl = process.env.ZALO_WEBHOOK_URL || '';
@@ -85,7 +85,7 @@ export async function sendZaloCustomerNotification(data: ZaloNotificationData): 
       customer_name: customerName,
       driver_name: driverName,
       pickup_address: pickupAddress,
-      hotline: '0971.999.734'
+      hotline: '0877.683.536'
     },
     timestamp: Date.now()
   };

@@ -39,6 +39,7 @@ export interface PriceBreakdown {
   hourlyHours: number;
   isDaily?: boolean;
   dailyDays?: number;
+  isAsPerPriceTable?: boolean; // Khách đi nhiều điểm / Chưa có điểm đến (Đi theo bảng giá)
 }
 
 export interface UserProfile {
@@ -91,6 +92,7 @@ export interface BookingRequest {
   rating?: DriverRating;
   isNewCustomer?: boolean;
   totalOrdersCount?: number;
+  isAsPerPriceTable?: boolean;
 }
 
 export interface SearchSuggestion {

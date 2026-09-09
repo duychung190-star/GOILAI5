@@ -70,7 +70,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
     }
 
     if (!validatePhone(phone)) {
-      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0971999734');
+      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam. Ví dụ: 0877683536');
       return;
     }
 
@@ -140,7 +140,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
     setSuccessMsg('');
 
     if (!validatePhone(phone)) {
-      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam (VD: 0971999734)');
+      setErrorMsg('Số điện thoại không đúng định dạng Việt Nam (VD: 0877683536)');
       return;
     }
 
@@ -347,7 +347,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Ví dụ: 0971999734"
+                    placeholder="Ví dụ: 0877683536"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
                   />
                 </div>
@@ -453,7 +453,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Ví dụ: 0971999734"
+                    placeholder="Ví dụ: 0877683536"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
                   />
                 </div>
@@ -555,11 +555,11 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
                   Quý khách vui lòng gọi tới Tổng đài D.GO 247 để tổng đài viên cấp lại mật khẩu ngay trong 1 phút.
                 </p>
                 <a
-                  href="tel:0971999734"
+                  href="tel:0877683536"
                   className="w-full py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-lg flex items-center justify-center gap-1.5 shadow"
                 >
                   <PhoneCall className="w-3.5 h-3.5" />
-                  <span>GỌI HOTLINE 0971.999.734 (MIỄN PHÍ)</span>
+                  <span>GỌI HOTLINE 0877.683.536 (MIỄN PHÍ)</span>
                 </a>
               </div>
 
@@ -578,7 +578,7 @@ export const PhoneAuthModal: React.FC<PhoneAuthModalProps> = ({
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Ví dụ: 0971999734"
+                    placeholder="Ví dụ: 0877683536"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400"
                   />
                 </div>

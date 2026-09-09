@@ -3,7 +3,7 @@ import { LocationPoint, VehicleTypeOption, VatDetails, SearchSuggestion, PriceBr
 import { PriceCalculator } from '../utils/PriceCalculator';
 import { autoCompleteGoong, getPlaceDetailGoong, reverseGeocodeGoong } from '../utils/goong';
 import { useLanguage } from '../i18n/LanguageContext';
-import { MapPin, Navigation, Car, Bike, ShieldCheck, Clock, FileText, User, Phone, Edit3, Sparkles, Check, AlertCircle, Calculator, Route, Ticket, Tag, Percent, Star, Bookmark, Trash2, Plus, Heart, X, CheckCircle } from 'lucide-react';
+import { MapPin, Navigation, Car, Bike, ShieldCheck, Clock, FileText, User, Phone, PhoneCall, Edit3, Sparkles, Check, AlertCircle, Calculator, Route, Ticket, Tag, Percent, Star, Bookmark, Trash2, Plus, Heart, X, CheckCircle } from 'lucide-react';
 
 interface BookingFormProps {
   customerName: string;
@@ -34,6 +34,9 @@ interface BookingFormProps {
   setPromoCode?: (code: string) => void;
   onFormValidationFail: (msg: string) => void;
   onOpenPhoneAuth?: () => void;
+  isAsPerPriceTable?: boolean;
+  setIsAsPerPriceTable?: (val: boolean) => void;
+  onOpenPriceTable?: () => void;
 }
 
 export const BookingForm: React.FC<BookingFormProps> = ({
@@ -64,7 +67,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
   promoCode = 'GOILAI10',
   setPromoCode,
   onFormValidationFail,
-  onOpenPhoneAuth
+  onOpenPhoneAuth,
+  isAsPerPriceTable = false,
+  setIsAsPerPriceTable,
+  onOpenPriceTable
 }) => {
   const { t } = useLanguage();
   const [pickupInput, setPickupInput] = useState(pickup?.address || '');
@@ -529,6 +535,32 @@ export const BookingForm: React.FC<BookingFormProps> = ({
           <span>{t.form.secRoute}</span>
         </h3>
 
+        {/* Banner Đặt xe đi tỉnh, đường dài */}
+        <div className="p-3.5 bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-400 rounded-xl shadow-xs space-y-2 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5 flex-1">
+              <div className="w-8 h-8 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-xs mt-0.5 sm:mt-0">
+                <PhoneCall className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-amber-950 uppercase leading-snug tracking-wide">
+                  QUÝ KHÁCH CẦN ĐẶT XE ĐI TỈNH, ĐƯỜNG DÀI VUI LÒNG LIÊN HỆ TRỰC TIẾP HOTLINE ĐỂ ĐƯỢC HỖ TRỢ TƯ VẤN GIÁ TỐT NHẤT
+                </p>
+                <p className="text-[11px] text-slate-600 font-medium mt-0.5">
+                  Báo giá trọn gói cạnh tranh • Hotline 24/7: <strong className="text-amber-900">0877.683.536</strong>
+                </p>
+              </div>
+            </div>
+            <a
+              href="tel:0877683536"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-xs sm:text-sm rounded-xl border border-amber-500 shadow-sm transition-all cursor-pointer shrink-0"
+            >
+              <PhoneCall className="w-4 h-4 fill-slate-950" />
+              <span>GỌI NGAY</span>
+            </a>
+          </div>
+        </div>
+
         {/* Pickup Address Field */}
         <div className="relative">
           <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
@@ -645,40 +677,137 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         {/* Destination Address Field */}
         <div className="relative">
           <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
-            <label className="block text-xs font-semibold text-slate-700">
-              {t.form.destLabel} <span className="text-rose-500">*</span>
+            <label className="block text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+              <span>{t.form.destLabel}</span>
+              <span className="text-amber-800 font-bold text-[11px] bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded-md">
+                (Để trống nếu đi nhiều điểm / ĐI THEO BẢNG GIÁ)
+              </span>
             </label>
 
-            {destInput && destInput.trim().length > 3 && (
-              <button
-                type="button"
-                onClick={() => handleOpenSaveFavorite(destination || { address: destInput, lat: 21.0285, lng: 105.8542 }, 'dest')}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-900 hover:text-rose-950 bg-rose-100 hover:bg-rose-200 px-2.5 py-1 rounded-lg border border-rose-300 transition-all cursor-pointer shadow-2xs active:scale-95"
-                title="Lưu điểm đến này vào danh sách Yêu thích"
-              >
-                <Star className="w-3.5 h-3.5 text-rose-600 fill-rose-400" />
-                <span>Lưu Yêu thích</span>
-              </button>
-            )}
+            <div className="flex items-center gap-1.5">
+              {onOpenPriceTable && (
+                <button
+                  type="button"
+                  onClick={onOpenPriceTable}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 hover:text-amber-950 bg-amber-200/80 hover:bg-amber-300 px-2.5 py-1 rounded-lg border border-amber-300 transition-all cursor-pointer shadow-2xs active:scale-95"
+                  title="Xem BẢNG GIÁ niêm yết"
+                >
+                  <FileText className="w-3.5 h-3.5 text-amber-700" />
+                  <span>BẢNG GIÁ</span>
+                </button>
+              )}
+
+              {destInput && destInput.trim().length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenSaveFavorite(destination || { address: destInput, lat: 21.0285, lng: 105.8542 }, 'dest')}
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-900 hover:text-rose-950 bg-rose-100 hover:bg-rose-200 px-2.5 py-1 rounded-lg border border-rose-300 transition-all cursor-pointer shadow-2xs active:scale-95"
+                  title="Lưu điểm đến này vào danh sách Yêu thích"
+                >
+                  <Star className="w-3.5 h-3.5 text-rose-600 fill-rose-400" />
+                  <span>Lưu Yêu thích</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="relative">
             <span className="w-3 h-3 rounded-full bg-rose-500 absolute left-3.5 top-3.5 border-2 border-white shadow-sm"></span>
             <input
               type="text"
-              placeholder={t.form.destPlaceholder}
+              placeholder={isAsPerPriceTable || !destInput ? "Đi nhiều điểm / Chưa có điểm đến cụ thể (ĐI THEO BẢNG GIÁ)" : t.form.destPlaceholder}
               value={destInput}
               onChange={(e) => {
-                setDestInput(e.target.value);
+                const val = e.target.value;
+                setDestInput(val);
                 setDestDropdownOpen(true);
+                if (val.trim().length > 0 && setIsAsPerPriceTable) {
+                  setIsAsPerPriceTable(false);
+                }
               }}
               onFocus={() => setDestDropdownOpen(true)}
               onBlur={handleDestBlur}
-              className="w-full bg-slate-50 border border-slate-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all"
+              className={`w-full bg-slate-50 border rounded-xl py-2.5 pl-9 pr-10 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all ${
+                isAsPerPriceTable || !destInput.trim() 
+                  ? 'border-amber-400 bg-amber-50/40 focus:border-amber-500 focus:ring-1 focus:ring-amber-500'
+                  : 'border-slate-300 focus:border-rose-500 focus:ring-1 focus:ring-rose-500'
+              }`}
             />
             {isSearchingDest && (
               <div className="absolute right-3 top-3">
                 <div className="w-4 h-4 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+            {destInput && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDestInput('');
+                  setDestination(null);
+                  if (setIsAsPerPriceTable) setIsAsPerPriceTable(true);
+                }}
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                title="Xóa điểm đến để chọn ĐI THEO BẢNG GIÁ"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Special Toggle / State for 'ĐI THEO BẢNG GIÁ' (When empty or explicitly chosen) */}
+          <div className="mt-2 p-3 bg-gradient-to-r from-amber-50 via-amber-100/50 to-orange-50 border-2 border-amber-400 rounded-xl space-y-2 text-xs text-slate-800 animate-fadeIn shadow-xs">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <label className="inline-flex items-center gap-2 cursor-pointer font-bold text-amber-950 text-xs">
+                <input
+                  type="checkbox"
+                  checked={isAsPerPriceTable || !destInput.trim()}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    if (setIsAsPerPriceTable) setIsAsPerPriceTable(checked);
+                    if (checked) {
+                      setDestInput('');
+                      setDestination(null);
+                    }
+                  }}
+                  className="w-4.5 h-4.5 accent-amber-500 rounded cursor-pointer"
+                />
+                <span className="flex items-center gap-1.5 flex-wrap">
+                  <span>Đi nhiều điểm / Chưa có điểm đến —</span>
+                  <span className="bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-md font-black tracking-wider text-[11px] uppercase shadow-2xs border border-amber-500">
+                    ĐI THEO BẢNG GIÁ
+                  </span>
+                </span>
+              </label>
+
+              {onOpenPriceTable && (
+                <button
+                  type="button"
+                  onClick={onOpenPriceTable}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg text-xs transition-all shadow-xs cursor-pointer active:scale-95"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Xem BẢNG GIÁ</span>
+                </button>
+              )}
+            </div>
+
+            {(isAsPerPriceTable || !destInput.trim()) && (
+              <div className="pt-2 border-t border-amber-300/80 flex items-start sm:items-center justify-between flex-wrap gap-2 text-[11px]">
+                <div className="space-y-0.5">
+                  <p className="text-amber-950 font-bold flex items-center gap-1.5 flex-wrap">
+                    <span>✨ Quý khách đang chọn:</span>
+                    <span className="bg-amber-400 text-slate-950 px-2 py-0.5 rounded font-black tracking-wider uppercase border border-amber-500 shadow-2xs">
+                      ĐI THEO BẢNG GIÁ
+                    </span>
+                  </p>
+                  <p className="text-slate-600">
+                    Cước phí sẽ tính minh bạch theo số km, thời gian thực tế và phí chờ 40.000đ/30 phút khi kết thúc.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded-lg font-black text-xs shrink-0 shadow-2xs">
+                  <Tag className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>MÃ VOUCHER: DGO10 (-10%)</span>
+                </div>
               </div>
             )}
           </div>
@@ -1231,60 +1360,109 @@ export const BookingForm: React.FC<BookingFormProps> = ({
         {/* Live Distance & Estimated Total Price Banner (Google Maps Distance Matrix / Directions API) */}
         {priceBreakdown && (
           <div className="bg-amber-50/90 border border-amber-300 p-4 rounded-xl shadow-sm transition-all animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-amber-700" />
-                  <span className="text-xs font-black uppercase text-amber-800 tracking-wider">
-                    {t.form.liveTotalTitle} ({vehicleType})
-                  </span>
-                  {isCalculatingRoute && (
-                    <span className="flex items-center gap-1 text-[11px] text-amber-700 font-normal">
-                      <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
-                      {t.form.calculatingRoute}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-700 flex items-center gap-1.5">
-                  <Route className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  {priceBreakdown.isHourly ? (
-                    <span>{t.form.hourlyRentalFor} <strong>{priceBreakdown.hourlyHours}h</strong></span>
-                  ) : priceBreakdown.distanceKm > 0 ? (
-                    <span>{t.form.roadDistance} <strong className="text-slate-900">{priceBreakdown.distanceKm} km</strong> (~ <strong className="text-emerald-700">{priceBreakdown.estimatedMinutes} {t.form.estimatedDuration}</strong>)</span>
-                  ) : (
-                    <span className="text-slate-500">{t.form.enterAddressPrompt}</span>
-                  )}
-                </p>
-              </div>
-
-              <div className="text-left sm:text-right shrink-0">
-                {priceBreakdown.discountAmount > 0 ? (
-                  <>
-                    <div className="text-[11px] text-slate-500 flex items-center justify-start sm:justify-end gap-1">
-                      <span className="line-through decoration-slate-400 font-medium">{PriceCalculator.formatCurrency(priceBreakdown.originalPrice)}</span>
-                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.2 rounded border border-emerald-300">
-                        Mã {priceBreakdown.promoCode}
+            {priceBreakdown.isAsPerPriceTable ? (
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-amber-200/80 pb-2.5">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Calculator className="w-4 h-4 text-amber-700" />
+                      <span className="text-xs font-black uppercase text-amber-950 tracking-wider bg-amber-200/90 px-2 py-0.5 rounded-md border border-amber-400">
+                        CHUYẾN ĐI THEO BẢNG GIÁ NIÊM YẾT ({vehicleType})
                       </span>
                     </div>
-                    <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
-                      {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
-                    </span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">
-                      Đã giảm {PriceCalculator.formatCurrency(priceBreakdown.discountAmount)} (Mã {priceBreakdown.promoCode})
+                    <p className="text-[11px] text-slate-700 flex items-center gap-1.5">
+                      <Route className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                      <span>Lộ trình: Đi nhiều điểm / <strong className="text-amber-950 font-black uppercase">ĐI THEO BẢNG GIÁ</strong></span>
                     </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
-                      {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
-                    </span>
-                    <p className="text-[10px] text-slate-500 font-normal">
-                      Nhập mã voucher để nhận ưu đãi
+                  </div>
+
+                  {onOpenPriceTable && (
+                    <button
+                      type="button"
+                      onClick={onOpenPriceTable}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg text-xs transition-all shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-center"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>Xem BẢNG GIÁ</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white/80 p-3 rounded-xl border border-amber-200">
+                  <div>
+                    <p className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Giá cước tính theo BẢNG GIÁ khi kết thúc chuyến đi</span>
                     </p>
-                  </>
-                )}
+                  </div>
+
+                  <div className="inline-flex items-center gap-2 bg-emerald-600 text-white px-3 py-1.5 rounded-lg shadow-sm shrink-0">
+                    <Tag className="w-4 h-4" />
+                    <div>
+                      <span className="text-[10px] font-medium block leading-none">Mã voucher giảm 10%</span>
+                      <span className="text-sm font-black tracking-wider leading-none">DGO10</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Calculator className="w-4 h-4 text-amber-700" />
+                    <span className="text-xs font-black uppercase text-amber-800 tracking-wider">
+                      {t.form.liveTotalTitle} ({vehicleType})
+                    </span>
+                    {isCalculatingRoute && (
+                      <span className="flex items-center gap-1 text-[11px] text-amber-700 font-normal">
+                        <span className="w-3 h-3 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                        {t.form.calculatingRoute}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-700 flex items-center gap-1.5">
+                    <Route className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    {priceBreakdown.isDaily ? (
+                      <span>Thuê theo ngày: <strong>{priceBreakdown.dailyDays} ngày (24h)</strong></span>
+                    ) : priceBreakdown.isHourly ? (
+                      <span>{t.form.hourlyRentalFor} <strong>{priceBreakdown.hourlyHours}h</strong></span>
+                    ) : priceBreakdown.distanceKm > 0 ? (
+                      <span>{t.form.roadDistance} <strong className="text-slate-900">{priceBreakdown.distanceKm} km</strong> (~ <strong className="text-emerald-700">{priceBreakdown.estimatedMinutes} {t.form.estimatedDuration}</strong>)</span>
+                    ) : (
+                      <span className="text-slate-500">{t.form.enterAddressPrompt}</span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="text-left sm:text-right shrink-0">
+                  {priceBreakdown.discountAmount > 0 ? (
+                    <>
+                      <div className="text-[11px] text-slate-500 flex items-center justify-start sm:justify-end gap-1">
+                        <span className="line-through decoration-slate-400 font-medium">{PriceCalculator.formatCurrency(priceBreakdown.originalPrice)}</span>
+                        <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-1.5 py-0.2 rounded border border-emerald-300">
+                          Mã {priceBreakdown.promoCode}
+                        </span>
+                      </div>
+                      <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
+                        {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
+                      </span>
+                      <p className="text-[10px] text-emerald-700 font-semibold">
+                        Đã giảm {PriceCalculator.formatCurrency(priceBreakdown.discountAmount)} (Mã {priceBreakdown.promoCode})
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">
+                        {PriceCalculator.formatCurrency(priceBreakdown.totalPrice)}
+                      </span>
+                      <p className="text-[10px] text-slate-500 font-normal">
+                        Nhập mã voucher để nhận ưu đãi
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
