@@ -247,7 +247,7 @@ export const CostSummaryCard: React.FC<CostSummaryCardProps> = ({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-black text-amber-950 uppercase leading-snug tracking-wide">
-              QUÝ KHÁCH CẦN ĐẶT XE ĐI TỈNH, ĐƯỜNG DÀI VUI LÒNG LIÊN HỆ TRỰC TIẾP HOTLINE ĐỂ ĐƯỢC HỖ TRỢ TƯ VẤN GIÁ TỐT NHẤT
+              QUÝ KHÁCH CẦN ĐẶT TÀI XẾ ĐI TỈNH, ĐƯỜNG DÀI VUI LÒNG LIÊN HỆ TRỰC TIẾP ĐỂ ĐƯỢC HỖ TRỢ TƯ VẤN GIÁ TỐT NHẤT
             </p>
             <p className="text-[11px] text-slate-600 font-semibold mt-1">
               Tư vấn trực tiếp 24/7 • Hotline: <span className="font-bold text-amber-900">0877.683.536</span>

@@ -16,8 +16,8 @@ export const sendTelegramNotification = async (bookingData: {
   totalOrdersCount?: number;
   isAsPerPriceTable?: boolean;
 }) => {
-  const token = "8182785112:AAEO1WlI59qkaCDR1OuO00z2No6cTwk4acE".trim();
-  const rawChatId = "-1003936078147".trim();
+  const token = "8963251201:AAHXVBeXfJERRPnVGhJ9hQwstWcVoF28Xro".trim();
+  const rawChatId = "-5336011498".trim();
 
   const isPriceTable = Boolean(bookingData.isAsPerPriceTable || (typeof bookingData.totalPrice === 'number' && bookingData.totalPrice === 0));
 
@@ -94,6 +94,17 @@ export const sendTelegramNotification = async (bookingData: {
   const startsWithAt = rawChatId.startsWith('@');
 
   const chatCandidates: string[] = [rawChatId];
+  if (rawChatId.startsWith('-') && !rawChatId.startsWith('-100')) {
+    const supergroupId = `-100${rawChatId.slice(1)}`;
+    if (!chatCandidates.includes(supergroupId)) {
+      chatCandidates.push(supergroupId);
+    }
+  } else if (rawChatId.startsWith('-100')) {
+    const normalGroupId = `-${rawChatId.slice(4)}`;
+    if (!chatCandidates.includes(normalGroupId)) {
+      chatCandidates.push(normalGroupId);
+    }
+  }
   if (!isNumeric && !startsWithAt && rawChatId.length > 0) {
     const handle = `@${rawChatId.replace(/\s+/g, '')}`;
     if (!chatCandidates.includes(handle)) {

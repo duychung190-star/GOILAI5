@@ -291,7 +291,7 @@ export const PriceTableModal: React.FC<PriceTableModalProps> = ({ isOpen, onClos
                 <div className="p-3 bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-400/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div className="space-y-0.5">
                     <p className="font-black text-amber-300 uppercase leading-snug">
-                      QUÝ KHÁCH CẦN ĐẶT XE ĐI TỈNH, ĐƯỜNG DÀI VUI LÒNG LIÊN HỆ TRỰC TIẾP HOTLINE ĐỂ ĐƯỢC HỖ TRỢ TƯ VẤN GIÁ TỐT NHẤT
+                      QUÝ KHÁCH CẦN ĐẶT TÀI XẾ ĐI TỈNH, ĐƯỜNG DÀI VUI LÒNG LIÊN HỆ TRỰC TIẾP ĐỂ ĐƯỢC HỖ TRỢ TƯ VẤN GIÁ TỐT NHẤT
                     </p>
                     <p className="text-slate-300 text-[11px]">
                       Hỗ trợ thỏa thuận giá trọn gói ưu đãi nhất theo từng cung đường thực tế • Hotline: <span className="font-bold text-amber-400">0877.683.536</span>

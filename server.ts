@@ -14,8 +14,8 @@ app.use(express.json());
 const bookingsStore: any[] = [];
 
 // Telegram Bot details
-const TELEGRAM_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || "8182785112:AAEO1WlI59qkaCDR1OuO00z2No6cTwk4acE").trim();
-const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || "-1003936078147").trim();
+const TELEGRAM_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || "8963251201:AAHXVBeXfJERRPnVGhJ9hQwstWcVoF28Xro").trim();
+const TELEGRAM_CHAT_ID = (process.env.TELEGRAM_CHAT_ID || "-5336011498").trim();
 
 // Helper to hash passwords securely with salt
 function hashPassword(password: string): string {
@@ -130,6 +130,17 @@ const sendTelegramNotification = async (bookingData: any) => {
     const startsWithAt = targetChatId.startsWith('@');
 
     const chatCandidates: string[] = [targetChatId];
+    if (targetChatId.startsWith('-') && !targetChatId.startsWith('-100')) {
+      const supergroupId = `-100${targetChatId.slice(1)}`;
+      if (!chatCandidates.includes(supergroupId)) {
+        chatCandidates.push(supergroupId);
+      }
+    } else if (targetChatId.startsWith('-100')) {
+      const normalGroupId = `-${targetChatId.slice(4)}`;
+      if (!chatCandidates.includes(normalGroupId)) {
+        chatCandidates.push(normalGroupId);
+      }
+    }
     if (!isNumeric && !startsWithAt && targetChatId.trim().length > 0) {
       // Add candidate with @ prefix if it's a channel/username
       const channelHandle = `@${targetChatId.replace(/\s+/g, '')}`;

@@ -544,7 +544,7 @@ export const BookingForm: React.FC<BookingFormProps> = ({
               </div>
               <div>
                 <p className="text-xs font-black text-amber-950 uppercase leading-snug tracking-wide">
-                  QUÝ KHÁCH CẦN ĐẶT XE ĐI TỈNH, ĐƯỜNG DÀI VUI LÒNG LIÊN HỆ TRỰC TIẾP HOTLINE ĐỂ ĐƯỢC HỖ TRỢ TƯ VẤN GIÁ TỐT NHẤT
+                  QUÝ KHÁCH CẦN ĐẶT TÀI XẾ ĐI TỈNH, ĐƯỜNG DÀI VUI LÒNG LIÊN HỆ TRỰC TIẾP ĐỂ ĐƯỢC HỖ TRỢ TƯ VẤN GIÁ TỐT NHẤT
                 </p>
                 <p className="text-[11px] text-slate-600 font-medium mt-0.5">
                   Báo giá trọn gói cạnh tranh • Hotline 24/7: <strong className="text-amber-900">0877.683.536</strong>
