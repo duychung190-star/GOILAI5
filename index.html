@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="vi">
   <head>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TFPZQHH5');</script>
+    <!-- End Google Tag Manager -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#020617" />
@@ -17,8 +24,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Leaflet CSS for Map rendering -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- Schema JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "AutoRental",
+          "@id": "https://goilai247.com/#business",
+          "name": "D.GO - Gọi Lái 247",
+          "alternateName": ["D.GO Lái Xe Hộ", "Gọi Lái 247", "D.GO"],
+          "url": "https://goilai247.com",
+          "telephone": "+84877683536",
+          "priceRange": "150.000đ - 500.000đ",
+          "areaServed": ["Bắc Ninh", "Hà Nội"]
+        },
+        {
+          "@type": "Service",
+          "name": "Dịch vụ tài xế lái xe hộ ô tô",
+          "provider": { "@id": "https://goilai247.com/#business" },
+          "description": "Cung cấp tài xế lái xe ô tô chuyên nghiệp đưa người và xe về tận nhà an toàn sau tiệc."
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-slate-900 text-slate-100 font-sans selection:bg-amber-500 selection:text-slate-950">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TFPZQHH5"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
