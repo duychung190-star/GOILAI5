@@ -35,7 +35,7 @@ import { getDirectionsGoong, reverseGeocodeGoong } from './utils/goong';
 import { sendTelegramNotification } from './utils/telegram';
 import { getAccessToken } from './utils/googleAuth';
 import { appendBookingToSheet, SPREADSHEET_KEY } from './utils/googleSheets';
-import { AlertTriangle, MapPin, Navigation, Info, PhoneCall } from 'lucide-react';
+import { AlertTriangle, MapPin, Navigation, Info, PhoneCall, Facebook, Music2 } from 'lucide-react';
 import dgoLogoImg from './assets/images/dgo_app_logo_1785380889422.jpg';
 
 export default function App() {
@@ -739,6 +739,31 @@ export default function App() {
         <p className="max-w-xl mx-auto text-slate-600 font-medium">
           Dịch vụ lái xe hộ an toàn - Uy tín - Phục vụ 24/7 trên toàn quốc
         </p>
+
+        {/* Social Media Links */}
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+          <a
+            href="https://www.facebook.com/share/1FmeqHJnNZ/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs hover:shadow-md active:scale-95 transition-all cursor-pointer"
+            title="Fanpage Facebook D.GO"
+          >
+            <Facebook className="w-4 h-4 fill-white" />
+            <span>Fanpage Facebook</span>
+          </a>
+
+          <a
+            href="https://tiktok.com/@goilai247"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs border border-slate-700 shadow-xs hover:shadow-md active:scale-95 transition-all cursor-pointer"
+            title="Kênh TikTok @goilai247"
+          >
+            <Music2 className="w-4 h-4 text-rose-400" />
+            <span>TikTok @goilai247</span>
+          </a>
+        </div>
 
         <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500">
           <span>© {new Date().getFullYear()} D.GO 247. Bảo lưu mọi bản quyền.</span>
